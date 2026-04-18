@@ -1,76 +1,170 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, Image, ActivityIndicator, Dimensions } from 'react-native';
 import { COLORS } from '../constants';
-import { HoloCard } from '../types/hololive';
 
-interface CardDetailScreenProps {
-  route: {
-    params: {
-      card: HoloCard;
-    };
-  };
-}
+const { width } = Dimensions.get('window');
+const imageUrl = 'https://tetsunekko.github.io/holotcgtw/cards/';
 
-export default function CardDetailScreen({ route }: CardDetailScreenProps) {
+const gradeLabels: Record<string, string> = {
+  debut: 'Debut',
+  '1st': '1st',
+  '2nd': '2nd',
+  buzz: 'Buzz',
+  spot: 'Spot',
+};
+
+const rarityColors: Record<string, string> = {
+  N: '#6b7280',
+  C: '#6b7280',
+  U: '#10b981',
+  R: '#3b82f6',
+  SR: '#f59e0b',
+};
+
+const COLOR_MAP: Record<string, string> = {
+  'white': '白色',
+  'blue': '藍色',
+  'green': '綠色',
+  'red': '紅色',
+  'purple': '紫色',
+  'yellow': '黃色',
+  'colorless': '無色',
+};
+
+const SERIES_NAMES: Record<string, string> = {
+  'hBP01': 'ブルーミングレディアンス',
+  'hBP02': 'クインテットスペクトラム',
+  'hBP03': 'サバイバル・オブ・ザ・フェイビアス',
+  'hSD01': 'スターターデッキ ときのそら',
+  'hSD02': 'スターターデッキ 白上フブキ',
+  'hSD03': 'スターターデッキ 湊あくあ',
+  'hSD04': 'スターターデッキ 天音かなた',
+  'hSD05': 'スターターデッキ ReGLOSS',
+  'hSD06': 'スターターデッキ 風真いろは',
+  'hSD07': 'スターターデッキ 癒月ちょこ',
+  'hPR': 'Promo',
+  'hBD24': 'Bandai Distribution 2024',
+  'hY': 'Yokohama Promo',
+};
+
+export default function CardDetailScreen({ route, navigation }: any) {
   const { card } = route.params;
+
+  if (!card) {
+    return (
+      <View style={styles.center}>
+        <Text style={{ color: COLORS.text }}>無法載入卡牌資訊</Text>
+      </View>
+    );
+  }
+
+  const imgFolder = card.imageFolder || `${card.series[0]}/`;
+  const cardImg = card.imageUrl || `${imageUrl}${imgFolder}${card.cardNumber}_C.png`;
+
+  const colorNames = (Array.isArray(card.color) ? card.color : [card.color].filter(Boolean))
+    .map((c: string) => COLOR_MAP[c] || c);
+
+  const seriesNames = (card.series || []).map((s: string) => SERIES_NAMES[s] || s);
+
+  const rarity = card.grade === 'debut' ? 'C' :
+    card.grade === '1st' ? 'U' :
+      card.grade === '2nd' ? 'R' :
+        card.grade === 'buzz' ? 'SR' : 'C';
+
+  const openUrl = (url: string) => Linking.openURL(url);
 
   return (
     <ScrollView style={styles.container}>
-      {/* 卡牌頭像區域 */}
-      <View style={styles.header}>
-        <View style={styles.cardNumberBadge}>
-          <Text style={styles.cardNumberText}>{card.cardNumber}</Text>
-        </View>
-        <View style={[styles.rarityBadge, styles[`rarity${card.rarity}`]]}>
-          <Text style={styles.rarityText}>{card.rarity}</Text>
-        </View>
+      {/* 卡牌圖片 */}
+      <View style={styles.imageWrap}>
+        <Image
+          source={{ uri: cardImg }}
+          style={styles.cardImage}
+          resizeMode="contain"
+        />
       </View>
 
-      {/* 成員資訊 */}
-      <View style={styles.infoSection}>
-        <Text style={styles.memberName}>{card.member}</Text>
-        <Text style={styles.memberNameJp}>{card.memberJp}</Text>
-        <Text style={styles.series}>{card.series}</Text>
+      {/* 基本資訊 */}
+      <View style={styles.section}>
+        <View style={styles.headerRow}>
+          <Text style={styles.cardNumber}>{card.cardNumber}</Text>
+          <View style={[styles.rarityBadge, { backgroundColor: rarityColors[rarity] }]}>
+            <Text style={styles.rarityText}>{gradeLabels[card.grade] || card.grade}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.cardName}>{card.name}</Text>
+
+        <View style={styles.metaRow}>
+          <Text style={styles.metaLabel}>類型：</Text>
+          <Text style={styles.metaValue}>{card.type === 'Member' ? '成員' : card.type === 'Oshi' ? '推し' : card.type}</Text>
+        </View>
+
+        <View style={styles.metaRow}>
+          <Text style={styles.metaLabel}>顏色：</Text>
+          <Text style={styles.metaValue}>{colorNames.join(' / ') || '-'}</Text>
+        </View>
+
+        <View style={styles.metaRow}>
+          <Text style={styles.metaLabel}>系列：</Text>
+          <Text style={styles.metaValue}>{seriesNames.join(' / ') || '-'}</Text>
+        </View>
+
+        {card.tags && card.tags.length > 0 && (
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>Tag：</Text>
+            <Text style={styles.metaValue}>{card.tags.join(' / ')}</Text>
+          </View>
+        )}
+
+        {card.effectType && (
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>效果類型：</Text>
+            <Text style={styles.metaValue}>{card.effectType}</Text>
+          </View>
+        )}
       </View>
 
-      {/* 描述 */}
-      {card.description && (
-        <View style={styles.descriptionSection}>
-          <Text style={styles.sectionTitle}>簡介</Text>
-          <Text style={styles.description}>{card.description}</Text>
+      {/* 搜尋關鍵字 */}
+      {card.searchKeywords && card.searchKeywords.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>搜尋關鍵字</Text>
+          <View style={styles.tagWrap}>
+            {card.searchKeywords.map((kw: string, i: number) => (
+              <View key={i} style={styles.tag}>
+                <Text style={styles.tagText}>{kw}</Text>
+              </View>
+            ))}
+          </View>
         </View>
       )}
 
-      {/* 價格資訊 */}
-      {card.prices && card.prices.length > 0 && (
-        <View style={styles.priceSection}>
-          <Text style={styles.sectionTitle}>💰 價格比較</Text>
-          {card.prices.map((price, index) => (
-            <View key={index} style={styles.priceItem}>
-              <View style={styles.priceHeader}>
-                <Text style={styles.priceSource}>{price.source}</Text>
-                <Text style={styles.priceValue}>
-                  {price.currency === 'TWD' ? 'NT$' : '¥'} {price.price.toLocaleString()}
-                </Text>
-              </View>
-              <Text style={styles.priceCondition}>
-                條件：{price.condition} | 庫存：{price.inStock ? '有' : '缺貨'}
-              </Text>
-              <Text style={styles.priceUrl} numberOfLines={1}>
-                {price.url}
-              </Text>
-            </View>
+      {/* 卡牌效果 */}
+      {card.versions && card.versions.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>卡牌效果</Text>
+          {card.searchKeywords.filter((kw: string, i: number) => i >= 3).map((kw: string, i: number) => (
+            <Text key={i} style={styles.effectText}>"{kw}"</Text>
           ))}
         </View>
       )}
 
-      {/* 發行日期 */}
-      {card.releaseDate && (
-        <View style={styles.metaSection}>
-          <Text style={styles.metaLabel}>發行日期</Text>
-          <Text style={styles.metaValue}>{card.releaseDate}</Text>
-        </View>
-      )}
+      {/* 外部連結 */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>外部連結</Text>
+
+        <TouchableOpacity style={styles.linkButton} onPress={() => openUrl(card.officialUrl)}>
+          <Text style={styles.linkText}>🏛️ 官方卡表搜尋</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.linkButton} onPress={() => openUrl(card.yuyuUrl)}>
+          <Text style={styles.linkText}>🏪 遊々亭價格查詢</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.linkButton} onPress={() => openUrl(card.carousellUrl)}>
+          <Text style={styles.linkText}>🔄 Carousell 二手查詢</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
@@ -80,132 +174,111 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  header: {
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+  },
+  imageWrap: {
+    width: '100%',
+    height: width * 0.6,
+    backgroundColor: COLORS.surfaceLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  cardImage: {
+    width: width * 0.9,
+    height: width * 0.55,
+  },
+  section: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: 30,
+    marginBottom: 10,
   },
-  cardNumberBadge: {
-    backgroundColor: COLORS.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  cardNumberText: {
-    color: COLORS.text,
-    fontSize: 18,
-    fontWeight: 'bold',
+  cardNumber: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+    fontWeight: '700',
   },
   rarityBadge: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 6,
     minWidth: 50,
     alignItems: 'center',
   },
   rarityText: {
     color: COLORS.text,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  rarityN: { backgroundColor: COLORS.rarityN },
-  rarityR: { backgroundColor: COLORS.rarityR },
-  raritySR: { backgroundColor: COLORS.raritySR },
-  rarityUR: { backgroundColor: COLORS.rarityUR },
-  raritySSR: { backgroundColor: COLORS.raritySSR },
-  infoSection: {
-    padding: 20,
-    paddingTop: 0,
-  },
-  memberName: {
-    color: COLORS.text,
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  memberNameJp: {
-    color: COLORS.textSecondary,
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  series: {
-    color: COLORS.primary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  descriptionSection: {
-    padding: 20,
-    backgroundColor: COLORS.surface,
-    marginHorizontal: 20,
-    borderRadius: 12,
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    color: COLORS.text,
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
-  },
-  description: {
-    color: COLORS.textSecondary,
-    fontSize: 15,
-    lineHeight: 24,
-  },
-  priceSection: {
-    padding: 20,
-    paddingTop: 0,
-  },
-  priceItem: {
-    backgroundColor: COLORS.surface,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  priceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  priceSource: {
-    color: COLORS.text,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  priceValue: {
-    color: COLORS.success,
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  priceCondition: {
-    color: COLORS.textSecondary,
     fontSize: 13,
-    marginBottom: 4,
+    fontWeight: '800',
   },
-  priceUrl: {
-    color: COLORS.primary,
-    fontSize: 12,
+  cardName: {
+    color: COLORS.text,
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 14,
   },
-  metaSection: {
+  metaRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    marginBottom: 6,
   },
   metaLabel: {
     color: COLORS.textSecondary,
     fontSize: 14,
+    marginRight: 6,
   },
   metaValue: {
     color: COLORS.text,
     fontSize: 14,
+  },
+  sectionTitle: {
+    color: COLORS.text,
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+  tagWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  tag: {
+    backgroundColor: COLORS.surfaceLight,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  tagText: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+  },
+  effectText: {
+    color: COLORS.text,
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: 8,
+    fontStyle: 'italic',
+  },
+  linkButton: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: 16,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  linkText: {
+    color: COLORS.text,
+    fontSize: 15,
     fontWeight: '600',
   },
 });
