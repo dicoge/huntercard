@@ -15,12 +15,16 @@ export default function SearchScreen({ navigation }: any) {
   const handleSearch = async () => {
     if (!query.trim()) return;
     
-    const trimmedQuery = query.trim().toLowerCase();
+    const trimmedQuery = query.trim();
     
-    // 判斷是否為卡號格式（如 hlo-001）
-    const cardNumberRegex = /^[a-z]{2,4}-\d{3}$/i;
+    // 支援多種卡號格式
+    // hBP01-001, hbp01-001, HBP01-001, hSD01-001
+    const cardNumberRegex = /^[a-zA-Z]{2,4}-?\d{3}$/i;
+    
     if (cardNumberRegex.test(trimmedQuery)) {
-      await search({ cardNumber: trimmedQuery });
+      // 標準化卡號格式
+      const standardized = trimmedQuery.toUpperCase().replace(/^([A-Z]+)(\d+)-?(\d+)$/, '$1$2-$3');
+      await search({ cardNumber: standardized });
     } else {
       // 使用成員名稱或關鍵字搜尋
       await search({ memberName: trimmedQuery, keyword: trimmedQuery });
@@ -37,7 +41,7 @@ export default function SearchScreen({ navigation }: any) {
       <View style={styles.searchBar}>
         <TextInput
           style={styles.input}
-          placeholder="輸入卡號或成員名稱..."
+          placeholder="輸入卡號（如 hBP01-001）或成員名稱..."
           placeholderTextColor={COLORS.textSecondary}
           value={query}
           onChangeText={setQuery}
@@ -69,13 +73,19 @@ export default function SearchScreen({ navigation }: any) {
       {result && !loading && (
         <View style={styles.resultContainer}>
           <Text style={styles.resultInfo}>
-            找到 {result.totalFound} 張卡牌
+            {result.totalFound === 0 
+              ? '找不到符合的卡牌' 
+              : `找到 ${result.totalFound} 張卡牌`}
           </Text>
           {result.totalFound === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyIcon}>🔍</Text>
               <Text style={styles.emptyText}>找不到符合的卡牌</Text>
-              <Text style={styles.emptySubtext}>試試看卡號（如 hlo-001）或成員名稱（如 星街）</Text>
+              <Text style={styles.emptySubtext}>
+                試試看：{'\n'}
+                • 卡號：hBP01-001, hSD01-001{'\n'}
+                • 成員：星街, 時乃空, 白上フブキ
+              </Text>
             </View>
           ) : (
             <FlatList
