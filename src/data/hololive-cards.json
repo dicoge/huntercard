@@ -1,5 +1,5 @@
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "lastUpdated": "2026-04-19",
   "cards": [
     {
@@ -35,7 +35,7 @@
       "memberJp": "星街すいせい",
       "series": "ブースターパック「ブルーミングレディアンス」",
       "seriesCode": "hBP01",
-      "rarity": "R",
+      "rarity": "U",
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-003.png",
       "description": "hololive 二期生，虛擬偶像歌手",
       "releaseDate": "2024-09-20",
@@ -48,7 +48,7 @@
       "memberJp": "白上フブキ",
       "series": "ブースターパック「ブルーミングレディアンス」",
       "seriesCode": "hBP01",
-      "rarity": "R",
+      "rarity": "U",
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-004.png",
       "description": "hololive 二期生，狐娘YouTuber",
       "releaseDate": "2024-09-20",
@@ -61,9 +61,35 @@
       "memberJp": "湊あくあ",
       "series": "ブースターパック「ブルーミングレディアンス」",
       "seriesCode": "hBP01",
-      "rarity": "SR",
+      "rarity": "R",
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-005.png",
       "description": "hololive 二期生，船长",
+      "releaseDate": "2024-09-20",
+      "category": "hololive"
+    },
+    {
+      "id": "hbp01-006",
+      "cardNumber": "hBP01-006",
+      "member": "大神ミオ",
+      "memberJp": "大神ミオ",
+      "series": "ブースターパック「ブルーミングレディアンス」",
+      "seriesCode": "hBP01",
+      "rarity": "C",
+      "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-006.png",
+      "description": "hololive 三期生，狼娘",
+      "releaseDate": "2024-09-20",
+      "category": "hololive"
+    },
+    {
+      "id": "hbp01-007",
+      "cardNumber": "hBP01-007",
+      "member": "不知火フレア",
+      "memberJp": "不知火フレア",
+      "series": "ブースターパック「ブルーミングレディアンス」",
+      "seriesCode": "hBP01",
+      "rarity": "SR",
+      "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-007.png",
+      "description": "hololive 三期生，火焰使者",
       "releaseDate": "2024-09-20",
       "category": "hololive"
     },
@@ -103,6 +129,19 @@
       "rarity": "R",
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP02-001.png",
       "description": "hololive 二期生，鬼娘",
+      "releaseDate": "2024-12-20",
+      "category": "hololive"
+    },
+    {
+      "id": "hbp02-002",
+      "cardNumber": "hBP02-002",
+      "member": "猫又おかゆ",
+      "memberJp": "猫又おかゆ",
+      "series": "ブースターパック「クインテットスペクトラム」",
+      "seriesCode": "hBP02",
+      "rarity": "SR",
+      "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP02-002.png",
+      "description": "hololive 四期生，貓娘",
       "releaseDate": "2024-12-20",
       "category": "hololive"
     }
