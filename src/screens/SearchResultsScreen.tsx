@@ -28,14 +28,14 @@ interface CardResult {
   yuyuUrl: string;
   carousellUrl: string;
   officialUrl: string;
-  matchedKeyword: string;
+  searchKeywords?: string[];
 }
 
 interface ApiResponse {
   query: string;
   total: number;
   results: CardResult[];
-  sources: string[];
+  error?: string;
 }
 
 const rarityColors: Record<string, string> = {
@@ -139,13 +139,6 @@ export default function SearchResultsScreen({ route, navigation }: any) {
 
         {/* 卡牌名稱 */}
         <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
-
-        {/* 匹配關鍵字 */}
-        {item.matchedKeyword !== item.cardNumber && (
-          <Text style={styles.matchedKeyword} numberOfLines={1}>
-            {item.matchedKeyword}
-          </Text>
-        )}
 
         {/* 系列 + 顏色 + 標籤 */}
         <View style={styles.metaRow}>
@@ -311,12 +304,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     marginBottom: 3,
-  },
-  matchedKeyword: {
-    color: COLORS.primary,
-    fontSize: 12,
-    fontWeight: '500',
-    marginBottom: 6,
   },
   metaRow: {
     flexDirection: 'row',
