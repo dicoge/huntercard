@@ -22,6 +22,10 @@ const SERIES_NAMES: Record<string, string> = {
 
 export const config = { runtime: 'edge' };
 
+function safe(v: any, fallback = '') {
+  return v != null ? String(v) : fallback;
+}
+
 export default async function handler(req: Request) {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET' } });
@@ -45,34 +49,49 @@ export default async function handler(req: Request) {
     }
 
     const matched = allCards.filter((c: any) => {
-      const sk = (c.searchKeywords || []).join(' ').toLowerCase();
-      return (
-        c.id.toLowerCase().includes(searchQ) ||
-        c.name.toLowerCase().includes(searchQ) ||
-        sk.includes(searchQ) ||
-        (c.series || []).join(' ').toLowerCase().includes(searchQ) ||
-        (c.tags || []).join(' ').toLowerCase().includes(searchQ)
-      );
+      const id = safe(c.id).toLowerCase();
+      const name = safe(c.name).toLowerCase();
+      const sk = (c.searchKeywords || []).map((k: any) => safe(k).toLowerCase()).join(' ');
+      const series = (c.series || []).map((s: any) => safe(s).toLowerCase()).join(' ');
+      const tags = (c.tags || []).map((t: any) => safe(t).toLowerCase()).join(' ');
+      return id.includes(searchQ) || name.includes(searchQ) || sk.includes(searchQ) || series.includes(searchQ) || tags.includes(searchQ);
     });
 
     const seen = new Set<string>();
-    const unique = matched.filter((c: any) => { if (seen.has(c.id)) return false; seen.add(c.id); return true; });
+    const unique = matched.filter((c: any) => {
+      const id = safe(c.id);
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
 
     const results = unique.map((c: any) => {
-      const ver = (c.versions || ['_C.png'])[0];
-      const colors = Array.isArray(c.color) ? c.color : [c.color].filter(Boolean);
+      const id = safe(c.id);
+      const name = safe(c.name);
+      const imgFolder = safe(c.imageFolder);
+      const ver = (c.versions && c.versions.length > 0) ? c.versions[0] : '_C.png';
+      const rawColors = Array.isArray(c.color) ? c.color : [c.color];
+      const colors = rawColors.filter(Boolean).map(String);
+
       return {
-        id: c.id, name: c.name, type: c.type, grade: c.grade,
-        rarity: GRADE_RARITY[c.grade] || 'C',
-        colors, colorNames: colors.map((x: string) => COLOR_MAP[x] || x),
-        series: c.series || [], seriesNames: (c.series || []).map((s: string) => SERIES_NAMES[s] || s),
-        tags: c.tags || [], cardNumber: c.id,
-        imageFolder: c.imageFolder || '', versions: c.versions || [],
-        searchKeywords: c.searchKeywords || [], effectType: c.effectType || '',
-        imageUrl: `https://tetsunekko.github.io/holotcgtw/cards/${c.imageFolder || ''}${c.id}${ver}`,
-        yuyuUrl: `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(c.id)}`,
-        carousellUrl: `https://www.carousell.com.tw/search/?q=${encodeURIComponent(c.id)}`,
-        officialUrl: `https://hololive-official-cardgame.com/cardlist/cardsearch/?keyword=${encodeURIComponent(c.id)}`,
+        id, name,
+        type: safe(c.type),
+        grade: safe(c.grade),
+        rarity: GRADE_RARITY[safe(c.grade)] || 'C',
+        colors,
+        colorNames: colors.map((x: string) => COLOR_MAP[x] || x),
+        series: (c.series || []).map(String),
+        seriesNames: (c.series || []).map((s: any) => SERIES_NAMES[safe(s)] || safe(s)),
+        tags: (c.tags || []).map(String),
+        cardNumber: id,
+        imageFolder: imgFolder,
+        versions: (c.versions || []).map(String),
+        searchKeywords: (c.searchKeywords || []).map(String),
+        effectType: safe(c.effectType),
+        imageUrl: `https://tetsunekko.github.io/holotcgtw/cards/${imgFolder}${id}${ver}`,
+        yuyuUrl: `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`,
+        carousellUrl: `https://www.carousell.com.tw/search/?q=${encodeURIComponent(id)}`,
+        officialUrl: `https://hololive-official-cardgame.com/cardlist/cardsearch/?keyword=${encodeURIComponent(id)}`,
       };
     });
 
