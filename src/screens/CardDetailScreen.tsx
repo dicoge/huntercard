@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, Dimensions, Platform, Image } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, Dimensions, Platform } from 'react-native';
 import { COLORS } from '../constants';
 
-const { width } = Dimensions.get('window');
-const CARD_IMG_URL = 'https://tetsunekko.github.io/holotcgtw/cards/';
+const { width, height } = Dimensions.get('window');
+const IFRAME_HEIGHT = height * 0.55;
 
 const gradeLabels: Record<string, string> = { debut: 'Debut', '1st': '1st', '2nd': '2nd', buzz: 'Buzz', spot: 'Spot' };
 const typeLabels: Record<string, string> = { Oshi: '推し（主推卡）', Member: '成員', Support: '支援', Energy: '能量' };
@@ -20,8 +20,7 @@ function parseEffects(keywords: string[] = []): string[] {
 
 export default function CardDetailScreen({ route, navigation }: any) {
   const { card } = route.params;
-  const [imageError, setImageError] = useState(false);
-  const [showEmbed, setShowEmbed] = useState(false);
+  const [showInfo, setShowInfo] = useState(!card);
 
   if (!card) return <View style={styles.center}><Text style={{ color: COLORS.text }}>無法載入</Text></View>;
 
@@ -29,6 +28,7 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const allKW = card.searchKeywords || [];
   const nameJP = allKW[0] || '';
   const nameTW = allKW[1] || '';
+  const nameEN = allKW[2] || '';
   const effects = card.effects || parseEffects(allKW);
   const colorNames = card.colorNames || [];
   const rarityKey = card.grade && ['debut', '1st', '2nd', 'buzz'].includes(card.grade) ?
@@ -36,178 +36,172 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const typeLabel = typeLabels[card.type] || card.type || '-';
   const openUrl = (url: string) => Linking.openURL(url);
 
-  const isOshi = card.type === 'Oshi';
-  // 官方卡表 URL
-  const detailUrl = `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`;
-  // holotcgtw 圖片 URL（嘗試）
-  const imgFolder = card.imageFolder || '';
-  const ver = (() => {
-    const versions = card.versions || [];
-    if (card.type === 'Oshi') return versions.find((v: string) => v.includes('_OSR')) || versions[0] || '_OSR.png';
-    return versions.find((v: string) => v.includes('_C.png')) || versions.find((v: string) => v.includes('_U.png')) || versions[0] || '_C.png';
-  })();
-  const cardImageUrl = `${CARD_IMG_URL}${imgFolder}${id}${ver}`;
+  // 官方卡牌搜尋結果頁
+  // 搜尋特定卡號會顯示所有同名卡牌的卡面
+  const officialSearchUrl = `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`;
+
+  const isWeb = Platform.OS === 'web';
+
+  if (showInfo) {
+    return (
+      <ScrollView style={styles.container}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => setShowInfo(false)} activeOpacity={0.7}>
+          <Text style={styles.backBtnText}>← 返回卡牌卡面</Text>
+        </TouchableOpacity>
+
+        <View style={styles.section}>
+          <View style={styles.headerRow}>
+            <Text style={styles.cardNumber}>{id}</Text>
+            <View style={[styles.rarityBadge, { backgroundColor: rarityColors[rarityKey] || '#6b7280' }]}>
+              <Text style={styles.rarityText}>{gradeLabels[card.grade] || card.grade || card.rarity}</Text>
+            </View>
+          </View>
+          <Text style={styles.nameJP}>{nameJP}</Text>
+          {nameTW && <Text style={styles.nameTW}>{nameTW}</Text>}
+          {nameEN && <Text style={styles.nameEN}>{nameEN}</Text>}
+
+          {typeLabel && <View style={styles.metaRow}><Text style={styles.metaLabel}>類型：</Text><Text style={styles.metaValue}>{typeLabel}</Text></View>}
+          {colorNames.length > 0 && <View style={styles.metaRow}><Text style={styles.metaLabel}>顏色：</Text><Text style={styles.metaValue}>{colorNames.join(' / ')}</Text></View>}
+          {(card.seriesNames || []).length > 0 && <View style={styles.metaRow}><Text style={styles.metaLabel}>系列：</Text><Text style={styles.metaValue}>{(card.seriesNames || []).join(' / ')}</Text></View>}
+          {card.tags && card.tags.length > 0 && <View style={styles.metaRow}><Text style={styles.metaLabel}>Tag：</Text><Text style={styles.metaValue}>{card.tags.join(' / ')}</Text></View>}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>卡牌效果</Text>
+          {effects.length > 0 ? (
+            effects.map((kw: string, i: number) => (
+              <View key={i} style={styles.effectBlock}><Text style={styles.effectText}>{kw}</Text></View>
+            ))
+          ) : card.type === 'Oshi' ? (
+            <Text style={styles.noEffectText}>推し卡為牌組「主推卡」代表，本身無效果文本。{'\n'}其能力由牌組中同名成員卡所表現。</Text>
+          ) : (
+            <Text style={styles.noEffectText}>尚未收錄效果文本。</Text>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>搜尋關鍵字</Text>
+          <View style={styles.tagWrap}>
+            {nameJP && <View style={styles.tag}><Text style={styles.tagText}>{nameJP}</Text></View>}
+            {nameTW && <View style={styles.tag}><Text style={styles.tagText}>{nameTW}</Text></View>}
+            {card.tags && card.tags.map((t: string, i: number) => (
+              <View key={`t-${i}`} style={styles.tag}><Text style={styles.tagText}>{t}</Text></View>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>外部連結</Text>
+          <TouchableOpacity style={styles.linkButton} onPress={() => openUrl(officialSearchUrl)}>
+            <Text style={styles.linkText}>🏛️ 官方卡表（看卡面）</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.linkButton} onPress={() => openUrl(card.yuyuUrl || `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`)}>
+            <Text style={styles.linkText}>🏪 遊々亭（價格查詢）</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.linkButton} onPress={() => openUrl(card.carousellUrl || `https://www.carousell.com.tw/search/?q=${encodeURIComponent(id)}`)}>
+            <Text style={styles.linkText}>🔄 Carousell</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    );
+  }
 
   return (
-    <ScrollView style={styles.container}>
-      {/* 卡牌圖片 / 內嵌官方頁面 */}
-      <View style={[styles.imageWrap, { backgroundColor: rarityColors[rarityKey] + '15' }]}>
-        {showEmbed ? (
-          /* 內嵌官方卡牌頁面 */
-          <View style={styles.embedContainer}>
-            {Platform.OS === 'web' ? (
-              <iframe
-                src={detailUrl}
-                style={{ width: '100%', height: '100%', border: 'none' } as any}
-                title={`${id} 卡牌`}
-              />
-            ) : (
-              <View style={styles.webviewFallback}>
-                <Text style={{ color: COLORS.text, fontSize: 14, textAlign: 'center', marginBottom: 12 }}>
-                  手機版無法內嵌，請點擊下方按鈕開啟官方頁面
-                </Text>
-                <TouchableOpacity style={styles.openOfficialBtn} onPress={() => openUrl(detailUrl)}>
-                  <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }}>🏛️ 開啟官方卡表</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-            <TouchableOpacity style={styles.closeEmbed} onPress={() => setShowEmbed(false)}>
-              <Text style={{ color: '#fff', fontSize: 13 }}>✕ 關閉</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          /* 卡片資訊展示區 */
-          <TouchableOpacity
-            style={styles.cardInfoArea}
-            onPress={() => setShowEmbed(true)}
-            activeOpacity={0.7}
-          >
-            {/* 嘗試載入 holotcgtw 圖片 */}
-            {!imageError ? (
-              <View style={styles.tryImageWrap}>
-                <Image
-                  source={{ uri: cardImageUrl }}
-                  style={{ width: '100%', height: '100%' } as any}
-                  resizeMode="contain"
-                  onError={() => setImageError(true)}
-                />
-              </View>
-            ) : (
-              <View style={styles.fallbackInfo}>
-                <Text style={{ fontSize: 24, fontWeight: 'bold', color: COLORS.textSecondary, marginBottom: 8 }}>{id}</Text>
-                <Text style={{ fontSize: 20, fontWeight: 'bold', color: COLORS.text, marginBottom: 4 }}>{nameJP}</Text>
-                {nameTW && <Text style={{ fontSize: 14, color: COLORS.primary, marginBottom: 4 }}>{nameTW}</Text>}
-                <Text style={{ fontSize: 13, color: COLORS.textSecondary, marginBottom: 4 }}>{typeLabel}</Text>
-                {colorNames.length > 0 && <Text style={{ fontSize: 12, color: COLORS.textSecondary, marginBottom: 12 }}>{colorNames.join(' / ')}</Text>}
-              </View>
-            )}
-            
-            {/* 覆蓋文字提示 */}
-            <View style={styles.imageOverlay}>
-              <Text style={{ fontSize: 13, color: COLORS.primary, fontWeight: '500' }}>點擊查看官方卡面 →</Text>
-            </View>
+    <View style={styles.container}>
+      {/* iframe 卡牌卡面（網頁版）or 按鈕（手機版） */}
+      {isWeb ? (
+        /* ===== 網頁版：iframe 嵌入官方 ========= */
+        <View style={styles.iframeWrap}>
+          <iframe
+            src={officialSearchUrl}
+            style={{ width: '100%', height: '100%', border: 'none', borderRadius: 0 } as any}
+            title={`${id} 卡牌`}
+            allow="fullscreen"
+          />
+          {/* 浮動按鈕 */}
+          <TouchableOpacity style={styles.floatBtnInfo} onPress={() => setShowInfo(true)} activeOpacity={0.7}>
+            <Text style={styles.floatBtnText}>📋 卡牌資訊</Text>
           </TouchableOpacity>
-        )}
-      </View>
+          <TouchableOpacity style={styles.floatBtnOpen} onPress={() => openUrl(officialSearchUrl)} activeOpacity={0.7}>
+            <Text style={styles.floatBtnText}>🔗 新分頁</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        /* ===== 手機版：直接引導看卡面 ===== */
+        <View style={[styles.mobileCardArea, { backgroundColor: rarityColors[rarityKey] + '18' }]}>
+          <Text style={styles.mobilePreviewTitle}>{nameJP}</Text>
+          <Text style={styles.mobilePreviewSub}>{id} · {typeLabel}</Text>
+          {nameTW && <Text style={styles.mobilePreviewZh}>{nameTW}</Text>}
 
-      {/* 基本資訊 */}
-      <View style={styles.section}>
-        <View style={styles.headerRow}>
-          <Text style={{ fontSize: 14, fontWeight: '700', color: COLORS.textSecondary }}>{id}</Text>
-          <View style={[styles.rarityBadge, { backgroundColor: rarityColors[rarityKey] || '#6b7280' }]}>
-            <Text style={{ fontSize: 13, fontWeight: '800', color: COLORS.text }}>{gradeLabels[card.grade] || card.grade || card.rarity}</Text>
+          <TouchableOpacity
+            style={styles.mobileOpenBtn}
+            onPress={() => openUrl(officialSearchUrl)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.mobileOpenBtnText}>🏛️ 點擊查看官方卡面</Text>
+          </TouchableOpacity>
+          <Text style={styles.mobileHint}>會用瀏覽器開啟官方卡牌頁面</Text>
+
+          <TouchableOpacity style={styles.floatBtnMobile} onPress={() => setShowInfo(true)} activeOpacity={0.7}>
+            <Text style={styles.floatBtnMobileText}>📋 卡牌資訊</Text>
+          </TouchableOpacity>
+
+          {/* 簡易資訊 */}
+          <View style={styles.mobileQuickInfo}>
+            {colorNames.length > 0 && <Text style={{ ...styles.quickText, color: COLORS.textSecondary }}>{colorNames.join(' / ')}</Text>}
+            {(card.seriesNames || []).length > 0 && <Text style={{ ...styles.quickText, color: COLORS.textSecondary }}>{(card.seriesNames || []).join(' / ')}</Text>}
           </View>
         </View>
-        <Text style={{ fontSize: 26, fontWeight: 'bold', color: COLORS.text, marginBottom: 4 }}>{nameJP}</Text>
-        {nameTW && <Text style={{ fontSize: 16, color: COLORS.primary, marginBottom: 12 }}>{nameTW}</Text>}
-        <View style={styles.metaRow}>
-          <Text style={{ fontSize: 14, color: COLORS.textSecondary, marginRight: 6 }}>類型：</Text>
-          <Text style={{ fontSize: 14, color: COLORS.text }}>{typeLabel}</Text>
-        </View>
-        {colorNames.length > 0 && (
-          <View style={styles.metaRow}>
-            <Text style={{ fontSize: 14, color: COLORS.textSecondary, marginRight: 6 }}>顏色：</Text>
-            <Text style={{ fontSize: 14, color: COLORS.text }}>{colorNames.join(' / ')}</Text>
-          </View>
-        )}
-        {(card.seriesNames || []).length > 0 && (
-          <View style={styles.metaRow}>
-            <Text style={{ fontSize: 14, color: COLORS.textSecondary, marginRight: 6 }}>系列：</Text>
-            <Text style={{ fontSize: 14, color: COLORS.text }}>{(card.seriesNames || []).join(' / ')}</Text>
-          </View>
-        )}
-        {card.tags && card.tags.length > 0 && (
-          <View style={styles.metaRow}>
-            <Text style={{ fontSize: 14, color: COLORS.textSecondary, marginRight: 6 }}>Tag：</Text>
-            <Text style={{ fontSize: 14, color: COLORS.text }}>{card.tags.join(' / ')}</Text>
-          </View>
-        )}
-      </View>
-
-      {/* 卡牌效果 */}
-      <View style={styles.section}>
-        <Text style={{ fontSize: 17, fontWeight: '700', color: COLORS.text, marginBottom: 12 }}>卡牌效果</Text>
-        {effects.length > 0 ? (
-          effects.map((kw: string, i: number) => (
-            <View key={i} style={styles.effectBlock}><Text style={{ fontSize: 14, lineHeight: 24, color: COLORS.text }}>{kw}</Text></View>
-          ))
-        ) : isOshi ? (
-          <Text style={{ fontSize: 14, lineHeight: 22, color: COLORS.textSecondary, fontStyle: 'italic' }}>
-            推し卡為牌組「主推卡」代表，本身無效果文本。{'\n'}
-            其能力由牌組中同名成員卡所表現。
-          </Text>
-        ) : (
-          <Text style={{ fontSize: 14, lineHeight: 22, color: COLORS.textSecondary, fontStyle: 'italic' }}>尚未收錄效果文本。</Text>
-        )}
-      </View>
-
-      {/* 搜尋關鍵字 */}
-      <View style={styles.section}>
-        <Text style={{ fontSize: 17, fontWeight: '700', color: COLORS.text, marginBottom: 12 }}>搜尋關鍵字</Text>
-        <View style={styles.tagWrap}>
-          {nameJP && <View style={styles.tag}><Text style={{ fontSize: 12, color: COLORS.textSecondary }}>{nameJP}</Text></View>}
-          {nameTW && <View style={styles.tag}><Text style={{ fontSize: 12, color: COLORS.textSecondary }}>{nameTW}</Text></View>}
-          {card.tags && card.tags.map((t: string, i: number) => (
-            <View key={`t-${i}`} style={styles.tag}><Text style={{ fontSize: 12, color: COLORS.textSecondary }}>{t}</Text></View>
-          ))}
-        </View>
-      </View>
-
-      {/* 外部連結 */}
-      <View style={styles.section}>
-        <Text style={{ fontSize: 17, fontWeight: '700', color: COLORS.text, marginBottom: 12 }}>外部連結</Text>
-        <TouchableOpacity style={styles.linkButton} onPress={() => openUrl(detailUrl)}>
-          <Text style={{ fontSize: 15, fontWeight: '600', color: COLORS.text }}>🏛️ 官方卡表</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.linkButton} onPress={() => openUrl(card.yuyuUrl || `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`)}>
-          <Text style={{ fontSize: 15, fontWeight: '600', color: COLORS.text }}>🏪 遊々亭（價格查詢）</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.linkButton} onPress={() => openUrl(card.carousellUrl || `https://www.carousell.com.tw/search/?q=${encodeURIComponent(id)}`)}>
-          <Text style={{ fontSize: 15, fontWeight: '600', color: COLORS.text }}>🔄 Carousell</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
-  imageWrap: { width: '100%', minHeight: width * 0.5, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  embedContainer: { width: '100%', height: width * 0.8, position: 'relative' },
-  closeEmbed: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.7)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, zIndex: 10 },
-  cardInfoArea: { width: '100%', minHeight: width * 0.45, padding: 20, justifyContent: 'center', alignItems: 'center', position: 'relative' },
-  tryImageWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%', maxHeight: width * 0.5 },
-  fallbackInfo: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  imageOverlay: { position: 'absolute', bottom: 12, left: 0, right: 0, alignItems: 'center' },
-  webviewFallback: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  openOfficialBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8, marginTop: 8 },
+
+  backBtn: { padding: 16, backgroundColor: COLORS.surfaceLight, justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  backBtnText: { color: COLORS.primary, fontSize: 15, fontWeight: '600' },
+
+  iframeWrap: { width: '100%', height: IFRAME_HEIGHT, position: 'relative', borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  floatBtnInfo: { position: 'absolute', top: 12, right: 80, backgroundColor: 'rgba(0,0,0,0.75)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, zIndex: 10 },
+  floatBtnOpen: { position: 'absolute', top: 12, right: 12, backgroundColor: 'rgba(0,0,0,0.75)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, zIndex: 10 },
+  floatBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+
+  mobileCardArea: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  mobilePreviewTitle: { color: COLORS.text, fontSize: 26, fontWeight: 'bold', marginBottom: 4, textAlign: 'center' },
+  mobilePreviewSub: { color: COLORS.textSecondary, fontSize: 13, marginBottom: 4 },
+  mobilePreviewZh: { color: COLORS.primary, fontSize: 16, marginBottom: 16 },
+  mobileOpenBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 32, paddingVertical: 16, borderRadius: 12 },
+  mobileOpenBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  mobileHint: { color: COLORS.textSecondary, fontSize: 12, marginTop: 8 },
+  floatBtnMobile: { position: 'absolute', top: 12, right: 12, backgroundColor: 'rgba(0,0,0,0.7)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
+  floatBtnMobileText: { color: '#fff', fontSize: 12 },
+  mobileQuickInfo: { marginTop: 16, alignItems: 'center' },
+  quickText: { fontSize: 13, marginBottom: 2 },
+
   section: { padding: 20, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  cardNumber: { color: COLORS.textSecondary, fontSize: 14, fontWeight: '700' },
   rarityBadge: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 6, minWidth: 50, alignItems: 'center' },
+  rarityText: { color: COLORS.text, fontSize: 13, fontWeight: '800' },
+  nameJP: { color: COLORS.text, fontSize: 28, fontWeight: 'bold', marginBottom: 4 },
+  nameTW: { color: COLORS.primary, fontSize: 17, marginBottom: 2 },
+  nameEN: { color: COLORS.textSecondary, fontSize: 13, marginBottom: 12, fontStyle: 'italic' },
   metaRow: { flexDirection: 'row', marginBottom: 6 },
+  metaLabel: { color: COLORS.textSecondary, fontSize: 14, marginRight: 6 },
+  metaValue: { color: COLORS.text, fontSize: 14, flex: 1 },
+
+  sectionTitle: { color: COLORS.text, fontSize: 17, fontWeight: '700', marginBottom: 12 },
   effectBlock: { backgroundColor: COLORS.surfaceLight, padding: 14, borderRadius: 10, marginBottom: 8, borderLeftWidth: 3, borderLeftColor: COLORS.primary },
+  effectText: { color: COLORS.text, fontSize: 14, lineHeight: 24 },
+  noEffectText: { color: COLORS.textSecondary, fontSize: 14, lineHeight: 22, fontStyle: 'italic' },
+
   tagWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tag: { backgroundColor: COLORS.surfaceLight, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
+  tagText: { color: COLORS.textSecondary, fontSize: 12 },
+
   linkButton: { backgroundColor: COLORS.surfaceLight, borderWidth: 1, borderColor: COLORS.border, padding: 16, borderRadius: 10, marginBottom: 8 },
+  linkText: { color: COLORS.text, fontSize: 15, fontWeight: '600' },
 });
