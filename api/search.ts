@@ -22,10 +22,6 @@ const SERIES_NAMES: Record<string, string> = {
 
 export const config = { runtime: 'edge' };
 
-function safe(v: any, fallback = '') {
-  return v != null ? String(v) : fallback;
-}
-
 export default async function handler(req: Request) {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET' } });
@@ -73,11 +69,22 @@ export default async function handler(req: Request) {
       const rawColors = Array.isArray(c.color) ? c.color : [c.color];
       const colors = rawColors.filter(Boolean).map(String);
 
+      // 效果文字：holotcgtw 的 searchKeywords 中，第 4 個及之後是效果說明（前 3 個是 JP/TW/EN 名稱）
+      const effects = (c.searchKeywords || []).filter((kw: string, i: number) => {
+        if (i < 3) return false;
+        const gameTerms = ['給予', '抽', '傷害', '牌組', '手札', '成員', '中央', '藝能', 'HP', '生命', '階段', '回合', '特殊', '公開', '聯動', '擊倒', '剩餘', '持有', '超過', '以下', '以上', '最多', '技能', '備', '附於', '丟擲', '骰子', '奇數', '偶數', '回復', '存檔', '聲援', '舞台'];
+        return gameTerms.some(term => kw.includes(term)) && kw.trim().length > 5;
+      });
+
+      // 判斷是否有成員卡（debut/1st/2nd/buzz）
+      const hasMemberVer = (c.versions || []).some((v: string) => v.includes('_C.png') || v.includes('_U.png') || v.includes('_R.png'));
+      const isMemberCard = c.grade && ['debut', '1st', '2nd', 'buzz'].includes(c.grade);
+
       return {
         id, name,
         type: safe(c.type),
         grade: safe(c.grade),
-        rarity: GRADE_RARITY[safe(c.grade)] || 'C',
+        rarity: GRADE_RARITY[safe(c.grade)] || (isMemberCard ? 'C' : 'N'),
         colors,
         colorNames: colors.map((x: string) => COLOR_MAP[x] || x),
         series: (c.series || []).map(String),
@@ -88,6 +95,9 @@ export default async function handler(req: Request) {
         versions: (c.versions || []).map(String),
         searchKeywords: (c.searchKeywords || []).map(String),
         effectType: safe(c.effectType),
+        effects,
+        hasMemberVer,
+        isMemberCard,
         imageUrl: `https://tetsunekko.github.io/holotcgtw/cards/${imgFolder}${id}${ver}`,
         yuyuUrl: `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`,
         carousellUrl: `https://www.carousell.com.tw/search/?q=${encodeURIComponent(id)}`,
@@ -103,4 +113,8 @@ export default async function handler(req: Request) {
       status: 500, headers: { 'Access-Control-Allow-Origin': '*' },
     });
   }
+}
+
+function safe(v: any, fallback = '') {
+  return v != null ? String(v) : fallback;
 }
