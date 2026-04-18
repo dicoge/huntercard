@@ -49,8 +49,8 @@ export default function SearchScreen({ navigation }: any) {
     const trimmedQuery = query.trim().toUpperCase();
     
     // 判斷搜尋類型
-    const fullCardRegex = /^[A-Z]{2,4}-\\d{3}$/;
-    const seriesRegex = /^[A-Z]{2,4}\\d{2}$/;
+    const fullCardRegex = /^[A-Z]{2,4}-\d{3}$/;
+    const seriesRegex = /^[A-Z]{2,4}\d{2}$/;
     
     setLoading(true);
     setError(null);
