@@ -12,6 +12,16 @@ import {
 } from 'react-native';
 import { COLORS } from '../constants';
 
+const { width } = require('react-native').Dimensions.get('window');
+
+const rarityColors: Record<string, string> = {
+  N: '#6b7280', C: '#6b7280', U: '#10b981', R: '#3b82f6', SR: '#f59e0b',
+};
+
+const gradeLabels: Record<string, string> = {
+  debut: 'Debut', '1st': '1st', '2nd': '2nd', buzz: 'Buzz', spot: 'Spot',
+};
+
 interface CardResult {
   id: string;
   name: string;
@@ -38,21 +48,23 @@ interface ApiResponse {
   error?: string;
 }
 
-const rarityColors: Record<string, string> = {
-  N: '#6b7280',
-  C: '#6b7280',
-  U: '#10b981',
-  R: '#3b82f6',
-  SR: '#f59e0b',
-};
+// Try to find a working image URL by trying multiple versions
+function tryImageUrls(card: CardResult): { url: string; fallback: boolean } {
+  const base = 'https://tetsunekko.github.io/holotcgtw/cards/';
+  const folder = card.imageFolder || '';
+  const id = card.cardNumber || card.id;
+  const versions = card.versions || [];
 
-const gradeLabels: Record<string, string> = {
-  debut: 'Debut',
-  '1st': '1st',
-  '2nd': '2nd',
-  buzz: 'Buzz',
-  spot: 'Spot',
-};
+  // Try to find a _C.png or _U.png (member card) version — these are most likely to exist
+  for (const ver of versions) {
+    if (ver.includes('_C.png') || ver.includes('_U.png')) {
+      return { url: `${base}${folder}${id}${ver}`, fallback: false };
+    }
+  }
+  // If no member version, use first version (could be Oshi promo)
+  const first = versions[0] || '_C.png';
+  return { url: `${base}${folder}${id}${first}`, fallback: false };
+}
 
 export default function SearchResultsScreen({ route, navigation }: any) {
   const { query } = route.params;
@@ -117,60 +129,17 @@ export default function SearchResultsScreen({ route, navigation }: any) {
     );
   }
 
-  const renderCard = ({ item }: { item: CardResult }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => {
-        navigation.navigate('CardDetail', { card: item });
-      }}
-      activeOpacity={0.7}
-    >
-      {/* 左邊稀有度條 */}
-      <View style={[styles.rarityStrip, { backgroundColor: rarityColors[item.rarity] || '#6b7280' }]} />
+  const renderCard = ({ item }: { item: CardResult }) => {
+    const imgResult = tryImageUrls(item);
 
-      <View style={styles.cardContent}>
-        {/* 上方：卡號 + 稀有度 */}
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardNumber}>{item.cardNumber}</Text>
-          <View style={[styles.rarityBadge, { backgroundColor: rarityColors[item.rarity] || '#6b7280' }]}>
-            <Text style={styles.rarityText}>{gradeLabels[item.grade] || item.grade}</Text>
-          </View>
-        </View>
-
-        {/* 卡牌名稱 */}
-        <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
-
-        {/* 系列 + 顏色 + 標籤 */}
-        <View style={styles.metaRow}>
-          {item.seriesNames.map((s, i) => (
-            <Text key={i} style={styles.seriesTag}>{s}</Text>
-          ))}
-          {item.colorNames.length > 0 && (
-            <Text style={styles.colorText}>{item.colorNames.join(' / ')}</Text>
-          )}
-        </View>
-
-        {/* 快速連結 */}
-        <View style={styles.quickLinks}>
-          <TouchableOpacity style={styles.quickLink} onPress={() => openUrl(item.yuyuUrl)}>
-            <Text style={styles.quickLinkText}>遊々亭 →</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.quickLink} onPress={() => openUrl(item.officialUrl)}>
-            <Text style={styles.quickLinkText}>官方卡表 →</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* 卡牌圖片 */}
-      <View style={styles.cardImageWrap}>
-        <Image
-          source={{ uri: item.imageUrl }}
-          style={styles.cardImage}
-          resizeMode="contain"
-        />
-      </View>
-    </TouchableOpacity>
-  );
+    return (
+      <CardListItem
+        card={item}
+        imageUrl={imgResult.url}
+        onPress={() => navigation.navigate('CardDetail', { card: item })}
+      />
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -190,6 +159,73 @@ export default function SearchResultsScreen({ route, navigation }: any) {
         contentContainerStyle={styles.list}
       />
     </View>
+  );
+}
+
+// ──────────────────────────────────────────────
+// Card List Item component (inline to keep things simple)
+// ──────────────────────────────────────────────
+function CardListItem({ card, imageUrl, onPress }: {
+  card: CardResult;
+  imageUrl: string;
+  onPress: () => void;
+}) {
+  const [imgError, setImgError] = React.useState(false);
+
+  return (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      {/* 左邊稀有度條 */}
+      <View style={[styles.rarityStrip, { backgroundColor: rarityColors[card.rarity] || '#6b7280' }]} />
+
+      <View style={styles.cardContent}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardNumber}>{card.cardNumber}</Text>
+          <View style={[styles.rarityBadge, { backgroundColor: rarityColors[card.rarity] || '#6b7280' }]}>
+            <Text style={styles.rarityText}>{gradeLabels[card.grade] || card.grade}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.cardName} numberOfLines={1}>{card.name}</Text>
+
+        <View style={styles.metaRow}>
+          {card.seriesNames.map((s, i) => (
+            <Text key={i} style={styles.seriesTag}>{s}</Text>
+          ))}
+          {card.colorNames.length > 0 && (
+            <Text style={styles.colorText}>{card.colorNames.join(' / ')}</Text>
+          )}
+        </View>
+
+        <View style={styles.quickLinks}>
+          <TouchableOpacity style={styles.quickLink} onPress={() => Linking.openURL(card.yuyuUrl)}>
+            <Text style={styles.quickLinkText}>遊々亭 →</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.quickLink} onPress={() => Linking.openURL(card.officialUrl)}>
+            <Text style={styles.quickLinkText}>官方卡表 →</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* 卡牌圖片 */}
+      <View style={styles.cardImageWrap}>
+        {!imgError ? (
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.cardImage}
+            resizeMode="contain"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <View style={styles.cardImagePlaceholder}>
+            <Text style={styles.cardImagePlaceholderText}>{gradeLabels[card.grade] || card.grade}</Text>
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
   );
 }
 
@@ -352,5 +388,16 @@ const styles = StyleSheet.create({
   cardImage: {
     width: 72,
     height: 100,
+  },
+  cardImagePlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
+  },
+  cardImagePlaceholderText: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });

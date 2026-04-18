@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, Image, ActivityIndicator, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, Image, Dimensions } from 'react-native';
 import { COLORS } from '../constants';
 
 const { width } = Dimensions.get('window');
-const imageUrl = 'https://tetsunekko.github.io/holotcgtw/cards/';
+const CARD_IMG_BASE = 'https://tetsunekko.github.io/holotcgtw/cards/';
 
 const gradeLabels: Record<string, string> = {
   debut: 'Debut',
@@ -14,41 +14,27 @@ const gradeLabels: Record<string, string> = {
 };
 
 const rarityColors: Record<string, string> = {
-  N: '#6b7280',
-  C: '#6b7280',
-  U: '#10b981',
-  R: '#3b82f6',
-  SR: '#f59e0b',
+  N: '#6b7280', C: '#6b7280', U: '#10b981', R: '#3b82f6', SR: '#f59e0b',
 };
 
 const COLOR_MAP: Record<string, string> = {
-  'white': '白色',
-  'blue': '藍色',
-  'green': '綠色',
-  'red': '紅色',
-  'purple': '紫色',
-  'yellow': '黃色',
-  'colorless': '無色',
+  white: '白色', blue: '藍色', green: '綠色', red: '紅色',
+  purple: '紫色', yellow: '黃色', colorless: '無色',
 };
 
 const SERIES_NAMES: Record<string, string> = {
-  'hBP01': 'ブルーミングレディアンス',
-  'hBP02': 'クインテットスペクトラム',
-  'hBP03': 'サバイバル・オブ・ザ・フェイビアス',
-  'hSD01': 'スターターデッキ ときのそら',
-  'hSD02': 'スターターデッキ 白上フブキ',
-  'hSD03': 'スターターデッキ 湊あくあ',
-  'hSD04': 'スターターデッキ 天音かなた',
-  'hSD05': 'スターターデッキ ReGLOSS',
-  'hSD06': 'スターターデッキ 風真いろは',
-  'hSD07': 'スターターデッキ 癒月ちょこ',
-  'hPR': 'Promo',
-  'hBD24': 'Bandai Distribution 2024',
-  'hY': 'Yokohama Promo',
+  hBP01: 'ブルーミングレディアンス', hBP02: 'クインテットスペクトラム',
+  hBP03: 'サバイバル・オブ・ザ・フェイビアス',
+  hSD01: 'スターターデッキ ときのそら', hSD02: 'スターターデッキ 白上フブキ',
+  hSD03: 'スターターデッキ 湊あくあ', hSD04: 'スターターデッキ 天音かなた',
+  hSD05: 'スターターデッキ ReGLOSS', hSD06: 'スターターデッキ 風真いろは',
+  hSD07: 'スターターデッキ 癒月ちょこ',
+  hPR: 'Promo', hBD24: 'Bandai Distribution 2024', hY: 'Yokohama Promo',
 };
 
 export default function CardDetailScreen({ route, navigation }: any) {
   const { card } = route.params;
+  const [imageError, setImageError] = useState(false);
 
   if (!card) {
     return (
@@ -58,18 +44,28 @@ export default function CardDetailScreen({ route, navigation }: any) {
     );
   }
 
-  const imgFolder = card.imageFolder || `${card.series[0]}/`;
-  const cardImg = card.imageUrl || `${imageUrl}${imgFolder}${card.cardNumber}_C.png`;
+  const imgFolder = card.imageFolder || '';
+  const ver = (card.versions && card.versions.length > 0) ? card.versions[0] : '_C.png';
+  const cardImageUrl = card.imageUrl || `${CARD_IMG_BASE}${imgFolder}${card.cardNumber}${ver}`;
 
-  const colorNames = (Array.isArray(card.color) ? card.color : [card.color].filter(Boolean))
-    .map((c: string) => COLOR_MAP[c] || c);
+  const rawColors = card.colors || card.color || [];
+  const colorArr = Array.isArray(rawColors) ? rawColors : [rawColors];
+  const colorNames = colorArr.filter(Boolean).map((c: string) => COLOR_MAP[c] || c).filter(Boolean);
 
   const seriesNames = (card.series || []).map((s: string) => SERIES_NAMES[s] || s);
 
   const rarity = card.grade === 'debut' ? 'C' :
     card.grade === '1st' ? 'U' :
       card.grade === '2nd' ? 'R' :
-        card.grade === 'buzz' ? 'SR' : 'C';
+        card.grade === 'buzz' ? 'SR' : 'N';
+
+  const typeLabel = card.type === 'Member' ? '成員' : card.type === 'Oshi' ? '推し' : card.type;
+
+  // Effects: keywords from index 3 onwards (name + JP + EN = first 3)
+  const effectTexts = (card.searchKeywords || []).filter((kw: string, i: number) => i >= 3);
+
+  // Chinese description from keywords (usually index 1 or index 3+)
+  const chineseNames = card.searchKeywords?.filter((kw: string, i: number) => i === 1) || [];
 
   const openUrl = (url: string) => Linking.openURL(url);
 
@@ -77,11 +73,19 @@ export default function CardDetailScreen({ route, navigation }: any) {
     <ScrollView style={styles.container}>
       {/* 卡牌圖片 */}
       <View style={styles.imageWrap}>
-        <Image
-          source={{ uri: cardImg }}
-          style={styles.cardImage}
-          resizeMode="contain"
-        />
+        {!imageError ? (
+          <Image
+            source={{ uri: cardImageUrl }}
+            style={styles.cardImage}
+            resizeMode="contain"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <View style={styles.imagePlaceholder}>
+            <Text style={styles.placeholderRarity}>{gradeLabels[card.grade] || card.grade}</Text>
+            <Text style={styles.placeholderName}>{card.name}</Text>
+          </View>
+        )}
       </View>
 
       {/* 基本資訊 */}
@@ -95,20 +99,28 @@ export default function CardDetailScreen({ route, navigation }: any) {
 
         <Text style={styles.cardName}>{card.name}</Text>
 
+        {effectTexts.length === 0 && card.effectType && (
+          <Text style={styles.effectLabel}>「{card.effectType}」</Text>
+        )}
+
         <View style={styles.metaRow}>
           <Text style={styles.metaLabel}>類型：</Text>
-          <Text style={styles.metaValue}>{card.type === 'Member' ? '成員' : card.type === 'Oshi' ? '推し' : card.type}</Text>
+          <Text style={styles.metaValue}>{typeLabel}</Text>
         </View>
 
-        <View style={styles.metaRow}>
-          <Text style={styles.metaLabel}>顏色：</Text>
-          <Text style={styles.metaValue}>{colorNames.join(' / ') || '-'}</Text>
-        </View>
+        {colorNames.length > 0 && (
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>顏色：</Text>
+            <Text style={styles.metaValue}>{colorNames.join(' / ')}</Text>
+          </View>
+        )}
 
-        <View style={styles.metaRow}>
-          <Text style={styles.metaLabel}>系列：</Text>
-          <Text style={styles.metaValue}>{seriesNames.join(' / ') || '-'}</Text>
-        </View>
+        {seriesNames.length > 0 && (
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>系列：</Text>
+            <Text style={styles.metaValue}>{seriesNames.join(' / ')}</Text>
+          </View>
+        )}
 
         {card.tags && card.tags.length > 0 && (
           <View style={styles.metaRow}>
@@ -116,35 +128,28 @@ export default function CardDetailScreen({ route, navigation }: any) {
             <Text style={styles.metaValue}>{card.tags.join(' / ')}</Text>
           </View>
         )}
-
-        {card.effectType && (
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>效果類型：</Text>
-            <Text style={styles.metaValue}>{card.effectType}</Text>
-          </View>
-        )}
       </View>
 
       {/* 搜尋關鍵字 */}
-      {card.searchKeywords && card.searchKeywords.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>搜尋關鍵字</Text>
-          <View style={styles.tagWrap}>
-            {card.searchKeywords.map((kw: string, i: number) => (
-              <View key={i} style={styles.tag}>
-                <Text style={styles.tagText}>{kw}</Text>
-              </View>
-            ))}
-          </View>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>搜尋關鍵字</Text>
+        <View style={styles.tagWrap}>
+          {(card.searchKeywords || []).slice(0, 3).map((kw: string, i: number) => (
+            <View key={i} style={styles.tag}>
+              <Text style={styles.tagText}>{kw}</Text>
+            </View>
+          ))}
         </View>
-      )}
+      </View>
 
       {/* 卡牌效果 */}
-      {card.versions && card.versions.length > 0 && (
+      {effectTexts.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>卡牌效果</Text>
-          {card.searchKeywords.filter((kw: string, i: number) => i >= 3).map((kw: string, i: number) => (
-            <Text key={i} style={styles.effectText}>"{kw}"</Text>
+          {effectTexts.map((kw: string, i: number) => (
+            <Text key={i} style={styles.effectText}>
+              <Text style={styles.effectIndex}>[效果 {i + 1}]</Text>{'\n'}{kw}
+            </Text>
           ))}
         </View>
       )}
@@ -193,6 +198,22 @@ const styles = StyleSheet.create({
     width: width * 0.9,
     height: width * 0.55,
   },
+  imagePlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  placeholderRarity: {
+    color: COLORS.textSecondary,
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  placeholderName: {
+    color: COLORS.text,
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
   section: {
     padding: 20,
     borderBottomWidth: 1,
@@ -225,6 +246,12 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontSize: 26,
     fontWeight: 'bold',
+    marginBottom: 6,
+  },
+  effectLabel: {
+    color: COLORS.primary,
+    fontSize: 14,
+    fontStyle: 'italic',
     marginBottom: 14,
   },
   metaRow: {
@@ -265,8 +292,11 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontSize: 14,
     lineHeight: 22,
-    marginBottom: 8,
-    fontStyle: 'italic',
+    marginBottom: 10,
+  },
+  effectIndex: {
+    color: COLORS.primary,
+    fontWeight: '600',
   },
   linkButton: {
     backgroundColor: COLORS.surface,
