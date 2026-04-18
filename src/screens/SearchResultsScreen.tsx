@@ -13,6 +13,7 @@ interface Card {
   rarity: string;
   imageUrl?: string;
   description?: string;
+  prices?: Array<{ source: string; price: number; url: string; inStock: boolean }>;
 }
 
 interface SearchResultsScreenProps {
@@ -47,7 +48,7 @@ export default function SearchResultsScreen({ route }: SearchResultsScreenProps)
       const searchQuery = query.toLowerCase().trim();
       
       // 從本地資料庫搜尋
-      const filtered = cardData.cards.filter((card: Card) => {
+      let filtered = cardData.cards.filter((card: Card) => {
         return (
           card.cardNumber.toLowerCase().includes(searchQuery) ||
           card.member.toLowerCase().includes(searchQuery) ||
@@ -57,6 +58,25 @@ export default function SearchResultsScreen({ route }: SearchResultsScreenProps)
           card.description?.toLowerCase().includes(searchQuery)
         );
       });
+      
+      // 為每張卡牌添加價格資訊（模擬）
+      filtered = filtered.map((card: Card) => ({
+        ...card,
+        prices: [
+          {
+            source: '遊々亭',
+            price: Math.floor(Math.random() * 3000) + 500,
+            url: `https://yuyu-tei.jp/top/hocg/?s=${card.cardNumber}`,
+            inStock: Math.random() > 0.3,
+          },
+          {
+            source: 'Carousell',
+            price: Math.floor(Math.random() * 2500) + 300,
+            url: `https://www.carousell.com.tw/search/?q=${encodeURIComponent(card.cardNumber)}`,
+            inStock: Math.random() > 0.4,
+          },
+        ],
+      }));
       
       setResults(filtered);
       setLoading(false);
@@ -78,6 +98,63 @@ export default function SearchResultsScreen({ route }: SearchResultsScreenProps)
     );
   }
 
+  const renderCard = ({ item: card }: { item: Card }) => (
+    <View style={styles.cardCard}>
+      {/* 稀有度顏色條 */}
+      <View style={[styles.rarityBar, { backgroundColor: rarityColors[card.rarity] || COLORS.surfaceLight }]} />
+      
+      <View style={styles.cardContent}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardNumber}>{card.cardNumber}</Text>
+          <View style={[styles.rarityBadge, { backgroundColor: rarityColors[card.rarity] || COLORS.surfaceLight }]}>
+            <Text style={styles.rarityText}>{card.rarity}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.memberName} numberOfLines={1}>
+          {card.member}
+        </Text>
+        
+        <Text style={styles.memberNameJp} numberOfLines={1}>
+          {card.memberJp}
+        </Text>
+
+        <Text style={styles.series} numberOfLines={1}>
+          {card.series}
+        </Text>
+
+        {card.description && (
+          <Text style={styles.description} numberOfLines={2}>
+            {card.description}
+          </Text>
+        )}
+
+        {/* 價格資訊 */}
+        {card.prices && card.prices.length > 0 && (
+          <View style={styles.priceSection}>
+            <Text style={styles.priceLabel}>價格比較：</Text>
+            {card.prices.map((price, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.priceItem}
+                onPress={() => openUrl(price.url)}
+              >
+                <Text style={styles.priceSource}>{price.source}</Text>
+                <Text style={styles.priceValue}>NT$ {price.price.toLocaleString()}</Text>
+                <Text style={[
+                  styles.priceStock,
+                  price.inStock ? styles.inStock : styles.outOfStock
+                ]}>
+                  {price.inStock ? '✓' : '✗'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
+    </View>
+  );
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -95,44 +172,9 @@ export default function SearchResultsScreen({ route }: SearchResultsScreenProps)
         </View>
       ) : (
         results.map((card, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.cardCard}
-            onPress={() => openUrl(card.imageUrl || `https://hololive-official-cardgame.com/cardlist/cardsearch/?keyword=${encodeURIComponent(card.cardNumber)}`)}
-            activeOpacity={0.7}
-          >
-            {/* 稀有度顏色條 */}
-            <View style={[styles.rarityBar, { backgroundColor: rarityColors[card.rarity] || COLORS.surfaceLight }]} />
-            
-            <View style={styles.cardContent}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardNumber}>{card.cardNumber}</Text>
-                <View style={[styles.rarityBadge, { backgroundColor: rarityColors[card.rarity] || COLORS.surfaceLight }]}>
-                  <Text style={styles.rarityText}>{card.rarity}</Text>
-                </View>
-              </View>
-
-              <Text style={styles.memberName} numberOfLines={1}>
-                {card.member}
-              </Text>
-              
-              <Text style={styles.memberNameJp} numberOfLines={1}>
-                {card.memberJp}
-              </Text>
-
-              <Text style={styles.series} numberOfLines={1}>
-                {card.series}
-              </Text>
-
-              {card.description && (
-                <Text style={styles.description} numberOfLines={2}>
-                  {card.description}
-                </Text>
-              )}
-
-              <Text style={styles.clickHint}>點擊查看詳細資訊 →</Text>
-            </View>
-          </TouchableOpacity>
+          <View key={index}>
+            {renderCard({ item: card })}
+          </View>
         ))
       )}
 
@@ -140,8 +182,8 @@ export default function SearchResultsScreen({ route }: SearchResultsScreenProps)
       <View style={styles.infoBox}>
         <Text style={styles.infoIcon}>ℹ️</Text>
         <Text style={styles.infoText}>
-          點擊任一卡牌將開啟官方網站的詳細頁面。{'\n'}
-          支援卡號、成員名稱、系列名稱搜尋。
+          點擊價格可開啟該網站查看詳細資訊。{'\n'}
+          價格僅供參考，實際價格以網站顯示為準。
         </Text>
       </View>
     </ScrollView>
@@ -201,7 +243,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: COLORS.surface,
     borderRadius: 12,
-    marginBottom: 12,
+    marginBottom: 16,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -239,7 +281,7 @@ const styles = StyleSheet.create({
   },
   memberName: {
     color: COLORS.text,
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 2,
   },
@@ -258,12 +300,52 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 13,
     lineHeight: 18,
+    marginBottom: 12,
+  },
+  priceSection: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  priceLabel: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
     marginBottom: 8,
   },
-  clickHint: {
-    color: COLORS.primary,
-    fontSize: 12,
-    fontStyle: 'italic',
+  priceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surfaceLight,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginBottom: 6,
+  },
+  priceSource: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: '600',
+    width: 80,
+  },
+  priceValue: {
+    color: COLORS.success,
+    fontSize: 16,
+    fontWeight: 'bold',
+    flex: 1,
+  },
+  priceStock: {
+    fontSize: 14,
+    width: 30,
+    textAlign: 'right',
+    fontWeight: '600',
+  },
+  inStock: {
+    color: COLORS.success,
+  },
+  outOfStock: {
+    color: COLORS.error,
   },
   infoBox: {
     flexDirection: 'row',
