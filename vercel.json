@@ -1,13 +1,22 @@
 {
-  "buildCommand": "expo export --platform web",
+  "buildCommand": "npx expo export --platform web",
   "outputDirectory": "dist",
-  "devCommand": "expo start",
   "installCommand": "npm install",
-  "framework": null,
   "rewrites": [
     {
       "source": "/(.*)",
       "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
     }
   ]
 }
