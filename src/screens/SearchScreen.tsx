@@ -136,7 +136,13 @@ export default function SearchScreen({ navigation }: any) {
               source={{ uri: card.imageUrl }}
               style={styles.cardImage}
               resizeMode="cover"
+              onError={() => {
+                // 如果圖片載入失敗，顯示提示
+                console.log('Image failed to load:', card.imageUrl);
+              }}
             />
+            {/* 圖片載入失敗時的提示 */}
+            <Text style={styles.imageHint}>💡 如果圖片無法顯示，請點擊下方「官方網站」連結查看</Text>
           </View>
 
           {/* 卡牌基本資訊 */}
@@ -333,6 +339,13 @@ const styles = StyleSheet.create({
   hintText: {
     color: COLORS.textSecondary,
     fontSize: 13,
+    fontStyle: 'italic',
+  },
+  imageHint: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 12,
     fontStyle: 'italic',
   },
 });
