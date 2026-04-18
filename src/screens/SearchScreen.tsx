@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, Linking, Image, ScrollView, ActivityIndicator } from 'react-native';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, Linking, Image, ScrollView, ActivityIndicator, FlatList } from 'react-native';
 import { COLORS } from '../constants';
-import { HoloCard } from '../types/hololive';
 
 // 卡牌稀有度顏色
 const rarityColors: Record<string, string> = {
@@ -13,74 +12,72 @@ const rarityColors: Record<string, string> = {
   'CP': COLORS.rarityCP,
 };
 
+// 預先定義的卡牌資料（用於系列搜尋）
+const CARD_DATABASE = [
+  { cardNumber: 'hBP01-001', member: '時乃空', rarity: 'C' },
+  { cardNumber: 'hBP01-002', member: '蘿蔔子', rarity: 'C' },
+  { cardNumber: 'hBP01-003', member: '星街すいせい', rarity: 'U' },
+  { cardNumber: 'hBP01-004', member: '白上フブキ', rarity: 'U' },
+  { cardNumber: 'hBP01-005', member: '湊あくあ', rarity: 'R' },
+  { cardNumber: 'hBP01-006', member: '大神ミオ', rarity: 'C' },
+  { cardNumber: 'hBP01-007', member: '不知火フレア', rarity: 'SR' },
+  { cardNumber: 'hSD01-001', member: '時乃空', rarity: 'C' },
+  { cardNumber: 'hSD01-002', member: 'AZKi', rarity: 'R' },
+  { cardNumber: 'hBP02-001', member: '百鬼あやめ', rarity: 'R' },
+  { cardNumber: 'hBP02-002', member: '猫又おかゆ', rarity: 'SR' },
+];
+
+interface CardResult {
+  cardNumber: string;
+  member: string;
+  rarity: string;
+  imageUrl: string;
+  officialUrl: string;
+  prices: Array<{ source: string; url: string }>;
+}
+
 export default function SearchScreen({ navigation }: any) {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [card, setCard] = useState<HoloCard | null>(null);
+  const [results, setResults] = useState<CardResult[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [searchType, setSearchType] = useState<'single' | 'series' | null>(null);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
     
-    const trimmedQuery = query.trim();
+    const trimmedQuery = query.trim().toUpperCase();
     
-    // 支援多種卡號格式
-    const cardNumberRegex = /^[a-zA-Z]{2,4}-?\\d{3}$/i;
-    
-    if (!cardNumberRegex.test(trimmedQuery)) {
-      setError('請輸入有效的卡號格式（如 hBP01-001）');
-      return;
-    }
+    // 判斷搜尋類型
+    const fullCardRegex = /^[A-Z]{2,4}-\\d{3}$/;
+    const seriesRegex = /^[A-Z]{2,4}\\d{2}$/;
     
     setLoading(true);
     setError(null);
-    setCard(null);
-    
-    // 標準化卡號格式
-    const standardized = trimmedQuery.toUpperCase().replace(/^([A-Z]+)(\d+)-?(\d+)$/, '$1$2-$3');
+    setResults([]);
     
     try {
-      // 構建卡牌資料
-      const cardData: HoloCard = {
-        id: standardized.toLowerCase(),
-        cardNumber: standardized,
-        member: '查詢中...',
-        memberJp: '',
-        series: 'hololive OCG',
-        seriesCode: standardized.split('-')[0] || '',
-        rarity: 'R',
-        imageUrl: `https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/${standardized}.png`,
-        description: '點擊下方連結查看詳細資訊',
-        category: 'hololive',
-        prices: [
-          {
-            source: '官方網站',
-            price: 0,
-            currency: 'TWD',
-            url: `https://hololive-official-cardgame.com/cardlist/cardsearch/?expansion=${standardized.split('-')[0]}`,
-            inStock: true,
-            lastUpdated: new Date().toISOString(),
-          },
-          {
-            source: '遊々亭',
-            price: 0,
-            currency: 'TWD',
-            url: `https://yuyu-tei.jp/top/hocg/?s=${standardized}`,
-            inStock: true,
-            lastUpdated: new Date().toISOString(),
-          },
-          {
-            source: 'Carousell',
-            price: 0,
-            currency: 'TWD',
-            url: `https://www.carousell.com.tw/search/?q=${encodeURIComponent(standardized)}`,
-            inStock: true,
-            lastUpdated: new Date().toISOString(),
-          },
-        ],
-      };
-      
-      setCard(cardData);
+      if (fullCardRegex.test(trimmedQuery)) {
+        // 完整卡號搜尋（如 hBP01-001）
+        setSearchType('single');
+        const card = createCardResult(trimmedQuery);
+        setResults([card]);
+      } else if (seriesRegex.test(trimmedQuery)) {
+        // 系列搜尋（如 hBP01）
+        setSearchType('series');
+        const seriesCards = CARD_DATABASE.filter(c => 
+          c.cardNumber.startsWith(trimmedQuery)
+        );
+        
+        if (seriesCards.length === 0) {
+          setError(`找不到 ${trimmedQuery} 系列的卡牌`);
+        } else {
+          const cardResults = seriesCards.map(c => createCardResult(c.cardNumber));
+          setResults(cardResults);
+        }
+      } else {
+        setError('請輸入有效的卡號格式（如 hBP01-001 或 hBP01）');
+      }
     } catch (err) {
       setError('查詢失敗，請稍後再試');
     } finally {
@@ -88,9 +85,73 @@ export default function SearchScreen({ navigation }: any) {
     }
   };
 
+  const createCardResult = (cardNumber: string): CardResult => {
+    const seriesCode = cardNumber.split('-')[0] || '';
+    return {
+      cardNumber,
+      member: '查詢中...',
+      rarity: 'R',
+      imageUrl: `https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/${cardNumber}.png`,
+      officialUrl: `https://hololive-official-cardgame.com/cardlist/cardsearch/?expansion=${seriesCode}`,
+      prices: [
+        {
+          source: '官方網站',
+          url: `https://hololive-official-cardgame.com/cardlist/cardsearch/?expansion=${seriesCode}`,
+        },
+        {
+          source: '遊々亭',
+          url: `https://yuyu-tei.jp/top/hocg/?s=${cardNumber}`,
+        },
+        {
+          source: 'Carousell',
+          url: `https://www.carousell.com.tw/search/?q=${encodeURIComponent(cardNumber)}`,
+        },
+      ],
+    };
+  };
+
   const openUrl = (url: string) => {
     Linking.openURL(url);
   };
+
+  const renderCard = ({ item }: { item: CardResult }) => (
+    <View style={styles.cardResult}>
+      {/* 卡牌圖片 */}
+      <View style={styles.cardImageSection}>
+        <Image
+          source={{ uri: item.imageUrl }}
+          style={styles.cardImage}
+          resizeMode="cover"
+        />
+      </View>
+
+      {/* 卡牌資訊 */}
+      <View style={styles.cardInfo}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardNumber}>{item.cardNumber}</Text>
+          <View style={[styles.rarityBadge, { backgroundColor: rarityColors[item.rarity] || COLORS.surfaceLight }]}>
+            <Text style={styles.rarityText}>{item.rarity}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.cardMember}>{item.member}</Text>
+
+        {/* 查詢連結 */}
+        <View style={styles.cardLinks}>
+          {item.prices.map((price, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.cardLinkButton}
+              onPress={() => openUrl(price.url)}
+            >
+              <Text style={styles.cardLinkSource}>{price.source}</Text>
+              <Text style={styles.cardLinkHint}>→</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    </View>
+  );
 
   return (
     <ScrollView style={styles.container}>
@@ -98,7 +159,7 @@ export default function SearchScreen({ navigation }: any) {
       <View style={styles.searchBar}>
         <TextInput
           style={styles.input}
-          placeholder="輸入卡號（如 hBP01-001）"
+          placeholder="輸入卡號（hBP01-001）或系列（hBP01）"
           placeholderTextColor={COLORS.textSecondary}
           value={query}
           onChangeText={setQuery}
@@ -110,6 +171,13 @@ export default function SearchScreen({ navigation }: any) {
         <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
           <Text style={styles.searchButtonText}>查詢</Text>
         </TouchableOpacity>
+      </View>
+
+      {/* 說明 */}
+      <View style={styles.hintBox}>
+        <Text style={styles.hintTitle}>📝 搜尋說明</Text>
+        <Text style={styles.hintText}>• 完整卡號：hBP01-001 → 顯示單張卡牌</Text>
+        <Text style={styles.hintText}>• 系列代碼：hBP01 → 顯示該系列所有卡牌</Text>
       </View>
 
       {/* 錯誤訊息 */}
@@ -127,60 +195,20 @@ export default function SearchScreen({ navigation }: any) {
         </View>
       )}
 
-      {/* 卡牌結果 */}
-      {card && !loading && (
+      {/* 搜尋結果 */}
+      {!loading && results.length > 0 && (
         <View style={styles.resultContainer}>
-          {/* 卡牌圖片 */}
-          <View style={styles.imageSection}>
-            <Image
-              source={{ uri: card.imageUrl }}
-              style={styles.cardImage}
-              resizeMode="cover"
-              onError={() => {
-                // 如果圖片載入失敗，顯示提示
-                console.log('Image failed to load:', card.imageUrl);
-              }}
-            />
-            {/* 圖片載入失敗時的提示 */}
-            <Text style={styles.imageHint}>💡 如果圖片無法顯示，請點擊下方「官方網站」連結查看</Text>
-          </View>
-
-          {/* 卡牌基本資訊 */}
-          <View style={styles.infoSection}>
-            <View style={styles.header}>
-              <Text style={styles.cardNumber}>{card.cardNumber}</Text>
-              <View style={[styles.rarityBadge, { backgroundColor: rarityColors[card.rarity] || COLORS.surfaceLight }]}>
-                <Text style={styles.rarityText}>{card.rarity}</Text>
-              </View>
+          <Text style={styles.resultHeader}>
+            {searchType === 'series' 
+              ? `找到 ${results.length} 張卡牌（${query.toUpperCase()} 系列）`
+              : `找到 ${results.length} 張卡牌`}
+          </Text>
+          
+          {results.map((card, index) => (
+            <View key={index}>
+              {renderCard({ item: card })}
             </View>
-
-            <Text style={styles.series}>{card.series}</Text>
-            <Text style={styles.description}>{card.description}</Text>
-          </View>
-
-          {/* 查詢連結 */}
-          <View style={styles.linksSection}>
-            <Text style={styles.sectionTitle}>🔗 查詢價格與詳情</Text>
-            
-            {card.prices?.map((price, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.linkButton}
-                onPress={() => openUrl(price.url)}
-              >
-                <Text style={styles.linkSource}>{price.source}</Text>
-                <Text style={styles.linkUrl} numberOfLines={1}>{price.url}</Text>
-                <Text style={styles.linkHint}>點擊開啟</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* 說明 */}
-          <View style={styles.hintSection}>
-            <Text style={styles.hintText}>
-              💡 點擊上方連結可查看各網站的價格和庫存狀況
-            </Text>
-          </View>
+          ))}
         </View>
       )}
     </ScrollView>
@@ -221,6 +249,25 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+  hintBox: {
+    backgroundColor: COLORS.surface,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.primary,
+  },
+  hintTitle: {
+    color: COLORS.text,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  hintText: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+    marginBottom: 4,
+  },
   errorContainer: {
     padding: 16,
     backgroundColor: COLORS.surface,
@@ -245,107 +292,80 @@ const styles = StyleSheet.create({
   resultContainer: {
     gap: 16,
   },
-  imageSection: {
-    alignItems: 'center',
-    padding: 20,
+  resultHeader: {
+    color: COLORS.text,
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  cardResult: {
+    flexDirection: 'row',
     backgroundColor: COLORS.surface,
     borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  cardImageSection: {
+    width: 120,
+    height: 160,
+    backgroundColor: COLORS.surfaceLight,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   cardImage: {
-    width: 200,
-    height: 280,
-    borderRadius: 8,
+    width: '100%',
+    height: '100%',
   },
-  infoSection: {
-    padding: 20,
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
+  cardInfo: {
+    flex: 1,
+    padding: 16,
   },
-  header: {
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   cardNumber: {
     color: COLORS.text,
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   rarityBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    minWidth: 50,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    minWidth: 40,
     alignItems: 'center',
   },
   rarityText: {
     color: COLORS.text,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
   },
-  series: {
-    color: COLORS.primary,
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  description: {
+  cardMember: {
     color: COLORS.textSecondary,
     fontSize: 14,
-  },
-  linksSection: {
-    padding: 20,
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
-  },
-  sectionTitle: {
-    color: COLORS.text,
-    fontSize: 18,
-    fontWeight: 'bold',
     marginBottom: 12,
   },
-  linkButton: {
+  cardLinks: {
+    gap: 8,
+  },
+  cardLinkButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.surfaceLight,
-    padding: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 8,
-    marginBottom: 8,
-    gap: 12,
   },
-  linkSource: {
+  cardLinkSource: {
     color: COLORS.text,
-    fontSize: 16,
-    fontWeight: '600',
-    width: 80,
-  },
-  linkUrl: {
-    color: COLORS.primary,
-    fontSize: 12,
+    fontSize: 14,
     flex: 1,
   },
-  linkHint: {
-    color: COLORS.textSecondary,
-    fontSize: 12,
-  },
-  hintSection: {
-    padding: 16,
-    backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.primary,
-  },
-  hintText: {
-    color: COLORS.textSecondary,
-    fontSize: 13,
-    fontStyle: 'italic',
-  },
-  imageHint: {
-    color: COLORS.textSecondary,
-    fontSize: 12,
-    textAlign: 'center',
-    marginTop: 12,
-    fontStyle: 'italic',
+  cardLinkHint: {
+    color: COLORS.primary,
+    fontSize: 16,
   },
 });
