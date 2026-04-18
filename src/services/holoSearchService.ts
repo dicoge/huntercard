@@ -130,23 +130,22 @@ class HoloSearchService {
   }
 
   // ----------------------------------------
-  // 熱門卡牌（根據稀有度和人氣）
+  // 熱門卡牌（根據價格排序，最貴的在前面）
   // ----------------------------------------
   async getPopularCards(limit: number = 10): Promise<HoloCard[]> {
-    const rarityOrder: Record<string, number> = {
-      'SSR': 5,
-      'UR': 4,
-      'SR': 3,
-      'R': 2,
-      'N': 1,
-    };
-    
-    const sorted = [...this.cards].sort((a, b) => 
-      (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0)
+    // 先取得所有卡牌的價格
+    const cardsWithPrices = await Promise.all(
+      this.cards.map(card => this.addPricesToCard(card))
     );
     
-    const popular = sorted.slice(0, limit);
-    return Promise.all(popular.map(card => this.addPricesToCard(card)));
+    // 根據最高價格排序（最貴的在前面）
+    const sorted = cardsWithPrices.sort((a, b) => {
+      const maxPriceA = a.prices && a.prices.length > 0 ? Math.max(...a.prices.map(p => p.price)) : 0;
+      const maxPriceB = b.prices && b.prices.length > 0 ? Math.max(...b.prices.map(p => p.price)) : 0;
+      return maxPriceB - maxPriceA;
+    });
+    
+    return sorted.slice(0, limit);
   }
 
   // ----------------------------------------

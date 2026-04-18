@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { COLORS } from '../constants';
 import { HoloCard } from '../types/hololive';
@@ -10,8 +10,6 @@ interface CardItemProps {
 }
 
 export default function CardItem({ card, onPress, showPrices = true }: CardItemProps) {
-  const [imageError, setImageError] = useState(false);
-  
   const minPrice = card.prices && card.prices.length > 0 
     ? Math.min(...card.prices.map(p => p.price))
     : null;
@@ -25,15 +23,14 @@ export default function CardItem({ card, onPress, showPrices = true }: CardItemP
     'CP': COLORS.rarityCP,
   };
 
-  // 構建官方圖片 URL
-  const getOfficialImageUrl = () => {
-    if (!card.cardNumber) return null;
-    // 官方圖片格式：https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/[卡號].png
-    return `https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/${card.cardNumber}.png`;
+  const rarityNames: Record<string, string> = {
+    'C': 'Common',
+    'U': 'Uncommon',
+    'R': 'Rare',
+    'SR': 'Super Rare',
+    'UC': 'Ultra Rare',
+    'CP': 'Campaign Promo',
   };
-
-  const imageUrl = getOfficialImageUrl();
-  const shouldShowImage = imageUrl && !imageError;
 
   return (
     <TouchableOpacity 
@@ -41,20 +38,10 @@ export default function CardItem({ card, onPress, showPrices = true }: CardItemP
       onPress={onPress}
       activeOpacity={0.7}
     >
-      {/* 卡牌圖片 */}
-      <View style={styles.imageContainer}>
-        {shouldShowImage ? (
-          <Image 
-            source={{ uri: imageUrl }} 
-            style={styles.image}
-            resizeMode="cover"
-            onError={() => setImageError(true)}
-          />
-        ) : (
-          <View style={[styles.imagePlaceholder, { backgroundColor: rarityColors[card.rarity] || COLORS.surfaceLight }]}>
-            <Text style={styles.placeholderText}>{card.rarity}</Text>
-          </View>
-        )}
+      {/* 卡牌圖片區域 - 顯示稀有度顏色 */}
+      <View style={[styles.imageContainer, { backgroundColor: rarityColors[card.rarity] || COLORS.surfaceLight }]}>
+        <Text style={styles.rarityLarge}>{card.rarity}</Text>
+        <Text style={styles.rarityFull}>{rarityNames[card.rarity]}</Text>
       </View>
 
       {/* 卡牌資訊 */}
@@ -129,21 +116,24 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: 120,
     height: '100%',
-    backgroundColor: COLORS.surfaceLight,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  imagePlaceholder: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 10,
   },
-  placeholderText: {
+  rarityLarge: {
     color: COLORS.text,
-    fontSize: 24,
+    fontSize: 36,
     fontWeight: 'bold',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  rarityFull: {
+    color: COLORS.text,
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: 4,
+    opacity: 0.9,
   },
   infoContainer: {
     flex: 1,
