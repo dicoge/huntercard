@@ -1,5 +1,5 @@
 {
-  "version": "4.0.0",
+  "version": "5.0.0",
   "lastUpdated": "2026-04-19",
   "source": "hololive-official-cardgame.com",
   "cards": [
@@ -69,32 +69,6 @@
       "category": "hololive"
     },
     {
-      "id": "hbp01-006",
-      "cardNumber": "hBP01-006",
-      "member": "大神ミオ",
-      "memberJp": "大神ミオ",
-      "series": "ブルーミングレディアンス",
-      "seriesCode": "hBP01",
-      "rarity": "C",
-      "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-006.png",
-      "description": "hololive 三期生，狼娘",
-      "releaseDate": "2024-09-20",
-      "category": "hololive"
-    },
-    {
-      "id": "hbp01-007",
-      "cardNumber": "hBP01-007",
-      "member": "不知火フレア",
-      "memberJp": "不知火フレア",
-      "series": "ブルーミングレディアンス",
-      "seriesCode": "hBP01",
-      "rarity": "SR",
-      "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-007.png",
-      "description": "hololive 三期生，火焰使者",
-      "releaseDate": "2024-09-20",
-      "category": "hololive"
-    },
-    {
       "id": "hsd01-001",
       "cardNumber": "hSD01-001",
       "member": "時乃空",
@@ -141,8 +115,47 @@
       "series": "クインテットスペクトラム",
       "seriesCode": "hBP02",
       "rarity": "SR",
-      "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-official-cardgame.com/images/card/hBP02-002.png",
+      "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP02-002.png",
       "description": "hololive 四期生，貓娘",
+      "releaseDate": "2024-12-20",
+      "category": "hololive"
+    },
+    {
+      "id": "hsd02-001",
+      "cardNumber": "hSD02-001",
+      "member": "百鬼あやめ",
+      "memberJp": "百鬼あやめ",
+      "series": "スタートデッキ 赤 百鬼あやめ",
+      "seriesCode": "hSD02",
+      "rarity": "R",
+      "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hSD02-001.png",
+      "description": "hololive 二期生，鬼娘",
+      "releaseDate": "2024-12-20",
+      "category": "hololive"
+    },
+    {
+      "id": "hsd03-001",
+      "cardNumber": "hSD03-001",
+      "member": "猫又おかゆ",
+      "memberJp": "猫又おかゆ",
+      "series": "スタートデッキ 青 猫又おかゆ",
+      "seriesCode": "hSD03",
+      "rarity": "R",
+      "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hSD03-001.png",
+      "description": "hololive 四期生，貓娘",
+      "releaseDate": "2024-12-20",
+      "category": "hololive"
+    },
+    {
+      "id": "hsd04-001",
+      "cardNumber": "hSD04-001",
+      "member": "癒月ちょこ",
+      "memberJp": "癒月ちょこ",
+      "series": "スタートデッキ 紫 癒月ちょこ",
+      "seriesCode": "hSD04",
+      "rarity": "R",
+      "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hSD04-001.png",
+      "description": "hololive 一期生，惡魔護士",
       "releaseDate": "2024-12-20",
       "category": "hololive"
     }
@@ -165,6 +178,24 @@
       "name": "スタートデッキ「ときのそら＆AZKi」",
       "releaseDate": "2024-09-20",
       "count": 50
+    },
+    {
+      "code": "hSD02",
+      "name": "スタートデッキ 赤 百鬼あやめ",
+      "releaseDate": "2024-12-20",
+      "count": 40
+    },
+    {
+      "code": "hSD03",
+      "name": "スタートデッキ 青 猫又おかゆ",
+      "releaseDate": "2024-12-20",
+      "count": 40
+    },
+    {
+      "code": "hSD04",
+      "name": "スタートデッキ 紫 癒月ちょこ",
+      "releaseDate": "2024-12-20",
+      "count": 40
     }
   ]
 }
