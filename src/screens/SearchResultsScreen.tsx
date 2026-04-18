@@ -1,59 +1,59 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Linking } from 'react-native';
 import { COLORS } from '../constants';
-import { HoloCard } from '../types/hololive';
-import CardItem from '../components/CardItem';
 
 interface SearchResultsScreenProps {
   route: {
     params: {
       query: string;
-      results: {
-        cards: HoloCard[];
-        totalFound: number;
-      };
+      links: Array<{ name: string; url: string; hint: string }>;
     };
   };
-  navigation: any;
 }
 
-export default function SearchResultsScreen({ route, navigation }: SearchResultsScreenProps) {
-  const { query, results } = route.params;
+export default function SearchResultsScreen({ route }: SearchResultsScreenProps) {
+  const { query, links } = route.params;
 
-  const handleCardPress = (card: HoloCard) => {
-    navigation.navigate('CardDetail', { card });
+  const openUrl = (url: string) => {
+    Linking.openURL(url);
   };
 
-  const renderCard = ({ item }: { item: HoloCard }) => (
-    <CardItem 
-      card={item} 
-      onPress={() => handleCardPress(item)}
-    />
-  );
-
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
+      {/* 搜尋關鍵字 */}
       <View style={styles.header}>
         <Text style={styles.queryText}>搜尋：{query}</Text>
-        <Text style={styles.resultCount}>
-          找到 {results.totalFound} 張卡牌
+        <Text style={styles.resultCount}>以下網站提供相關結果</Text>
+      </View>
+
+      {/* 搜尋連結列表 */}
+      <View style={styles.linksContainer}>
+        {links.map((link, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.linkCard}
+            onPress={() => openUrl(link.url)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.linkHeader}>
+              <Text style={styles.linkName}>{link.name}</Text>
+              <Text style={styles.linkArrow}>→</Text>
+            </View>
+            <Text style={styles.linkHint}>{link.hint}</Text>
+            <Text style={styles.linkUrl} numberOfLines={1}>{link.url}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* 說明 */}
+      <View style={styles.infoBox}>
+        <Text style={styles.infoIcon}>ℹ️</Text>
+        <Text style={styles.infoText}>
+          點擊上方任一連結，將在瀏覽器中開啟該網站的搜尋結果頁面。{'\n\n'}
+          建議先查看官方卡牌列表取得完整資訊，再比較各二手網站的價格。
         </Text>
       </View>
-      {results.totalFound === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>🔍</Text>
-          <Text style={styles.emptyText}>找不到符合的卡牌</Text>
-          <Text style={styles.emptySubtext}>試試看其他關鍵字或卡號</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={results.cards}
-          renderItem={renderCard}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-        />
-      )}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -64,14 +64,11 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    marginBottom: 20,
   },
   queryText: {
     color: COLORS.text,
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 4,
   },
@@ -79,28 +76,58 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 14,
   },
-  list: {
-    paddingBottom: 20,
+  linksContainer: {
+    gap: 12,
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  linkCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  linkHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 40,
-  },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  emptyText: {
-    color: COLORS.text,
-    fontSize: 18,
-    fontWeight: '600',
     marginBottom: 8,
   },
-  emptySubtext: {
+  linkName: {
+    color: COLORS.text,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  linkArrow: {
+    color: COLORS.primary,
+    fontSize: 20,
+  },
+  linkHint: {
     color: COLORS.textSecondary,
     fontSize: 14,
-    textAlign: 'center',
+    marginBottom: 8,
+  },
+  linkUrl: {
+    color: COLORS.primary,
+    fontSize: 12,
+    opacity: 0.8,
+  },
+  infoBox: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.surface,
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.primary,
+  },
+  infoIcon: {
+    fontSize: 20,
+    marginRight: 12,
+  },
+  infoText: {
+    flex: 1,
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    lineHeight: 20,
   },
 });
