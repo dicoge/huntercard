@@ -2,57 +2,34 @@ import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { COLORS } from '../constants';
 import { useHoloSearch } from '../hooks/useHoloSearch';
+import CardItem from '../components/CardItem';
 import { HoloCard } from '../types/hololive';
-
-// ----------------------------------------
-// 搜尋卡片元件
-// ----------------------------------------
-const SearchCard = ({ card, onPress }: { card: HoloCard; onPress: () => void }) => (
-  <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
-    <View style={styles.cardHeader}>
-      <Text style={styles.cardNumber}>{card.cardNumber}</Text>
-      <View style={[styles.rarityBadge, styles[`rarity${card.rarity}`]]}>
-        <Text style={styles.rarityText}>{card.rarity}</Text>
-      </View>
-    </View>
-    <Text style={styles.memberName}>{card.member}</Text>
-    <Text style={styles.series}>{card.series}</Text>
-    {card.prices && card.prices.length > 0 && (
-      <View style={styles.priceContainer}>
-        <Text style={styles.priceLabel}>最低價格：</Text>
-        <Text style={styles.priceValue}>
-          NT$ {Math.min(...card.prices.map(p => p.price)).toLocaleString()}
-        </Text>
-      </View>
-    )}
-  </TouchableOpacity>
-);
 
 // ----------------------------------------
 // 搜尋畫面
 // ----------------------------------------
-export default function SearchScreen() {
+export default function SearchScreen({ navigation }: any) {
   const [query, setQuery] = useState('');
   const { loading, error, result, search } = useHoloSearch();
 
   const handleSearch = async () => {
     if (!query.trim()) return;
     
+    const trimmedQuery = query.trim().toLowerCase();
+    
     // 判斷是否為卡號格式（如 hlo-001）
-    const cardNumberRegex = /^[a-z]{2,3}-\d{3}$/i;
-    if (cardNumberRegex.test(query.trim())) {
-      await search({ cardNumber: query.trim() });
+    const cardNumberRegex = /^[a-z]{2,4}-\d{3}$/i;
+    if (cardNumberRegex.test(trimmedQuery)) {
+      await search({ cardNumber: trimmedQuery });
     } else {
-      await search({ keyword: query.trim() });
+      // 使用成員名稱或關鍵字搜尋
+      await search({ memberName: trimmedQuery, keyword: trimmedQuery });
     }
   };
 
-  const renderCard = ({ item }: { item: HoloCard }) => (
-    <SearchCard 
-      card={item} 
-      onPress={() => console.log('Press card:', item.cardNumber)}
-    />
-  );
+  const handleCardPress = (card: HoloCard) => {
+    navigation.navigate('CardDetail', { card });
+  };
 
   return (
     <View style={styles.container}>
@@ -60,12 +37,14 @@ export default function SearchScreen() {
       <View style={styles.searchBar}>
         <TextInput
           style={styles.input}
-          placeholder="輸入卡號或關鍵字..."
+          placeholder="輸入卡號或成員名稱..."
           placeholderTextColor={COLORS.textSecondary}
           value={query}
           onChangeText={setQuery}
           onSubmitEditing={handleSearch}
           returnKeyType="search"
+          autoCapitalize="none"
+          autoCorrect={false}
         />
         <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
           <Text style={styles.searchButtonText}>搜尋</Text>
@@ -91,14 +70,26 @@ export default function SearchScreen() {
         <View style={styles.resultContainer}>
           <Text style={styles.resultInfo}>
             找到 {result.totalFound} 張卡牌
-            {result.hasPrices && '（含價格資訊）'}
           </Text>
-          <FlatList
-            data={result.cards}
-            renderItem={renderCard}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.list}
-          />
+          {result.totalFound === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyIcon}>🔍</Text>
+              <Text style={styles.emptyText}>找不到符合的卡牌</Text>
+              <Text style={styles.emptySubtext}>試試看卡號（如 hlo-001）或成員名稱（如 星街）</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={result.cards}
+              renderItem={({ item }) => (
+                <CardItem 
+                  card={item} 
+                  onPress={() => handleCardPress(item)}
+                />
+              )}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.list}
+            />
+          )}
         </View>
       )}
     </View>
@@ -165,68 +156,27 @@ const styles = StyleSheet.create({
   list: {
     paddingBottom: 20,
   },
-  card: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    padding: 40,
+    minHeight: 300,
   },
-  cardNumber: {
-    color: COLORS.textSecondary,
-    fontSize: 12,
-    fontWeight: '600',
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: 16,
   },
-  rarityBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    minWidth: 40,
-    alignItems: 'center',
-  },
-  rarityText: {
-    color: COLORS.text,
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  rarityN: { backgroundColor: '#6b7280' },
-  rarityR: { backgroundColor: '#10b981' },
-  raritySR: { backgroundColor: '#3b82f6' },
-  rarityUR: { backgroundColor: '#8b5cf6' },
-  raritySSR: { backgroundColor: '#f59e0b' },
-  memberName: {
+  emptyText: {
     color: COLORS.text,
     fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  series: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
+    fontWeight: '600',
     marginBottom: 8,
   },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
-  priceLabel: {
+  emptySubtext: {
     color: COLORS.textSecondary,
     fontSize: 14,
-  },
-  priceValue: {
-    color: COLORS.success,
-    fontSize: 16,
-    fontWeight: 'bold',
+    textAlign: 'center',
+    maxWidth: 280,
   },
 });
