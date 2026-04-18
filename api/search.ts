@@ -1,10 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
-
-export const config = {
-  runtime: 'edge',
-};
-
-const BASE = 'https://raw.githubusercontent.com/TETSUNekko/holotcgtw/main/client/src';
+// Vercel Edge Function - uses standard web APIs
 const CARD_FILES = [
   'cardList_hBP01.json',
   'cardList_hBP02.json',
@@ -21,144 +15,105 @@ const CARD_FILES = [
   'cardList_hY.json',
 ];
 
+const BASE = 'https://raw.githubusercontent.com/TETSUNekko/holotcgtw/main/client/src';
+
 const GRADE_RARITY: Record<string, string> = {
-  'debut': 'C',
-  '1st': 'U',
-  '2nd': 'R',
-  'buzz': 'SR',
-  'spot': 'N',
+  debut: 'C', '1st': 'U', '2nd': 'R', buzz: 'SR', spot: 'N',
 };
 
 const COLOR_MAP: Record<string, string> = {
-  'white': '白色',
-  'blue': '藍色',
-  'green': '綠色',
-  'red': '紅色',
-  'purple': '紫色',
-  'yellow': '黃色',
-  'colorless': '無色',
+  white: '白色', blue: '藍色', green: '綠色', red: '紅色',
+  purple: '紫色', yellow: '黃色', colorless: '無色',
 };
 
 const SERIES_NAMES: Record<string, string> = {
-  'hBP01': 'ブルーミングレディアンス',
-  'hBP02': 'クインテットスペクトラム',
-  'hBP03': 'サバイバル・オブ・ザ・フェイビアス',
-  'hSD01': 'スターターデッキ ときのそら',
-  'hSD02': 'スターターデッキ 白上フブキ',
-  'hSD03': 'スターターデッキ 湊あくあ',
-  'hSD04': 'スターターデッキ 天音かなた',
-  'hSD05': 'スターターデッキ ReGLOSS',
-  'hSD06': 'スターターデッキ 風真いろは',
-  'hSD07': 'スターターデッキ 癒月ちょこ',
-  'hPR': 'Promo',
-  'hBD24': 'Bandai Distribution 2024',
-  'hY': 'Yokohama Promo',
+  hBP01: 'ブルーミングレディアンス',
+  hBP02: 'クインテットスペクトラム',
+  hBP03: 'サバイバル・オブ・ザ・フェイビアス',
+  hSD01: 'スターターデッキ ときのそら',
+  hSD02: 'スターターデッキ 白上フブキ',
+  hSD03: 'スターターデッキ 湊あくあ',
+  hSD04: 'スターターデッキ 天音かなた',
+  hSD05: 'スターターデッキ ReGLOSS',
+  hSD06: 'スターターデッキ 風真いろは',
+  hSD07: 'スターターデッキ 癒月ちょこ',
+  hPR: 'Promo',
+  hBD24: 'Bandai Distribution 2024',
+  hY: 'Yokohama Promo',
 };
 
-interface RawCard {
-  id: string;
-  type: string;
-  name: string;
-  imageFolder: string;
-  color: string | string[];
-  grade: string;
-  series: string[];
-  searchKeywords: string[];
-  versions: string[];
-  tags?: string[];
-  effectType?: string;
-}
+async function handler(request: Request) {
+  // CORS preflight
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    });
+  }
 
-interface CardResult {
-  id: string;
-  name: string;
-  type: string;
-  grade: string;
-  rarity: string;
-  colors: string[];
-  colorNames: string[];
-  series: string[];
-  seriesNames: string[];
-  tags: string[];
-  cardNumber: string;
-  imageUrl: string;
-  yuyuUrl: string;
-  carousellUrl: string;
-  officialUrl: string;
-  matchedKeyword: string;
-}
-
-export default async function handler(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const query = searchParams.get('q');
+  const url = new URL(request.url);
+  const query = url.searchParams.get('q');
 
   if (!query) {
-    return NextResponse.json(
-      { error: 'Query parameter "q" is required' },
-      { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } }
-    );
+    return new Response(JSON.stringify({ error: 'Query parameter "q" is required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    });
   }
 
   try {
     const searchQuery = query.toLowerCase().trim();
 
-    // 從 holotcgtw 拉所有卡牌資料
-    const allCards: RawCard[] = [];
-    const errors: string[] = [];
-
+    // Fetch all card files from holotcgtw
+    const allCards: any[] = [];
     await Promise.all(
       CARD_FILES.map(async (file) => {
         try {
-          const res = await fetch(`${BASE}/${file}`, {
-            headers: { 'Accept': 'application/json' },
-          });
+          const res = await fetch(`${BASE}/${file}`);
           if (res.ok) {
             const data = await res.json();
-            if (Array.isArray(data)) {
-              allCards.push(...data);
-            }
+            if (Array.isArray(data)) allCards.push(...data);
           }
-        } catch (e: any) {
-          errors.push(`${file}: ${e.message}`);
-        }
+        } catch (_) { /* skip failed files */ }
       })
     );
 
-    // 搜尋
+    // Search cards
     const matched = allCards.filter((card) => {
       return (
         card.id.toLowerCase().includes(searchQuery) ||
         card.name.toLowerCase().includes(searchQuery) ||
-        card.searchKeywords.some((kw) => kw.toLowerCase().includes(searchQuery)) ||
-        card.series.some((s) => s.toLowerCase().includes(searchQuery)) ||
-        card.tags?.some((t) => t.toLowerCase().includes(searchQuery)) ||
-        card.type.toLowerCase().includes(searchQuery) ||
-        card.grade.toLowerCase().includes(searchQuery)
+        card.searchKeywords?.some((kw: string) => kw.toLowerCase().includes(searchQuery)) ||
+        card.series?.some((s: string) => s.toLowerCase().includes(searchQuery)) ||
+        card.tags?.some((t: string) => t.toLowerCase().includes(searchQuery))
       );
     });
 
-    // 去重複（同一 id 保留）
+    // Deduplicate by id
     const seen = new Set<string>();
-    const unique = matched.filter((c) => {
+    const unique = matched.filter((c: any) => {
       if (seen.has(c.id)) return false;
       seen.add(c.id);
       return true;
     });
 
-    // 找到匹配關鍵字
-    const findMatchedKeyword = (card: RawCard, q: string) => {
+    const findMatchedKeyword = (card: any, q: string) => {
       const lower = q.toLowerCase();
       if (card.id.toLowerCase().includes(lower)) return card.id;
-      for (const kw of card.searchKeywords) {
+      for (const kw of card.searchKeywords || []) {
         if (kw.toLowerCase().includes(lower)) return kw;
       }
-      if (card.name.toLowerCase().includes(lower)) return card.name;
-      return card.id;
+      return card.name || card.id;
     };
 
-    const results: CardResult[] = unique.map((card) => {
+    const results = unique.map((card: any) => {
       const version = card.versions?.[0] || '_C.png';
       const imageUrl = `https://tetsunekko.github.io/holotcgtw/cards/${card.imageFolder}${card.id}${version}`;
+      const colors = Array.isArray(card.color) ? card.color : [card.color].filter(Boolean);
 
       return {
         id: card.id,
@@ -166,14 +121,16 @@ export default async function handler(request: NextRequest) {
         type: card.type,
         grade: card.grade,
         rarity: GRADE_RARITY[card.grade] || 'C',
-        colors: Array.isArray(card.color) ? card.color : [card.color].filter(Boolean),
-        colorNames: (Array.isArray(card.color) ? card.color : [card.color].filter(Boolean)).map(
-          (c: string) => COLOR_MAP[c] || c
-        ),
-        series: card.series,
-        seriesNames: card.series.map((s) => SERIES_NAMES[s] || s),
+        colors,
+        colorNames: colors.map((c: string) => COLOR_MAP[c] || c),
+        series: card.series || [],
+        seriesNames: (card.series || []).map((s: string) => SERIES_NAMES[s] || s),
         tags: card.tags || [],
         cardNumber: card.id,
+        imageFolder: card.imageFolder,
+        versions: card.versions,
+        searchKeywords: card.searchKeywords,
+        effectType: card.effectType,
         imageUrl,
         yuyuUrl: `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(card.id)}`,
         carousellUrl: `https://www.carousell.com.tw/search/?q=${encodeURIComponent(card.id)}`,
@@ -182,25 +139,23 @@ export default async function handler(request: NextRequest) {
       };
     });
 
-    return NextResponse.json(
-      {
-        query,
-        total: results.length,
-        results,
-        sources: ['holotcgtw GitHub', '遊々亭', 'Carousell', '官方卡表'],
+    return new Response(JSON.stringify({ query, total: results.length, results }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'public, max-age=3600',
       },
-      {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Cache-Control': 's-maxage=3600, stale-while-revalidate',
-        },
-      }
-    );
+    });
   } catch (error) {
-    console.error('Search error:', error);
-    return NextResponse.json(
-      { error: 'Failed to search cards' },
-      { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } }
-    );
+    return new Response(JSON.stringify({ error: 'Failed to search cards' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    });
   }
 }
+
+export { handler };
+export const config = { runtime: 'edge' };
+
+export default handler;
