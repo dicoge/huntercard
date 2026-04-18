@@ -1,0 +1,156 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-04-18",
+  "cards": [
+    {
+      "id": "hlo-001",
+      "cardNumber": "hlo-001",
+      "member": "時乃空",
+      "memberJp": "時乃そら",
+      "series": "holo card 第1彈",
+      "seriesCode": "hlo",
+      "rarity": "SR",
+      "imageUrl": "https://holocard.com/images/hlo-001.jpg",
+      "description": "hololive 0期生，虛擬YouTuber的先驅者",
+      "releaseDate": "2021-03-27",
+      "category": "hololive"
+    },
+    {
+      "id": "hlo-002",
+      "cardNumber": "hlo-002",
+      "member": "蘿蔔子",
+      "memberJp": "ロボーイ",
+      "series": "holo card 第1彈",
+      "seriesCode": "hlo",
+      "rarity": "SR",
+      "imageUrl": "https://holocard.com/images/hlo-002.jpg",
+      "description": "hololive 0期生，機器人YouTuber",
+      "releaseDate": "2021-03-27",
+      "category": "hololive"
+    },
+    {
+      "id": "hlo-003",
+      "cardNumber": "hlo-003",
+      "member": "星街すいせい",
+      "memberJp": "星街すいせい",
+      "series": "holo card 第1彈",
+      "seriesCode": "hlo",
+      "rarity": "UR",
+      "imageUrl": "https://holocard.com/images/hlo-003.jpg",
+      "description": "hololive 二期生，虛擬偶像歌手",
+      "releaseDate": "2021-03-27",
+      "category": "hololive"
+    },
+    {
+      "id": "hlo-004",
+      "cardNumber": "hlo-004",
+      "member": "白上フブキ",
+      "memberJp": "白上フブキ",
+      "series": "holo card 第1彈",
+      "seriesCode": "hlo",
+      "rarity": "SR",
+      "imageUrl": "https://holocard.com/images/hlo-004.jpg",
+      "description": "hololive 二期生，狐娘YouTuber",
+      "releaseDate": "2021-03-27",
+      "category": "hololive"
+    },
+    {
+      "id": "hlo-005",
+      "cardNumber": "hlo-005",
+      "member": "湊あくあ",
+      "memberJp": "湊あくあ",
+      "series": "holo card 第1彈",
+      "seriesCode": "hlo",
+      "rarity": "SSR",
+      "imageUrl": "https://holocard.com/images/hlo-005.jpg",
+      "description": "hololive 二期生，船长",
+      "releaseDate": "2021-03-27",
+      "category": "hololive"
+    },
+    {
+      "id": "hl2-001",
+      "cardNumber": "hl2-001",
+      "member": "天音かなた",
+      "memberJp": "天音かなた",
+      "series": "holo card 第2彈",
+      "seriesCode": "hl2",
+      "rarity": "SR",
+      "imageUrl": "https://holocard.com/images/hl2-001.jpg",
+      "description": "hololive 四期生，天使YouTuber",
+      "releaseDate": "2021-07-15",
+      "category": "hololive"
+    },
+    {
+      "id": "hl2-002",
+      "cardNumber": "hl2-002",
+      "member": "桐生ココ",
+      "memberJp": "桐生ココ",
+      "series": "holo card 第2彈",
+      "seriesCode": "hl2",
+      "rarity": "UR",
+      "imageUrl": "https://holocard.com/images/hl2-002.jpg",
+      "description": "hololive 三期生，龍娘社長",
+      "releaseDate": "2021-07-15",
+      "category": "hololive"
+    },
+    {
+      "id": "hl3-001",
+      "cardNumber": "hl3-001",
+      "member": "雪花ラミィ",
+      "memberJp": "雪花ラミィ",
+      "series": "holo card 第3彈",
+      "seriesCode": "hl3",
+      "rarity": "SR",
+      "imageUrl": "https://holocard.com/images/hl3-001.jpg",
+      "description": "hololive 六期生，秘密結社holoX成員",
+      "releaseDate": "2022-01-20",
+      "category": "hololive"
+    }
+  ],
+  "series": [
+    {
+      "code": "hlo",
+      "name": "holo card 第1彈",
+      "releaseDate": "2021-03-27",
+      "count": 100
+    },
+    {
+      "code": "hl2",
+      "name": "holo card 第2彈",
+      "releaseDate": "2021-07-15",
+      "count": 80
+    },
+    {
+      "code": "hl3",
+      "name": "holo card 第3彈",
+      "releaseDate": "2022-01-20",
+      "count": 120
+    }
+  ],
+  "members": [
+    {
+      "name": "時乃空",
+      "nameJp": "時乃そら",
+      "generation": "0期生",
+      "description": "hololive的首位成員，虛擬YouTuber的先驅者"
+    },
+    {
+      "name": "星街すいせい",
+      "nameJp": "星街すいせい",
+      "generation": "二期生",
+      "description": "虛擬偶像歌手，擁有出色的歌唱能力"
+    },
+    {
+      "name": "白上フブキ",
+      "nameJp": "白上フブキ",
+      "generation": "二期生",
+      "description": "狐娘YouTuber，hololive game department部長"
+    },
+    {
+      "name": "湊あくあ",
+      "nameJp": "湊あくあ",
+      "generation": "二期生",
+      "description": "船长，hololive game department成員"
+    }
+  ]
+}
