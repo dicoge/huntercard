@@ -1,7 +1,7 @@
 {
-  "version": "3.0.0",
+  "version": "4.0.0",
   "lastUpdated": "2026-04-19",
-  "source": "hololive-official-cardgame.com + holotcgtw",
+  "source": "hololive-official-cardgame.com",
   "cards": [
     {
       "id": "hbp01-001",
@@ -14,10 +14,7 @@
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-001.png",
       "description": "hololive 0期生，虛擬YouTuber的先驅者",
       "releaseDate": "2024-09-20",
-      "category": "hololive",
-      "prices": [
-        { "source": "遊々亭", "price": 450, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
-      ]
+      "category": "hololive"
     },
     {
       "id": "hbp01-002",
@@ -30,10 +27,7 @@
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-002.png",
       "description": "hololive 0期生，機器人YouTuber",
       "releaseDate": "2024-09-20",
-      "category": "hololive",
-      "prices": [
-        { "source": "遊々亭", "price": 380, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
-      ]
+      "category": "hololive"
     },
     {
       "id": "hbp01-003",
@@ -46,10 +40,7 @@
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-003.png",
       "description": "hololive 二期生，虛擬偶像歌手",
       "releaseDate": "2024-09-20",
-      "category": "hololive",
-      "prices": [
-        { "source": "遊々亭", "price": 680, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
-      ]
+      "category": "hololive"
     },
     {
       "id": "hbp01-004",
@@ -62,10 +53,7 @@
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-004.png",
       "description": "hololive 二期生，狐娘YouTuber",
       "releaseDate": "2024-09-20",
-      "category": "hololive",
-      "prices": [
-        { "source": "遊々亭", "price": 720, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
-      ]
+      "category": "hololive"
     },
     {
       "id": "hbp01-005",
@@ -78,10 +66,7 @@
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-005.png",
       "description": "hololive 二期生，船长",
       "releaseDate": "2024-09-20",
-      "category": "hololive",
-      "prices": [
-        { "source": "遊々亭", "price": 1280, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
-      ]
+      "category": "hololive"
     },
     {
       "id": "hbp01-006",
@@ -94,10 +79,7 @@
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-006.png",
       "description": "hololive 三期生，狼娘",
       "releaseDate": "2024-09-20",
-      "category": "hololive",
-      "prices": [
-        { "source": "遊々亭", "price": 420, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": false }
-      ]
+      "category": "hololive"
     },
     {
       "id": "hbp01-007",
@@ -110,10 +92,7 @@
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-007.png",
       "description": "hololive 三期生，火焰使者",
       "releaseDate": "2024-09-20",
-      "category": "hololive",
-      "prices": [
-        { "source": "遊々亭", "price": 2800, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
-      ]
+      "category": "hololive"
     },
     {
       "id": "hsd01-001",
@@ -126,10 +105,7 @@
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hSD01-001.png",
       "description": "hololive 0期生，虛擬YouTuber的先驅者",
       "releaseDate": "2024-09-20",
-      "category": "hololive",
-      "prices": [
-        { "source": "遊々亭", "price": 350, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
-      ]
+      "category": "hololive"
     },
     {
       "id": "hsd01-002",
@@ -142,10 +118,7 @@
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hSD01-002.png",
       "description": "hololive 零期生，虛擬歌手",
       "releaseDate": "2024-09-20",
-      "category": "hololive",
-      "prices": [
-        { "source": "遊々亭", "price": 1500, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
-      ]
+      "category": "hololive"
     },
     {
       "id": "hbp02-001",
@@ -158,10 +131,7 @@
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP02-001.png",
       "description": "hololive 二期生，鬼娘",
       "releaseDate": "2024-12-20",
-      "category": "hololive",
-      "prices": [
-        { "source": "遊々亭", "price": 1680, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
-      ]
+      "category": "hololive"
     },
     {
       "id": "hbp02-002",
@@ -171,13 +141,10 @@
       "series": "クインテットスペクトラム",
       "seriesCode": "hBP02",
       "rarity": "SR",
-      "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP02-002.png",
+      "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-official-cardgame.com/images/card/hBP02-002.png",
       "description": "hololive 四期生，貓娘",
       "releaseDate": "2024-12-20",
-      "category": "hololive",
-      "prices": [
-        { "source": "遊々亭", "price": 3200, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
-      ]
+      "category": "hololive"
     }
   ],
   "series": [
@@ -198,32 +165,6 @@
       "name": "スタートデッキ「ときのそら＆AZKi」",
       "releaseDate": "2024-09-20",
       "count": 50
-    }
-  ],
-  "members": [
-    {
-      "name": "時乃空",
-      "nameJp": "ときのそら",
-      "generation": "0期生",
-      "description": "hololive的首位成員，虛擬YouTuber的先驅者"
-    },
-    {
-      "name": "星街すいせい",
-      "nameJp": "星街すいせい",
-      "generation": "二期生",
-      "description": "虛擬偶像歌手，擁有出色的歌唱能力"
-    },
-    {
-      "name": "白上フブキ",
-      "nameJp": "白上フブキ",
-      "generation": "二期生",
-      "description": "狐娘YouTuber，hololive game department部長"
-    },
-    {
-      "name": "湊あくあ",
-      "nameJp": "湊あくあ",
-      "generation": "二期生",
-      "description": "船长，hololive game department成員"
     }
   ]
 }
