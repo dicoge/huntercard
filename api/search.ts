@@ -81,17 +81,14 @@ async function scrapeOfficial(query: string): Promise<SearchResult | null> {
     const items: SearchResultItem[] = [];
     
     // 解析官方網站的卡牌列表
-    // 需要根據實際 HTML 結構調整選擇器
-    $('.card-item, .product-item, [data-card]').each((i, elem) => {
-      const title = $(elem).find('.card-name, .product-title, h3, h4').first().text().trim();
-      const url = $(elem).find('a').first().attr('href');
-      const imageUrl = $(elem).find('img').first().attr('src');
+    $('a[href*="cardsearch"]').each((i, elem) => {
+      const title = $(elem).text().trim();
+      const href = $(elem).attr('href');
       
-      if (title && url) {
+      if (title && href && title.length > 0 && title.length < 100) {
         items.push({
           title,
-          url: url.startsWith('http') ? url : `https://hololive-official-cardgame.com${url}`,
-          imageUrl,
+          url: href.startsWith('http') ? href : `https://hololive-official-cardgame.com${href}`,
         });
       }
     });
@@ -102,7 +99,7 @@ async function scrapeOfficial(query: string): Promise<SearchResult | null> {
         source: '官方卡牌列表',
         items: [
           {
-            title: `搜尋 "${query}" 的結果`,
+            title: `搜尋 "${query}"`,
             url: searchUrl,
           },
         ],
@@ -111,7 +108,7 @@ async function scrapeOfficial(query: string): Promise<SearchResult | null> {
 
     return {
       source: '官方卡牌列表',
-      items: items.slice(0, 10), // 限制結果數量
+      items: items.slice(0, 10),
     };
   } catch (error) {
     console.error('Official scraping error:', error);
@@ -140,20 +137,14 @@ async function scrapeYuyuTei(query: string): Promise<SearchResult | null> {
     const items: SearchResultItem[] = [];
     
     // 解析遊々亭的搜尋結果
-    $('article, .product, .card-product').each((i, elem) => {
-      const title = $(elem).find('a.title, h2, h3, .product-title').first().text().trim();
-      const priceText = $(elem).find('.price, .amount, ¥').first().text().trim();
-      const price = parseInt(priceText.replace(/[^0-9]/g, ''));
-      const url = $(elem).find('a').first().attr('href');
-      const imageUrl = $(elem).find('img').first().attr('src');
+    $('a[href*="/product/"], a[href*="/top/hocg/"]').each((i, elem) => {
+      const title = $(elem).text().trim();
+      const href = $(elem).attr('href');
       
-      if (title && url) {
+      if (title && href && title.length > 0 && title.length < 100) {
         items.push({
           title,
-          price: isNaN(price) ? undefined : price,
-          url: url.startsWith('http') ? url : `https://yuyu-tei.jp${url}`,
-          imageUrl,
-          inStock: !$(elem).find('.sold-out, .out-of-stock').length,
+          url: href.startsWith('http') ? href : `https://yuyu-tei.jp${href}`,
         });
       }
     });
@@ -164,7 +155,7 @@ async function scrapeYuyuTei(query: string): Promise<SearchResult | null> {
         source: '遊々亭',
         items: [
           {
-            title: `搜尋 "${query}" 的結果`,
+            title: `搜尋 "${query}"`,
             url: searchUrl,
           },
         ],
