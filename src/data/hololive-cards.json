@@ -1,97 +1,119 @@
 {
-  "version": "2.1.0",
+  "version": "3.0.0",
   "lastUpdated": "2026-04-19",
+  "source": "hololive-official-cardgame.com + holotcgtw",
   "cards": [
     {
       "id": "hbp01-001",
       "cardNumber": "hBP01-001",
       "member": "時乃空",
       "memberJp": "ときのそら",
-      "series": "ブースターパック「ブルーミングレディアンス」",
+      "series": "ブルーミングレディアンス",
       "seriesCode": "hBP01",
       "rarity": "C",
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-001.png",
       "description": "hololive 0期生，虛擬YouTuber的先驅者",
       "releaseDate": "2024-09-20",
-      "category": "hololive"
+      "category": "hololive",
+      "prices": [
+        { "source": "遊々亭", "price": 450, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
+      ]
     },
     {
       "id": "hbp01-002",
       "cardNumber": "hBP01-002",
       "member": "蘿蔔子",
       "memberJp": "ロボーイ",
-      "series": "ブースターパック「ブルーミングレディアンス」",
+      "series": "ブルーミングレディアンス",
       "seriesCode": "hBP01",
       "rarity": "C",
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-002.png",
       "description": "hololive 0期生，機器人YouTuber",
       "releaseDate": "2024-09-20",
-      "category": "hololive"
+      "category": "hololive",
+      "prices": [
+        { "source": "遊々亭", "price": 380, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
+      ]
     },
     {
       "id": "hbp01-003",
       "cardNumber": "hBP01-003",
       "member": "星街すいせい",
       "memberJp": "星街すいせい",
-      "series": "ブースターパック「ブルーミングレディアンス」",
+      "series": "ブルーミングレディアンス",
       "seriesCode": "hBP01",
       "rarity": "U",
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-003.png",
       "description": "hololive 二期生，虛擬偶像歌手",
       "releaseDate": "2024-09-20",
-      "category": "hololive"
+      "category": "hololive",
+      "prices": [
+        { "source": "遊々亭", "price": 680, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
+      ]
     },
     {
       "id": "hbp01-004",
       "cardNumber": "hBP01-004",
       "member": "白上フブキ",
       "memberJp": "白上フブキ",
-      "series": "ブースターパック「ブルーミングレディアンス」",
+      "series": "ブルーミングレディアンス",
       "seriesCode": "hBP01",
       "rarity": "U",
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-004.png",
       "description": "hololive 二期生，狐娘YouTuber",
       "releaseDate": "2024-09-20",
-      "category": "hololive"
+      "category": "hololive",
+      "prices": [
+        { "source": "遊々亭", "price": 720, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
+      ]
     },
     {
       "id": "hbp01-005",
       "cardNumber": "hBP01-005",
       "member": "湊あくあ",
       "memberJp": "湊あくあ",
-      "series": "ブースターパック「ブルーミングレディアンス」",
+      "series": "ブルーミングレディアンス",
       "seriesCode": "hBP01",
       "rarity": "R",
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-005.png",
       "description": "hololive 二期生，船长",
       "releaseDate": "2024-09-20",
-      "category": "hololive"
+      "category": "hololive",
+      "prices": [
+        { "source": "遊々亭", "price": 1280, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
+      ]
     },
     {
       "id": "hbp01-006",
       "cardNumber": "hBP01-006",
       "member": "大神ミオ",
       "memberJp": "大神ミオ",
-      "series": "ブースターパック「ブルーミングレディアンス」",
+      "series": "ブルーミングレディアンス",
       "seriesCode": "hBP01",
       "rarity": "C",
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-006.png",
       "description": "hololive 三期生，狼娘",
       "releaseDate": "2024-09-20",
-      "category": "hololive"
+      "category": "hololive",
+      "prices": [
+        { "source": "遊々亭", "price": 420, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": false }
+      ]
     },
     {
       "id": "hbp01-007",
       "cardNumber": "hBP01-007",
       "member": "不知火フレア",
       "memberJp": "不知火フレア",
-      "series": "ブースターパック「ブルーミングレディアンス」",
+      "series": "ブルーミングレディアンス",
       "seriesCode": "hBP01",
       "rarity": "SR",
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP01-007.png",
       "description": "hololive 三期生，火焰使者",
       "releaseDate": "2024-09-20",
-      "category": "hololive"
+      "category": "hololive",
+      "prices": [
+        { "source": "遊々亭", "price": 2800, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
+      ]
     },
     {
       "id": "hsd01-001",
@@ -104,7 +126,10 @@
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hSD01-001.png",
       "description": "hololive 0期生，虛擬YouTuber的先驅者",
       "releaseDate": "2024-09-20",
-      "category": "hololive"
+      "category": "hololive",
+      "prices": [
+        { "source": "遊々亭", "price": 350, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
+      ]
     },
     {
       "id": "hsd01-002",
@@ -117,33 +142,42 @@
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hSD01-002.png",
       "description": "hololive 零期生，虛擬歌手",
       "releaseDate": "2024-09-20",
-      "category": "hololive"
+      "category": "hololive",
+      "prices": [
+        { "source": "遊々亭", "price": 1500, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
+      ]
     },
     {
       "id": "hbp02-001",
       "cardNumber": "hBP02-001",
       "member": "百鬼あやめ",
       "memberJp": "百鬼あやめ",
-      "series": "ブースターパック「クインテットスペクトラム」",
+      "series": "クインテットスペクトラム",
       "seriesCode": "hBP02",
       "rarity": "R",
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP02-001.png",
       "description": "hololive 二期生，鬼娘",
       "releaseDate": "2024-12-20",
-      "category": "hololive"
+      "category": "hololive",
+      "prices": [
+        { "source": "遊々亭", "price": 1680, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
+      ]
     },
     {
       "id": "hbp02-002",
       "cardNumber": "hBP02-002",
       "member": "猫又おかゆ",
       "memberJp": "猫又おかゆ",
-      "series": "ブースターパック「クインテットスペクトラム」",
+      "series": "クインテットスペクトラム",
       "seriesCode": "hBP02",
       "rarity": "SR",
       "imageUrl": "https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/hBP02-002.png",
       "description": "hololive 四期生，貓娘",
       "releaseDate": "2024-12-20",
-      "category": "hololive"
+      "category": "hololive",
+      "prices": [
+        { "source": "遊々亭", "price": 3200, "currency": "TWD", "condition": "全新", "url": "https://yuyu-tei.jp", "inStock": true }
+      ]
     }
   ],
   "series": [
@@ -161,7 +195,7 @@
     },
     {
       "code": "hSD01",
-      "name": "ときのそら＆AZKi",
+      "name": "スタートデッキ「ときのそら＆AZKi」",
       "releaseDate": "2024-09-20",
       "count": 50
     }
