@@ -142,15 +142,33 @@ export default function CardDetailScreen({ route, navigation }: any) {
         </View>
       </View>
 
-      {/* 卡牌效果 */}
+      {/* 卡牌效果（官方說明 / 效果文本） */}
       {effectTexts.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>卡牌效果</Text>
-          {effectTexts.map((kw: string, i: number) => (
-            <Text key={i} style={styles.effectText}>
-              <Text style={styles.effectIndex}>[效果 {i + 1}]</Text>{'\n'}{kw}
-            </Text>
-          ))}
+          {effectTexts.map((kw: string, i: number) => {
+            // 判斷是否為效果說明（非效果類型標籤）
+            const isEffectText = kw.includes('給予') || kw.includes('抽') || kw.includes('傷害') || 
+              kw.includes('公開') || kw.includes('牌組') || kw.includes('手牌') ||
+              kw.includes('階段') || kw.includes('回合') || kw.includes('生命') ||
+              kw.includes('成員') || kw.includes('藝能') || kw.includes('中央') ||
+              kw.includes('備') || kw.includes('特殊') || kw.includes('HP') ||
+              kw.includes('附於') || kw.includes('丟擲') || kw.includes('骰子') ||
+              kw.includes('奇數') || kw.includes('偶數') || kw.includes('回復') ||
+              kw.includes('存檔') || kw.includes('聲援') || kw.includes('舞台') ||
+              kw.includes('聯動') || kw.includes('對') || kw.includes('擊倒') ||
+              kw.includes('剩餘') || kw.includes('持有') || kw.includes('超過') ||
+              kw.includes('以下') || kw.includes('以上') || kw.includes('最多');
+            
+            if (isEffectText) {
+              return (
+                <View key={i} style={styles.effectBlock}>
+                  <Text style={styles.effectText}>{kw}</Text>
+                </View>
+              );
+            }
+            return null;
+          })}
         </View>
       )}
 
