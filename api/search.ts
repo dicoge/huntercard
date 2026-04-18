@@ -62,9 +62,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
 async function scrapeOfficial(query: string): Promise<SearchResult | null> {
   try {
-    const searchUrl = `https://hololive-official-cardgame.com/cardlist/cardsearch/?keyword=${encodeURIComponent(query)}`;
+    // 先從卡牌列表頁面抓取所有卡牌
+    const cardlistUrl = 'https://hololive-official-cardgame.com/cardlist/';
     
-    const response = await fetch(searchUrl, {
+    const response = await fetch(cardlistUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; HoloHunter/1.0; +https://card-hunter-mu.vercel.app)',
         'Accept': 'text/html,application/xhtml+xml',
@@ -80,35 +81,35 @@ async function scrapeOfficial(query: string): Promise<SearchResult | null> {
     
     const items: SearchResultItem[] = [];
     
-    // 解析官方網站的卡牌列表
-    $('a[href*="cardsearch"]').each((i, elem) => {
-      const title = $(elem).text().trim();
+    // 解析官方網站的卡牌列表，找出符合查詢的卡牌
+    $('a[href*="/cardlist/cardsearch/"]').each((i, elem) => {
       const href = $(elem).attr('href');
+      const text = $(elem).text().trim();
       
-      if (title && href && title.length > 0 && title.length < 100) {
-        items.push({
-          title,
-          url: href.startsWith('http') ? href : `https://hololive-official-cardgame.com${href}`,
-        });
+      if (href && text) {
+        // 檢查是否符合查詢關鍵字
+        if (query === '' || text.includes(query) || href.includes(query)) {
+          // 提取系列代碼
+          const codeMatch = href.match(/expansion=([^&]+)/);
+          const seriesCode = codeMatch ? codeMatch[1] : '';
+          
+          items.push({
+            title: text,
+            url: href.startsWith('http') ? href : `https://hololive-official-cardgame.com${href}`,
+            description: seriesCode ? `系列代碼: ${seriesCode}` : undefined,
+          });
+        }
       }
     });
     
-    // 如果解析失敗，返回基本結構
-    if (items.length === 0) {
-      return {
-        source: '官方卡牌列表',
-        items: [
-          {
-            title: `搜尋 "${query}"`,
-            url: searchUrl,
-          },
-        ],
-      };
-    }
-
+    // 去重
+    const uniqueItems = items.filter((item, index, self) => 
+      index === self.findIndex(t => t.url === item.url)
+    );
+    
     return {
       source: '官方卡牌列表',
-      items: items.slice(0, 10),
+      items: uniqueItems.slice(0, 20),
     };
   } catch (error) {
     console.error('Official scraping error:', error);
@@ -137,34 +138,40 @@ async function scrapeYuyuTei(query: string): Promise<SearchResult | null> {
     const items: SearchResultItem[] = [];
     
     // 解析遊々亭的搜尋結果
-    $('a[href*="/product/"], a[href*="/top/hocg/"]').each((i, elem) => {
-      const title = $(elem).text().trim();
-      const href = $(elem).attr('href');
+    $('article, .product-entry, .card-product').each((i, elem) => {
+      const title = $(elem).find('a').first().text().trim();
+      const href = $(elem).find('a').first().attr('href');
+      const priceText = $(elem).find('.price, .amount').first().text().trim();
+      const price = parseInt(priceText.replace(/[^0-9]/g, ''));
       
-      if (title && href && title.length > 0 && title.length < 100) {
+      if (title && href) {
         items.push({
           title,
           url: href.startsWith('http') ? href : `https://yuyu-tei.jp${href}`,
+          price: isNaN(price) ? undefined : price,
+          inStock: !$(elem).find('.sold-out, .out-of-stock, 在庫なし').length,
         });
       }
     });
     
-    // 如果解析失敗，返回基本結構
+    // 如果解析失敗，嘗試另一種格式
     if (items.length === 0) {
-      return {
-        source: '遊々亭',
-        items: [
-          {
-            title: `搜尋 "${query}"`,
-            url: searchUrl,
-          },
-        ],
-      };
+      $('a[href*="/product/"]').each((i, elem) => {
+        const title = $(elem).text().trim();
+        const href = $(elem).attr('href');
+        
+        if (title && href && title.length > 0 && title.length < 200) {
+          items.push({
+            title,
+            url: href.startsWith('http') ? href : `https://yuyu-tei.jp${href}`,
+          });
+        }
+      });
     }
-
+    
     return {
       source: '遊々亭',
-      items: items.slice(0, 10),
+      items: items.slice(0, 20),
     };
   } catch (error) {
     console.error('Yuyu-tei scraping error:', error);
