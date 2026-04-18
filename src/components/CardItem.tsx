@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { COLORS } from '../constants';
 import { HoloCard } from '../types/hololive';
@@ -10,17 +10,30 @@ interface CardItemProps {
 }
 
 export default function CardItem({ card, onPress, showPrices = true }: CardItemProps) {
+  const [imageError, setImageError] = useState(false);
+  
   const minPrice = card.prices && card.prices.length > 0 
     ? Math.min(...card.prices.map(p => p.price))
     : null;
 
   const rarityColors: Record<string, string> = {
-    'N': COLORS.rarityN,
+    'C': COLORS.rarityC,
+    'U': COLORS.rarityU,
     'R': COLORS.rarityR,
     'SR': COLORS.raritySR,
-    'UR': COLORS.rarityUR,
-    'SSR': COLORS.raritySSR,
+    'UC': COLORS.rarityUC,
+    'CP': COLORS.rarityCP,
   };
+
+  // 構建官方圖片 URL
+  const getOfficialImageUrl = () => {
+    if (!card.cardNumber) return null;
+    // 官方圖片格式：https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/[卡號].png
+    return `https://hololive-official-cardgame.com/wp-content/themes/hololive-cardgame/images/card/${card.cardNumber}.png`;
+  };
+
+  const imageUrl = getOfficialImageUrl();
+  const shouldShowImage = imageUrl && !imageError;
 
   return (
     <TouchableOpacity 
@@ -30,11 +43,12 @@ export default function CardItem({ card, onPress, showPrices = true }: CardItemP
     >
       {/* 卡牌圖片 */}
       <View style={styles.imageContainer}>
-        {card.imageUrl ? (
+        {shouldShowImage ? (
           <Image 
-            source={{ uri: card.imageUrl }} 
+            source={{ uri: imageUrl }} 
             style={styles.image}
             resizeMode="cover"
+            onError={() => setImageError(true)}
           />
         ) : (
           <View style={[styles.imagePlaceholder, { backgroundColor: rarityColors[card.rarity] || COLORS.surfaceLight }]}>
@@ -89,7 +103,7 @@ export default function CardItem({ card, onPress, showPrices = true }: CardItemP
                   <Text style={styles.priceSourceName}>{price.source}</Text>
                   <Text style={styles.priceSourcePrice}>NT$ {price.price.toLocaleString()}</Text>
                   <Text style={styles.priceSourceStock}>
-                    {price.inStock ? '✓ 有庫存' : '✗ 缺貨'}
+                    {price.inStock ? '✓' : '✗'}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -228,8 +242,8 @@ const styles = StyleSheet.create({
   },
   priceSourceStock: {
     color: COLORS.success,
-    fontSize: 11,
-    width: 50,
+    fontSize: 14,
+    width: 30,
     textAlign: 'right',
   },
 });

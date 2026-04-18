@@ -1,6 +1,6 @@
 // hololive 卡牌專用類型定義
 
-export type Rarity = 'N' | 'R' | 'SR' | 'UR' | 'SSR';
+export type Rarity = 'C' | 'U' | 'R' | 'SR' | 'UC' | 'CP';
 
 export interface HoloCard {
   id: string;

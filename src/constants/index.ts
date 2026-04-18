@@ -11,11 +11,12 @@ export const HOLO_CATEGORIES = [
 
 // 稀有度
 export const RARITIES = [
-  { id: 'N', name: 'N', color: '#6b7280' },
-  { id: 'R', name: 'R', color: '#10b981' },
-  { id: 'SR', name: 'SR', color: '#3b82f6' },
-  { id: 'UR', name: 'UR', color: '#8b5cf6' },
-  { id: 'SSR', name: 'SSR', color: '#f59e0b' },
+  { id: 'C', name: 'C', color: '#6b7280' },
+  { id: 'U', name: 'U', color: '#10b981' },
+  { id: 'R', name: 'R', color: '#3b82f6' },
+  { id: 'SR', name: 'SR', color: '#8b5cf6' },
+  { id: 'UC', name: 'UC', color: '#f59e0b' },
+  { id: 'CP', name: 'CP', color: '#ef4444' },
 ];
 
 // Currency options
@@ -80,10 +81,11 @@ export const COLORS = {
   hololive: '#ff6b9d',
   holostars: '#4ecdc4',
   inukomis: '#f59e0b',
-  // 稀有度顏色
-  rarityN: '#6b7280',
-  rarityR: '#10b981',
-  raritySR: '#3b82f6',
-  rarityUR: '#8b5cf6',
-  raritySSR: '#f59e0b',
+  // 稀有度顏色（官方）
+  rarityC: '#6b7280',
+  rarityU: '#10b981',
+  rarityR: '#3b82f6',
+  raritySR: '#8b5cf6',
+  rarityUC: '#f59e0b',
+  rarityCP: '#ef4444',
 };
