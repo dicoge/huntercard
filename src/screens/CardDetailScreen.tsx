@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, Dimensions, Image, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, Dimensions, ActivityIndicator } from 'react-native';
 import { COLORS } from '../constants';
 
 const { width } = Dimensions.get('window');
@@ -17,10 +17,25 @@ function parseEffects(keywords: string[] = []): string[] {
   });
 }
 
+function buildImageUrl(id: string, versions: string[], cardType: string): string {
+  const seriesCode = id.split('-')[0] || '';
+  let version = '_OSR.png';
+  if (versions && versions.length > 0) {
+    if (cardType === 'Oshi') {
+      version = versions.find((v: string) => v.startsWith('_OSR') || v.startsWith('_OUR')) || versions[0];
+    } else {
+      version = versions.find((v: string) => v.match(/^_(U|C|R)\.(png|jpe?q)$/)) 
+        || versions.find((v: string) => v.includes('.png'))
+        || versions[0] || '_U.png';
+    }
+  }
+  return `https://hololive-official-cardgame.com/wp-content/images/cardlist/${seriesCode}/${id}${version}`;
+}
+
 export default function CardDetailScreen({ route, navigation }: any) {
   const { card } = route.params;
   const [imageError, setImageError] = useState(false);
-  const [realPrice, setRealPrice] = useState<null | { price: number; inStock: boolean }>(null);
+  const [loading, setLoading] = useState(true);
 
   if (!card) return <View style={styles.center}><Text style={{ color: COLORS.text }}>無法載入</Text></View>;
 
@@ -35,87 +50,53 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const typeLabel = typeLabels[card.type] || card.type || '-';
   const openUrl = (url: string) => Linking.openURL(url);
 
-  // Build official site image URL
-  const seriesCode = id.split('-')[0] || '';
-  // For Oshi cards, use _OSR version; for member cards use the version from card data
-  let version = '_OSR.png';
-  if (card.versions && card.versions.length > 0) {
-    if (card.type === 'Oshi') {
-      version = card.versions.find((v: string) => v.startsWith('_OSR') || v.startsWith('_OUR')) || card.versions[0];
-    } else {
-      // Member card: prefer _U or _C or _R
-      version = card.versions.find((v: string) => v.match(/^_(U|C|R)\.(png|jpg)$/)) || card.versions[0] || '_U.png';
-    }
-  }
-  const cardImageUrl = `https://hololive-official-cardgame.com/wp-content/images/cardlist/${seriesCode}/${id}${version}`;
-
+  // 從官方網站取得卡牌圖片
+  const imageUrl = buildImageUrl(id, card.versions || [], card.type);
   const officialSearchUrl = `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`;
   const yuyuUrl = `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`;
 
-  // Fetch real price from yuyu-tei via our API
-  useEffect(() => {
-    const fetchPrice = async () => {
-      try {
-        const resp = await fetch(`https://card-hunter-mu.vercel.app/api/price?q=${encodeURIComponent(id)}`);
-        if (resp.ok) {
-          const data = await resp.json();
-          if (data.price !== undefined && data.price !== null) {
-            setRealPrice({ price: data.price, inStock: data.inStock !== false });
-          }
-        }
-      } catch (e) { /* skip */ }
-    };
-    fetchPrice();
-  }, [id]);
-
   return (
     <ScrollView style={styles.container}>
-      {/* 卡牌圖片 */}
-      <View style={[styles.imageArea, { backgroundColor: rarityColors[rarityKey] + '12' }]}>
+      {/* ====== 卡牌圖片區 ====== */}
+      <View style={[styles.imageArea, { backgroundColor: rarityColors[rarityKey] + '10' }]}>
         {!imageError ? (
-          <TouchableOpacity onPress={() => openUrl(officialSearchUrl)} activeOpacity={0.8}>
-            {/* 網頁版用 img 標籤（不受 CORS 限制）*/}
-            {/* @ts-ignore */}
+          /* 使用 HTML <img> 標籤（網頁版不受 CORS 限制）*/
+          // @ts-ignore
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
             <img
-              src={cardImageUrl}
-              alt={nameJP}
-              style={{ width: width * 0.7, height: width * 0.75, objectFit: 'contain' }}
+              src={imageUrl}
+              alt={`${id} ${nameJP}`}
+              style={{ maxWidth: width * 0.72, maxHeight: width * 0.85, objectFit: 'contain', cursor: 'pointer' }}
+              onClick={() => openUrl(officialSearchUrl)}
               onError={() => setImageError(true)}
             />
-          </TouchableOpacity>
+          </div>
         ) : (
-          /* Fallback */
           <TouchableOpacity style={styles.fallbackArea} onPress={() => openUrl(officialSearchUrl)} activeOpacity={0.8}>
             <Text style={styles.fallbackId}>{id}</Text>
             <Text style={styles.fallbackName}>{nameJP}</Text>
             {nameTW && <Text style={styles.fallbackTw}>{nameTW}</Text>}
-            <Text style={styles.fallbackHint}>點擊查看官方卡面 →</Text>
+            <Text style={styles.fallbackHint}>圖片無法載入，點擊查看官方卡面 →</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      {/* 價格資訊（從遊々亭爬蟲） */}
+      {/* ====== 價格資訊 ====== */}
       <View style={styles.priceSection}>
         <View style={styles.priceHeader}>
           <Text style={styles.priceSourceName}>🏪 遊々亭</Text>
-          <Text style={styles.priceHint}>（非即時價格，僅供參考）</Text>
+          <Text style={styles.priceHint}>（非即時，僅供參考）</Text>
         </View>
-        {realPrice !== null ? (
-          <View style={styles.priceRow}>
-            <Text style={styles.priceValue}>¥{realPrice.price.toLocaleString()}</Text>
-            <Text style={[styles.priceStock, realPrice.inStock ? styles.inStock : styles.outOfStock]}>
-              {realPrice.inStock ? '✓ 可能有庫存' : '✗ 可能缺貨'}
-            </Text>
-          </View>
-        ) : (
-          <Text style={styles.priceLoading}>載入價格中...</Text>
-        )}
+        <View style={styles.priceRow}>
+          <Text style={styles.priceNote}>點擊下方按鈕查看即時價格</Text>
+          <Text style={styles.priceHint2}>🔍 前往 →</Text>
+        </View>
         <TouchableOpacity style={styles.checkPriceBtn} onPress={() => openUrl(yuyuUrl)} activeOpacity={0.7}>
-          <Text style={styles.checkPriceBtnText}>🔍 查看即時價格 →</Text>
+          <Text style={styles.checkPriceBtnText}>查看遊々亭即時價格 →</Text>
         </TouchableOpacity>
       </View>
 
-      {/* 基本資訊 */}
+      {/* ====== 基本資訊 ====== */}
       <View style={styles.section}>
         <View style={styles.headerRow}>
           <Text style={styles.cardNumber}>{id}</Text>
@@ -125,27 +106,39 @@ export default function CardDetailScreen({ route, navigation }: any) {
         </View>
         <Text style={styles.nameJP}>{nameJP}</Text>
         {nameTW && <Text style={styles.nameTW}>{nameTW}</Text>}
+
         {typeLabel && <View style={styles.metaRow}><Text style={styles.metaLabel}>類型：</Text><Text style={styles.metaValue}>{typeLabel}</Text></View>}
         {colorNames.length > 0 && <View style={styles.metaRow}><Text style={styles.metaLabel}>顏色：</Text><Text style={styles.metaValue}>{colorNames.join(' / ')}</Text></View>}
         {(card.seriesNames || []).length > 0 && <View style={styles.metaRow}><Text style={styles.metaLabel}>系列：</Text><Text style={styles.metaValue}>{(card.seriesNames || []).join(' / ')}</Text></View>}
         {card.tags && card.tags.length > 0 && <View style={styles.metaRow}><Text style={styles.metaLabel}>Tag：</Text><Text style={styles.metaValue}>{card.tags.join(' / ')}</Text></View>}
       </View>
 
-      {/* 卡牌效果 */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>卡牌效果</Text>
-        {effects.length > 0 ? (
-          effects.map((kw: string, i: number) => (
+      {/* ====== 卡牌效果 ====== */}
+      {effects.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>卡牌效果</Text>
+          {effects.map((kw: string, i: number) => (
             <View key={i} style={styles.effectBlock}><Text style={styles.effectText}>{kw}</Text></View>
-          ))
-        ) : card.type === 'Oshi' ? (
-          <Text style={styles.noEffectText}>推し卡為牌組「主推卡」代表，本身無效果文本。{'\n'}其能力由牌組中同名成員卡所表現。</Text>
-        ) : (
-          <Text style={styles.noEffectText}>尚未收錄效果文本。</Text>
-        )}
-      </View>
+          ))}
+        </View>
+      )}
 
-      {/* 搜尋關鍵字 */}
+      {/* 推い卡 / 無效果說明 */}
+      {effects.length === 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>卡牌效果</Text>
+          {card.type === 'Oshi' ? (
+            <Text style={styles.noEffectText}>
+              推い卡為牌組「主推卡」代表，本身無效果文本。{'\n'}
+              其能力由牌組中同名成員卡所表現。
+            </Text>
+          ) : (
+            <Text style={styles.noEffectText}>尚未收錄效果文本。</Text>
+          )}
+        </View>
+      )}
+
+      {/* ====== 關鍵字 ====== */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>搜尋關鍵字</Text>
         <View style={styles.tagWrap}>
@@ -157,7 +150,7 @@ export default function CardDetailScreen({ route, navigation }: any) {
         </View>
       </View>
 
-      {/* 外部連結 */}
+      {/* ====== 外部連結 ====== */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>外部連結</Text>
         <TouchableOpacity style={styles.linkButton} onPress={() => openUrl(officialSearchUrl)}>
@@ -177,8 +170,7 @@ export default function CardDetailScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
-  imageArea: { width: '100%', height: width * 0.8, justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  cardImage: { width: width * 0.7, height: width * 0.75 },
+  imageArea: { width: '100%', minHeight: width * 0.5, justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: COLORS.border, paddingHorizontal: 16, paddingVertical: 16 },
   fallbackArea: { justifyContent: 'center', alignItems: 'center', padding: 24 },
   fallbackId: { color: COLORS.textSecondary, fontSize: 24, fontWeight: 'bold', marginBottom: 8 },
   fallbackName: { color: COLORS.text, fontSize: 20, fontWeight: 'bold', marginBottom: 4 },
@@ -190,12 +182,9 @@ const styles = StyleSheet.create({
   priceSourceName: { color: COLORS.text, fontSize: 18, fontWeight: '700' },
   priceHint: { color: COLORS.textSecondary, fontSize: 11, marginLeft: 8 },
   priceRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  priceValue: { color: COLORS.success, fontSize: 24, fontWeight: 'bold', marginRight: 12 },
-  priceStock: { fontSize: 14, fontWeight: '600' },
-  inStock: { color: '#10b981' },
-  outOfStock: { color: '#ef4444' },
-  priceLoading: { color: COLORS.textSecondary, fontSize: 14 },
-  checkPriceBtn: { backgroundColor: COLORS.primary, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10, alignItems: 'center' },
+  priceNote: { color: COLORS.textSecondary, fontSize: 13 },
+  priceHint2: { color: COLORS.primary, fontSize: 13, fontWeight: '600', marginLeft: 'auto' },
+  checkPriceBtn: { backgroundColor: COLORS.primary, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10, alignItems: 'center', marginTop: 4 },
   checkPriceBtnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
 
   section: { padding: 20, borderBottomWidth: 1, borderBottomColor: COLORS.border },
