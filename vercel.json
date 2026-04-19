@@ -4,29 +4,19 @@
   "installCommand": "npm install",
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "headers": [
         {
           "key": "Content-Type",
           "value": "text/html; charset=utf-8"
         }
       ]
-    }
-  ],
-  "crons": [
-    {
-      "path": "/api/cron/update-db",
-      "schedule": "0 2 * * *"
     }
   ]
 }
