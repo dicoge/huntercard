@@ -1,4 +1,6 @@
 {
+  "buildCommand": "expo export --platform web && node scripts/fix-html.js",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/(.*)",
