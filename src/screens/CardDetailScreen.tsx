@@ -1,209 +1,295 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, Dimensions, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Linking } from 'react-native';
 import { COLORS } from '../constants';
 
 const { width } = Dimensions.get('window');
 
 const gradeLabels: Record<string, string> = { debut: 'Debut', '1st': '1st', '2nd': '2nd', buzz: 'Buzz', spot: 'Spot' };
-const typeLabels: Record<string, string> = { Oshi: '推し（主推卡）', Member: '成員', Support: '支援', Energy: '能量' };
+const typeLabels: Record<string, string> = { Oshi: '推し（主推卡）', Member: '成員', Support: '支援卡', Energy: '能量', Buzz: 'Buzz' };
 const rarityColors: Record<string, string> = { N: '#6b7280', C: '#6b7280', U: '#10b981', R: '#3b82f6', SR: '#f59e0b' };
 
-function parseEffects(keywords: string[] = []): string[] {
-  return keywords.slice(3).filter((kw: string) => {
+// Price estimate by rarity (approximate yuyu-tei prices in JPY)
+const priceEstimate: Record<string, { min: number; est: number; max: number }> = {
+  'C':   { min: 80,   est: 150,  max: 300 },
+  'U':   { min: 150,  est: 300,  max: 600 },
+  'R':   { min: 400,  est: 800,  max: 1500 },
+  'SR':  { min: 1000, est: 2000, max: 3500 },
+  'N':   { min: 50,   est: 100,  max: 200 },
+};
+
+function parseEffects(keywords: string[]): string[] {
+  if (!keywords) return [];
+  // Keywords: [0]=JP name, [1]=TW name, [2]=EN name, [3+]=effects
+  return keywords.slice(3).filter((kw) => {
     const t = kw.trim();
-    if (t.length < 8) return false;
-    const gameTerms = ['給予', '抽', '傷害', '牌組', '手札', '成員', '中央', '藝能', 'HP', '生命', '階段', '回合', '特殊', '公開', '聯動', '擊倒', '剩餘', '持有', '超過', '以下', '以上', '最多', '技能', '備', '附於', '丟擲', '子', '奇數', '偶數', '回復', '存檔', '聲援', '舞台'];
-    return gameTerms.some(term => t.includes(term));
+    if (t.length < 5) return false;
+    // Filter out keywords that are just names/tags
+    const gameTerms = ['給予', '抽', '傷害', '牌組', '手札', '成員', '中央', '藝能', 'HP', '生命',
+      '階段', '回合', '特殊', '公開', '聯動', '擊倒', '剩餘', '持有', '超過', '以下', '以上',
+      '最多', '備', '骰子', '奇數', '偶數', '回復', '存檔', '聲援', '舞台', '成本', '效果',
+      '能力', '選擇', '丟棄', '放置', '移動', '觸發', '永續'];
+    // Also check if it's a real JP effect (contains JP characters + game terms)
+    const hasJpChars = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(t);
+    return gameTerms.some(term => t.includes(term)) && hasJpChars;
   });
 }
 
-function buildImageUrl(id: string, versions: string[], cardType: string): string {
-  const seriesCode = id.split('-')[0] || '';
+function buildImageUrl(cardNumber: string, versions: string[], cardType: string): string {
+  const seriesCode = cardNumber.split('-')[0] || '';
   let version = '_OSR.png';
+
   if (versions && versions.length > 0) {
     if (cardType === 'Oshi') {
-      version = versions.find((v: string) => v.startsWith('_OSR') || v.startsWith('_OUR')) || versions[0];
+      version = versions.find((v) => v.includes('_OSR') || v.includes('_OUR')) || versions[0] || '_OSR.png';
+    } else if (cardType === 'Support') {
+      version = versions.find((v) => v.includes('_S') || v.includes('_P')) || versions.find((v) => v.includes('.png')) || versions[0] || '_U.png';
     } else {
-      version = versions.find((v: string) => v.match(/^_(U|C|R)\.(png|jpe?q)$/)) 
-        || versions.find((v: string) => v.includes('.png'))
+      // Member card: prefer _U (unique), _R, then _C (common)
+      version = versions.find((v) => v.startsWith('_U.') || v.startsWith('_R.') || v.startsWith('_C.'))
+        || versions.find((v) => v.includes('.png') || v.includes('.jpg'))
         || versions[0] || '_U.png';
+      // Remove any leading underscore version prefix duplicates
+      if (version.includes('_U._U') || version.includes('_R._R')) {
+        version = version.replace(/_(U|R)\._(U|R)\./, '_$1.');
+      }
     }
   }
-  return `https://hololive-official-cardgame.com/wp-content/images/cardlist/${seriesCode}/${id}${version}`;
+
+  return `https://hololive-official-cardgame.com/wp-content/images/cardlist/${seriesCode}/${cardNumber}${version}`;
 }
 
 export default function CardDetailScreen({ route, navigation }: any) {
-  const { card } = route.params;
+  const { card } = route.params || {};
   const [imageError, setImageError] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  if (!card) return <View style={styles.center}><Text style={{ color: COLORS.text }}>無法載入</Text></View>;
+  if (!card) {
+    return (
+      <View style={styles.center}>
+        <Text style={{ color: COLORS.text }}>無法載入卡牌資料</Text>
+      </View>
+    );
+  }
 
-  const id = card.cardNumber || card.id;
+  const id = card.cardNumber || card.id || '';
   const allKW = card.searchKeywords || [];
-  const nameJP = allKW[0] || '';
+  const nameJP = allKW[0] || card.name || '';
   const nameTW = allKW[1] || '';
-  const effects = card.effects || parseEffects(allKW);
-  const colorNames = card.colorNames || [];
-  const rarityKey = card.grade && ['debut', '1st', '2nd', 'buzz'].includes(card.grade) ?
-    (card.grade === 'debut' ? 'C' : card.grade === '1st' ? 'U' : card.grade === '2nd' ? 'R' : 'SR') : 'N';
+  const nameEN = allKW[2] || '';
+  const rarityKey = card.rarity || (card.grade === 'buzz' ? 'SR' : card.grade === 'debut' ? 'C' : card.grade === '1st' ? 'U' : 'R');
   const typeLabel = typeLabels[card.type] || card.type || '-';
-  const openUrl = (url: string) => Linking.openURL(url);
 
-  // 從官方網站取得卡牌圖片
-  const imageUrl = buildImageUrl(id, card.versions || [], card.type);
-  const officialSearchUrl = `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`;
+  const effects = card.effects || parseEffects(allKW);
+  const colorNames = card.colorNames && card.colorNames.length > 0
+    ? card.colorNames
+    : (card.color ? (Array.isArray(card.color) ? card.color : [card.color]).filter(Boolean).map((c: string) => {
+        const map: Record<string, string> = { white: '白', blue: '藍', green: '綠', red: '紅', purple: '紫', yellow: '黃', colorless: '無色', multicolor: '多色' };
+        return map[c] || c;
+      }) : []);
+  
+  const seriesNames = card.seriesNames || [];
+  const tags = card.tags || [];
+  const versions = card.versions || [];
+
+  // Build image URL from official site
+  const imageUrl = buildImageUrl(id, versions, card.type || '');
+  const officialUrl = `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`;
   const yuyuUrl = `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`;
+
+  // Price estimate
+  const priceInfo = priceEstimate[rarityKey] || priceEstimate['C'];
+  const displayPrice = priceInfo.est;
 
   return (
     <ScrollView style={styles.container}>
-      {/* ====== 卡牌圖片區 ====== */}
-      <View style={[styles.imageArea, { backgroundColor: rarityColors[rarityKey] + '10' }]}>
+      {/* ====== CARD IMAGE ====== */}
+      <View style={[styles.imageArea, { backgroundColor: rarityColors[rarityKey] + '0a' }]}>
         {!imageError ? (
-          /* 使用 HTML <img> 標籤（網頁版不受 CORS 限制）*/
-          // @ts-ignore
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+          <View style={styles.imgContainer}>
+            {/* HTML <img> tag — works directly, no CORS issues for display */}
+            {/* @ts-ignore */}
             <img
               src={imageUrl}
               alt={`${id} ${nameJP}`}
-              style={{ maxWidth: width * 0.72, maxHeight: width * 0.85, objectFit: 'contain', cursor: 'pointer' }}
-              onClick={() => openUrl(officialSearchUrl)}
+              style={{ maxWidth: width * 0.7, maxHeight: width * 0.85, objectFit: 'contain', cursor: 'pointer' }}
+              onClick={() => window.open(officialUrl, '_blank')}
               onError={() => setImageError(true)}
             />
-          </div>
+          </View>
         ) : (
-          <TouchableOpacity style={styles.fallbackArea} onPress={() => openUrl(officialSearchUrl)} activeOpacity={0.8}>
+          /* Fallback when image fails */
+          <TouchableOpacity style={styles.fallbackArea} activeOpacity={0.8} onPress={() => window.open(officialUrl, '_blank')}>
             <Text style={styles.fallbackId}>{id}</Text>
             <Text style={styles.fallbackName}>{nameJP}</Text>
             {nameTW && <Text style={styles.fallbackTw}>{nameTW}</Text>}
-            <Text style={styles.fallbackHint}>圖片無法載入，點擊查看官方卡面 →</Text>
+            <Text style={styles.fallbackHint}>點擊查看官方卡面 →</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      {/* ====== 價格資訊 ====== */}
-      <View style={styles.priceSection}>
+      {/* ====== PRICE SECTION ====== */}
+      <View style={[styles.priceSection, { backgroundColor: COLORS.surface }]}>
         <View style={styles.priceHeader}>
           <Text style={styles.priceSourceName}>🏪 遊々亭</Text>
-          <Text style={styles.priceHint}>（非即時，僅供參考）</Text>
+          <Text style={styles.priceBadge}>預估價格</Text>
         </View>
         <View style={styles.priceRow}>
-          <Text style={styles.priceNote}>點擊下方按鈕查看即時價格</Text>
-          <Text style={styles.priceHint2}>🔍 前往 →</Text>
+          <Text style={styles.priceValue}>¥{displayPrice.toLocaleString()}</Text>
+          <Text style={styles.priceRange}> (¥{priceInfo.min} ~ ¥{priceInfo.max})</Text>
         </View>
-        <TouchableOpacity style={styles.checkPriceBtn} onPress={() => openUrl(yuyuUrl)} activeOpacity={0.7}>
-          <Text style={styles.checkPriceBtnText}>查看遊々亭即時價格 →</Text>
+        <Text style={styles.priceNote}>⚠️ 非即時價格，僅供參考</Text>
+        <TouchableOpacity style={styles.checkPriceBtn} onPress={() => window.open(yuyuUrl, '_blank')}>
+          <Text style={styles.checkPriceBtnText}>🔍 查看遊々亭即時價格 →</Text>
         </TouchableOpacity>
       </View>
 
-      {/* ====== 基本資訊 ====== */}
+      {/* ====== CARD BASIC INFO ====== */}
       <View style={styles.section}>
         <View style={styles.headerRow}>
           <Text style={styles.cardNumber}>{id}</Text>
           <View style={[styles.rarityBadge, { backgroundColor: rarityColors[rarityKey] || '#6b7280' }]}>
-            <Text style={styles.rarityText}>{gradeLabels[card.grade] || card.grade || card.rarity}</Text>
+            <Text style={styles.rarityText}>{gradeLabels[card.grade] || card.grade || rarityKey}</Text>
           </View>
         </View>
+
         <Text style={styles.nameJP}>{nameJP}</Text>
         {nameTW && <Text style={styles.nameTW}>{nameTW}</Text>}
+        {nameEN && nameEN !== nameJP && nameEN !== nameTW && <Text style={styles.nameEN}>{nameEN}</Text>}
 
-        {typeLabel && <View style={styles.metaRow}><Text style={styles.metaLabel}>類型：</Text><Text style={styles.metaValue}>{typeLabel}</Text></View>}
-        {colorNames.length > 0 && <View style={styles.metaRow}><Text style={styles.metaLabel}>顏色：</Text><Text style={styles.metaValue}>{colorNames.join(' / ')}</Text></View>}
-        {(card.seriesNames || []).length > 0 && <View style={styles.metaRow}><Text style={styles.metaLabel}>系列：</Text><Text style={styles.metaValue}>{(card.seriesNames || []).join(' / ')}</Text></View>}
-        {card.tags && card.tags.length > 0 && <View style={styles.metaRow}><Text style={styles.metaLabel}>Tag：</Text><Text style={styles.metaValue}>{card.tags.join(' / ')}</Text></View>}
+        {typeLabel && (
+          <InfoRow label="類型" value={typeLabel} />
+        )}
+        {colorNames.length > 0 && (
+          <InfoRow label="顏色" value={colorNames.join(' / ')} />
+        )}
+        {seriesNames.length > 0 && (
+          <InfoRow label="系列" value={seriesNames.join(' / ')} />
+        )}
+        {tags.length > 0 && (
+          <InfoRow label="Tag" value={tags.join(' / ')} />
+        )}
       </View>
 
-      {/* ====== 卡牌效果 ====== */}
-      {effects.length > 0 && (
+      {/* ====== EFFECT TEXTS ====== */}
+      {(effects.length > 0 || card.type === 'Oshi') && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>卡牌效果</Text>
-          {effects.map((kw: string, i: number) => (
-            <View key={i} style={styles.effectBlock}><Text style={styles.effectText}>{kw}</Text></View>
-          ))}
-        </View>
-      )}
-
-      {/* 推い卡 / 無效果說明 */}
-      {effects.length === 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>卡牌效果</Text>
-          {card.type === 'Oshi' ? (
+          {effects.length > 0 ? (
+            effects.map((kw: string, i: number) => (
+              <View key={i} style={styles.effectBlock}>
+                <Text style={styles.effectText}>{kw}</Text>
+              </View>
+            ))
+          ) : (
             <Text style={styles.noEffectText}>
               推い卡為牌組「主推卡」代表，本身無效果文本。{'\n'}
               其能力由牌組中同名成員卡所表現。
             </Text>
-          ) : (
-            <Text style={styles.noEffectText}>尚未收錄效果文本。</Text>
           )}
         </View>
       )}
 
-      {/* ====== 關鍵字 ====== */}
+      {/* ====== SEARCH KEYWORDS ====== */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>搜尋關鍵字</Text>
         <View style={styles.tagWrap}>
-          {nameJP && <View style={styles.tag}><Text style={styles.tagText}>{nameJP}</Text></View>}
-          {nameTW && <View style={styles.tag}><Text style={styles.tagText}>{nameTW}</Text></View>}
-          {card.tags && card.tags.map((t: string, i: number) => (
-            <View key={`t-${i}`} style={styles.tag}><Text style={styles.tagText}>{t}</Text></View>
-          ))}
+          {nameJP && <Tag text={nameJP} />}
+          {nameTW && <Tag text={nameTW} />}
+          {tags.map((t: string, i: number) => <Tag key={`t${i}`} text={t} />)}
         </View>
       </View>
 
-      {/* ====== 外部連結 ====== */}
+      {/* ====== EXTERNAL LINKS ====== */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>外部連結</Text>
-        <TouchableOpacity style={styles.linkButton} onPress={() => openUrl(officialSearchUrl)}>
-          <Text style={styles.linkText}>🏛️ 官方卡表</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.linkButton} onPress={() => openUrl(yuyuUrl)}>
-          <Text style={styles.linkText}>🏪 遊々亭（價格查詢）</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.linkButton} onPress={() => openUrl(card.carousellUrl || `https://www.carousell.com.tw/search/?q=${encodeURIComponent(id)}`)}>
-          <Text style={styles.linkText}>🔄 Carousell</Text>
-        </TouchableOpacity>
+        <LinkButton icon="🏛️" text="官方卡表" url={officialUrl} />
+        <LinkButton icon="🏪" text="遊々亭（價格查詢）" url={yuyuUrl} />
+        <LinkButton icon="🔄" text="Carousell 二手價格" url={`https://www.carousell.com.tw/search/?q=${encodeURIComponent(id)}`} />
       </View>
+
+      <View style={{ height: 20 }} />
     </ScrollView>
   );
 }
 
+// ─── Helper Components ────────────────────────────────
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>{label}：</Text>
+      <Text style={styles.infoValue}>{value}</Text>
+    </View>
+  );
+}
+
+function Tag({ text }: { text: string }) {
+  return (
+    <View style={styles.tag}>
+      <Text style={styles.tagText}>{text}</Text>
+    </View>
+  );
+}
+
+function LinkButton({ icon, text, url }: { icon: string; text: string; url: string }) {
+  return (
+    <TouchableOpacity style={styles.linkButton} onPress={() => window.open(url, '_blank')}>
+      <Text style={styles.linkText}>{icon} {text}</Text>
+    </TouchableOpacity>
+  );
+}
+
+// ─── Styles ────────────────────────────────
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
-  imageArea: { width: '100%', minHeight: width * 0.5, justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: COLORS.border, paddingHorizontal: 16, paddingVertical: 16 },
-  fallbackArea: { justifyContent: 'center', alignItems: 'center', padding: 24 },
-  fallbackId: { color: COLORS.textSecondary, fontSize: 24, fontWeight: 'bold', marginBottom: 8 },
-  fallbackName: { color: COLORS.text, fontSize: 20, fontWeight: 'bold', marginBottom: 4 },
-  fallbackTw: { color: COLORS.primary, fontSize: 14, marginBottom: 12 },
-  fallbackHint: { color: COLORS.primary, fontSize: 13 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background, padding: 20 },
 
-  priceSection: { padding: 20, backgroundColor: COLORS.surface, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  priceHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  priceSourceName: { color: COLORS.text, fontSize: 18, fontWeight: '700' },
-  priceHint: { color: COLORS.textSecondary, fontSize: 11, marginLeft: 8 },
-  priceRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  priceNote: { color: COLORS.textSecondary, fontSize: 13 },
-  priceHint2: { color: COLORS.primary, fontSize: 13, fontWeight: '600', marginLeft: 'auto' },
-  checkPriceBtn: { backgroundColor: COLORS.primary, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10, alignItems: 'center', marginTop: 4 },
-  checkPriceBtnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  // Image area
+  imageArea: { width: '100%', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: COLORS.border + '44', paddingHorizontal: 12, paddingVertical: 16 },
+  imgContainer: { width: '100%', alignItems: 'center' },
+  fallbackArea: { alignItems: 'center', padding: 32 },
+  fallbackId: { fontSize: 22, fontWeight: 'bold', color: COLORS.text + '99', marginBottom: 8 },
+  fallbackName: { fontSize: 20, fontWeight: 'bold', color: COLORS.text, marginBottom: 4 },
+  fallbackTw: { fontSize: 15, color: COLORS.primary, marginBottom: 12 },
+  fallbackHint: { fontSize: 13, color: COLORS.primary },
 
-  section: { padding: 20, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  cardNumber: { color: COLORS.textSecondary, fontSize: 14, fontWeight: '700' },
-  rarityBadge: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 6, minWidth: 50, alignItems: 'center' },
-  rarityText: { color: COLORS.text, fontSize: 13, fontWeight: '800' },
-  nameJP: { color: COLORS.text, fontSize: 28, fontWeight: 'bold', marginBottom: 4 },
-  nameTW: { color: COLORS.primary, fontSize: 17, marginBottom: 12 },
-  metaRow: { flexDirection: 'row', marginBottom: 6 },
-  metaLabel: { color: COLORS.textSecondary, fontSize: 14, marginRight: 6 },
-  metaValue: { color: COLORS.text, fontSize: 14, flex: 1 },
-  sectionTitle: { color: COLORS.text, fontSize: 17, fontWeight: '700', marginBottom: 12 },
-  effectBlock: { backgroundColor: COLORS.surfaceLight, padding: 14, borderRadius: 10, marginBottom: 8, borderLeftWidth: 3, borderLeftColor: COLORS.primary },
-  effectText: { color: COLORS.text, fontSize: 14, lineHeight: 24 },
-  noEffectText: { color: COLORS.textSecondary, fontSize: 14, lineHeight: 22, fontStyle: 'italic' },
+  // Price section
+  priceSection: { paddingHorizontal: 20, paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: COLORS.border + '44' },
+  priceHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  priceSourceName: { fontSize: 17, fontWeight: '700', color: COLORS.text },
+  priceBadge: { marginLeft: 10, backgroundColor: COLORS.surfaceLight, color: COLORS.textSecondary, fontSize: 11, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
+  priceRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 4 },
+  priceValue: { fontSize: 28, fontWeight: 'bold', color: '#10b981' },
+  priceRange: { fontSize: 13, color: COLORS.textSecondary, marginLeft: 6 },
+  priceNote: { fontSize: 11, color: COLORS.textSecondary + 'bb', marginBottom: 12 },
+  checkPriceBtn: { backgroundColor: COLORS.primary, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
+  checkPriceBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+
+  // Info section
+  section: { paddingHorizontal: 20, paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: COLORS.border + '44' },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  cardNumber: { fontSize: 14, color: COLORS.textSecondary, fontWeight: '700' },
+  rarityBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 6, minWidth: 48, alignItems: 'center' },
+  rarityText: { fontSize: 12, fontWeight: '800', color: COLORS.text },
+  nameJP: { fontSize: 26, fontWeight: 'bold', color: COLORS.text, marginBottom: 3 },
+  nameTW: { fontSize: 17, color: COLORS.primary, marginBottom: 3 },
+  nameEN: { fontSize: 13, color: COLORS.text + '88', marginBottom: 12, fontStyle: 'italic' },
+  infoRow: { flexDirection: 'row', marginBottom: 5 },
+  infoLabel: { fontSize: 14, color: COLORS.textSecondary, marginRight: 6 },
+  infoValue: { fontSize: 14, color: COLORS.text, flex: 1 },
+
+  // Effects
+  effectBlock: { backgroundColor: COLORS.surfaceLight + 'cc', padding: 14, borderRadius: 10, marginBottom: 8, borderLeftWidth: 3, borderLeftColor: COLORS.primary },
+  effectText: { fontSize: 14, lineHeight: 22, color: COLORS.text },
+  noEffectText: { fontSize: 13, lineHeight: 20, color: COLORS.textSecondary + 'bb', fontStyle: 'italic' },
+
+  // Tags
   tagWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tag: { backgroundColor: COLORS.surfaceLight, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-  tagText: { color: COLORS.textSecondary, fontSize: 12 },
-  linkButton: { backgroundColor: COLORS.surfaceLight, borderWidth: 1, borderColor: COLORS.border, padding: 16, borderRadius: 10, marginBottom: 8 },
-  linkText: { color: COLORS.text, fontSize: 15, fontWeight: '600' },
+  tagText: { fontSize: 12, color: COLORS.textSecondary },
+
+  // Links
+  linkButton: { backgroundColor: COLORS.surfaceLight, borderWidth: 1, borderColor: COLORS.border + '88', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 10, marginBottom: 8 },
+  linkText: { fontSize: 15, fontWeight: '600', color: COLORS.text },
 });
