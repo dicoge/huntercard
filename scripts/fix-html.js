@@ -1,11 +1,12 @@
-#!/usr/bin/env node
 /**
  * Post-build script: injects PWA meta tags into Expo's generated index.html
  * and copies public assets to dist/
  */
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distDir = path.join(__dirname, '../dist');
 const publicDir = path.join(__dirname, '../public');
 
@@ -39,6 +40,5 @@ const pwaTags = `
   `;
 
 html = html.replace('</head>', pwaTags + '\n  </head>');
-
 fs.writeFileSync(htmlPath, html, 'utf-8');
 console.log('PWA meta tags injected into dist/index.html');
