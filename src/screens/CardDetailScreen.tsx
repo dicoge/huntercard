@@ -20,9 +20,7 @@ function parseEffects(keywords: string[] = []): string[] {
 export default function CardDetailScreen({ route, navigation }: any) {
   const { card } = route.params;
   const [imageError, setImageError] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [loadingImage, setLoadingImage] = useState(true);
-  const [yuyuPrice, setYuyuPrice] = useState<{ price: number; inStock: boolean } | null>(null);
+  const [realPrice, setRealPrice] = useState<null | { price: number; inStock: boolean }>(null);
 
   if (!card) return <View style={styles.center}><Text style={{ color: COLORS.text }}>無法載入</Text></View>;
 
@@ -37,72 +35,56 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const typeLabel = typeLabels[card.type] || card.type || '-';
   const openUrl = (url: string) => Linking.openURL(url);
 
-  // 從 API 獲取圖片 URL + 價格
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // 1. 取得圖片 URL
-        const imgRes = await fetch(`https://card-hunter-mu.vercel.app/api/get-image?q=${encodeURIComponent(id)}`);
-        if (imgRes.ok) {
-          const imgData = await imgRes.json();
-          if (imgData.imageUrl) {
-            setImageUrl(imgData.imageUrl);
-          }
-        }
-      } catch (e) {
-        console.log('Image fetch failed:', e);
-      }
-      setLoadingImage(false);
-    };
-
-    // 如果 API 已有 imageUrl（來自 search），直接用
-    if (card.imageUrl) {
-      // Try official site image first
-      const seriesCode = id.split('-')[0] || '';
-      const officialUrl = `https://hololive-official-cardgame.com/wp-content/images/cardlist/${seriesCode}/${id}_OSR.png`;
-      setImageUrl(officialUrl);
-      setLoadingImage(false);
+  // Build official site image URL
+  const seriesCode = id.split('-')[0] || '';
+  // For Oshi cards, use _OSR version; for member cards use the version from card data
+  let version = '_OSR.png';
+  if (card.versions && card.versions.length > 0) {
+    if (card.type === 'Oshi') {
+      version = card.versions.find((v: string) => v.startsWith('_OSR') || v.startsWith('_OUR')) || card.versions[0];
     } else {
-      fetchData();
+      // Member card: prefer _U or _C or _R
+      version = card.versions.find((v: string) => v.match(/^_(U|C|R)\.(png|jpg)$/)) || card.versions[0] || '_U.png';
     }
-  }, [id]);
-
-  // 嘗試從遊々亭取得價格（簡單推估）
-  useEffect(() => {
-    // Price estimation based on rarity
-    const priceEstimate: Record<string, { min: number; max: number }> = {
-      'C': { min: 100, max: 300 },
-      'U': { min: 200, max: 600 },
-      'R': { min: 500, max: 1500 },
-      'SR': { min: 1000, max: 3500 },
-      'N': { min: 50, max: 150 },
-    };
-    const est = priceEstimate[rarityKey] || priceEstimate['C'];
-    // Random in range (simulated until we can crawl yuyu-tei)
-    const price = Math.floor(est.min + (est.max - est.min) * Math.random());
-    setYuyuPrice({ price, inStock: Math.random() > 0.2 });
-  }, [rarityKey]);
+  }
+  const cardImageUrl = `https://hololive-official-cardgame.com/wp-content/images/cardlist/${seriesCode}/${id}${version}`;
 
   const officialSearchUrl = `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`;
   const yuyuUrl = `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`;
+
+  // Fetch real price from yuyu-tei via our API
+  useEffect(() => {
+    const fetchPrice = async () => {
+      try {
+        const resp = await fetch(`https://card-hunter-mu.vercel.app/api/price?q=${encodeURIComponent(id)}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.price !== undefined && data.price !== null) {
+            setRealPrice({ price: data.price, inStock: data.inStock !== false });
+          }
+        }
+      } catch (e) { /* skip */ }
+    };
+    fetchPrice();
+  }, [id]);
 
   return (
     <ScrollView style={styles.container}>
       {/* 卡牌圖片 */}
       <View style={[styles.imageArea, { backgroundColor: rarityColors[rarityKey] + '12' }]}>
-        {loadingImage ? (
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        ) : imageUrl && !imageError ? (
-          <TouchableOpacity onPress={() => openUrl(imageUrl)} activeOpacity={0.8}>
-            <Image
-              source={{ uri: imageUrl }}
-              style={styles.cardImage}
-              resizeMode="contain"
+        {!imageError ? (
+          <TouchableOpacity onPress={() => openUrl(officialSearchUrl)} activeOpacity={0.8}>
+            {/* 網頁版用 img 標籤（不受 CORS 限制）*/}
+            {/* @ts-ignore */}
+            <img
+              src={cardImageUrl}
+              alt={nameJP}
+              style={{ width: width * 0.7, height: width * 0.75, objectFit: 'contain' }}
               onError={() => setImageError(true)}
             />
           </TouchableOpacity>
         ) : (
-          /* Fallback: 點擊去官方 */
+          /* Fallback */
           <TouchableOpacity style={styles.fallbackArea} onPress={() => openUrl(officialSearchUrl)} activeOpacity={0.8}>
             <Text style={styles.fallbackId}>{id}</Text>
             <Text style={styles.fallbackName}>{nameJP}</Text>
@@ -112,21 +94,21 @@ export default function CardDetailScreen({ route, navigation }: any) {
         )}
       </View>
 
-      {/* 價格資訊 */}
+      {/* 價格資訊（從遊々亭爬蟲） */}
       <View style={styles.priceSection}>
         <View style={styles.priceHeader}>
           <Text style={styles.priceSourceName}>🏪 遊々亭</Text>
-          <Text style={styles.priceHint}>（非即時，僅供參考）</Text>
+          <Text style={styles.priceHint}>（非即時價格，僅供參考）</Text>
         </View>
-        {yuyuPrice ? (
+        {realPrice !== null ? (
           <View style={styles.priceRow}>
-            <Text style={styles.priceValue}>¥{yuyuPrice.price.toLocaleString()}</Text>
-            <Text style={[styles.priceStock, yuyuPrice.inStock ? styles.inStock : styles.outOfStock]}>
-              {yuyuPrice.inStock ? '✓ 可能有庫存' : '✗ 可能缺貨'}
+            <Text style={styles.priceValue}>¥{realPrice.price.toLocaleString()}</Text>
+            <Text style={[styles.priceStock, realPrice.inStock ? styles.inStock : styles.outOfStock]}>
+              {realPrice.inStock ? '✓ 可能有庫存' : '✗ 可能缺貨'}
             </Text>
           </View>
         ) : (
-          <Text style={styles.priceLoading}>載入中...</Text>
+          <Text style={styles.priceLoading}>載入價格中...</Text>
         )}
         <TouchableOpacity style={styles.checkPriceBtn} onPress={() => openUrl(yuyuUrl)} activeOpacity={0.7}>
           <Text style={styles.checkPriceBtnText}>🔍 查看即時價格 →</Text>
@@ -143,7 +125,6 @@ export default function CardDetailScreen({ route, navigation }: any) {
         </View>
         <Text style={styles.nameJP}>{nameJP}</Text>
         {nameTW && <Text style={styles.nameTW}>{nameTW}</Text>}
-
         {typeLabel && <View style={styles.metaRow}><Text style={styles.metaLabel}>類型：</Text><Text style={styles.metaValue}>{typeLabel}</Text></View>}
         {colorNames.length > 0 && <View style={styles.metaRow}><Text style={styles.metaLabel}>顏色：</Text><Text style={styles.metaValue}>{colorNames.join(' / ')}</Text></View>}
         {(card.seriesNames || []).length > 0 && <View style={styles.metaRow}><Text style={styles.metaLabel}>系列：</Text><Text style={styles.metaValue}>{(card.seriesNames || []).join(' / ')}</Text></View>}
@@ -227,16 +208,13 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: 'row', marginBottom: 6 },
   metaLabel: { color: COLORS.textSecondary, fontSize: 14, marginRight: 6 },
   metaValue: { color: COLORS.text, fontSize: 14, flex: 1 },
-
   sectionTitle: { color: COLORS.text, fontSize: 17, fontWeight: '700', marginBottom: 12 },
   effectBlock: { backgroundColor: COLORS.surfaceLight, padding: 14, borderRadius: 10, marginBottom: 8, borderLeftWidth: 3, borderLeftColor: COLORS.primary },
   effectText: { color: COLORS.text, fontSize: 14, lineHeight: 24 },
   noEffectText: { color: COLORS.textSecondary, fontSize: 14, lineHeight: 22, fontStyle: 'italic' },
-
   tagWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tag: { backgroundColor: COLORS.surfaceLight, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
   tagText: { color: COLORS.textSecondary, fontSize: 12 },
-
   linkButton: { backgroundColor: COLORS.surfaceLight, borderWidth: 1, borderColor: COLORS.border, padding: 16, borderRadius: 10, marginBottom: 8 },
   linkText: { color: COLORS.text, fontSize: 15, fontWeight: '600' },
 });
