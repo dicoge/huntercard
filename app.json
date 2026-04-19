@@ -29,6 +29,16 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "plugins": []
+    "plugins": [],
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png",
+      "pwa": {
+        "shortName": "HoloHunter",
+        "themeColor": "#ffffff",
+        "backgroundColor": "#ffffff",
+        "description": "hololive TCG 卡牌查價 App"
+      }
+    }
   }
 }
