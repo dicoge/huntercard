@@ -56,7 +56,7 @@ export default function SearchResultsScreen({ route, navigation }: any) {
     <View style={styles.centerContainer}>
       <ActivityIndicator size="large" color={COLORS.primary} />
       <Text style={styles.loadingText}>正在搜尋卡牌...</Text>
-      <Text style={styles.loadingSubtext}>從 holotcgtw 資料庫搜尋</Text>
+
     </View>
   );
 
@@ -81,7 +81,7 @@ export default function SearchResultsScreen({ route, navigation }: any) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={{ ...styles.queryText, color: COLORS.text }}>搜尋結果：{query}</Text>
-        <Text style={{ ...styles.resultCount, color: COLORS.textSecondary }}>找到 {data.total} 張卡牌（來源：holotcgtw）</Text>
+        <Text style={{ ...styles.resultCount, color: COLORS.textSecondary }}>找到 {data.total} 張卡牌</Text>
       </View>
       <FlatList
         data={data.results}
