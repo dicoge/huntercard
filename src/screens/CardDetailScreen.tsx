@@ -177,19 +177,6 @@ export default function CardDetailScreen({ route, navigation }: any) {
           </View>
         )}
       </View>
-        <View style={styles.priceHeader}>
-          <Text style={styles.priceSourceName}>🏪 遊々亭</Text>
-          <Text style={styles.priceBadge}>預估價格</Text>
-        </View>
-        <View style={styles.priceRow}>
-          <Text style={styles.priceValue}>¥{displayPrice.toLocaleString()}</Text>
-          <Text style={styles.priceRange}> (¥{priceInfo.min} ~ ¥{priceInfo.max})</Text>
-        </View>
-        <Text style={styles.priceNote}>⚠️ 非即時價格，僅供參考</Text>
-        <TouchableOpacity style={styles.checkPriceBtn} onPress={() => window.open(yuyuUrl, '_blank')}>
-          <Text style={styles.checkPriceBtnText}>🔍 查看遊々亭即時價格 →</Text>
-        </TouchableOpacity>
-      </View>
 
       {/* ====== CARD BASIC INFO ====== */}
       <View style={styles.section}>
