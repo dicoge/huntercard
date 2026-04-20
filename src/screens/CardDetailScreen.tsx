@@ -128,6 +128,55 @@ export default function CardDetailScreen({ route, navigation }: any) {
 
       {/* ====== PRICE SECTION ====== */}
       <View style={[styles.priceSection, { backgroundColor: COLORS.surface }]}>
+        {/* Live price from yuyu-tei if available */}
+        {card.prices?.yuyu ? (
+          <>
+            <View style={styles.priceHeader}>
+              <Text style={styles.priceSourceName}>🏪 遊々亭</Text>
+              <Text style={styles.priceBadge}>即時價格</Text>
+            </View>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceValue}>{card.prices.yuyu.lowest}</Text>
+            </View>
+            <Text style={styles.priceNote}>📅 更新於 {card.prices.yuyu.fetchedAt || '今日'}</Text>
+            <TouchableOpacity style={styles.checkPriceBtn} onPress={() => window.open(yuyuUrl, '_blank')}>
+              <Text style={styles.checkPriceBtnText}>🔍 查看遊々亭詳情 →</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <View style={styles.priceHeader}>
+              <Text style={styles.priceSourceName}>🏪 遊々亭</Text>
+              <Text style={styles.priceBadge}>預估價格</Text>
+            </View>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceValue}>¥{displayPrice.toLocaleString()}</Text>
+              <Text style={styles.priceRange}> (¥{priceInfo.min} ~ ¥{priceInfo.max})</Text>
+            </View>
+            <Text style={styles.priceNote}>⚠️ 非即時價格，僅供參考</Text>
+            <TouchableOpacity style={styles.checkPriceBtn} onPress={() => window.open(yuyuUrl, '_blank')}>
+              <Text style={styles.checkPriceBtnText}>🔍 查看遊々亭即時價格 →</Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        {/* Carousell price if available */}
+        {card.prices?.carousell && (
+          <View style={[styles.priceSection, { backgroundColor: COLORS.surface, marginTop: 8 }]}>
+            <View style={styles.priceHeader}>
+              <Text style={styles.priceSourceName}>🔄 Carousell</Text>
+              <Text style={styles.priceBadge}>{card.prices.carousell.count} 筆商品</Text>
+            </View>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceValue}>{card.prices.carousell.lowest}</Text>
+            </View>
+            <Text style={styles.priceNote}>📅 更新於 {card.prices.carousell.fetchedAt || '今日'}</Text>
+            <TouchableOpacity style={styles.checkPriceBtn} onPress={() => window.open(card.carousellUrl, '_blank')}>
+              <Text style={styles.checkPriceBtnText}>🔍 查看 Carousell 商品 →</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
         <View style={styles.priceHeader}>
           <Text style={styles.priceSourceName}>🏪 遊々亭</Text>
           <Text style={styles.priceBadge}>預估價格</Text>

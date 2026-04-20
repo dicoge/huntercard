@@ -121,6 +121,18 @@ function CardListItem({ card, onPress }: { card: CardResult; onPress: () => void
           {card.colorNames.length > 0 && <Text style={styles.colorText}>{card.colorNames.join(' / ')}</Text>}
         </View>
 
+        {/* Live price info */}
+        {card.prices && (
+          <View style={styles.priceInfo}>
+            {card.prices.yuyu && (
+              <Text style={styles.priceText}>🏪 遊々亭: {card.prices.yuyu.lowest}</Text>
+            )}
+            {card.prices.carousell && (
+              <Text style={styles.priceText}>🔄 Carousell: {card.prices.carousell.lowest}</Text>
+            )}
+          </View>
+        )}
+
         <View style={styles.quickLinks}>
           <TouchableOpacity style={styles.quickLink} onPress={(e) => { e.stopPropagation(); Linking.openURL(card.yuyuUrl); }}>
             <Text style={styles.quickLinkText}>遊々亭 →</Text>
@@ -160,6 +172,8 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8, alignItems: 'center' },
   seriesTag: { color: COLORS.textSecondary, fontSize: 11, backgroundColor: COLORS.surfaceLight, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
   colorText: { color: COLORS.textSecondary, fontSize: 11 },
+  priceInfo: { marginBottom: 8, gap: 2 },
+  priceText: { color: '#10b981', fontSize: 12, fontWeight: '600' },
   quickLinks: { flexDirection: 'row', gap: 8, marginTop: 'auto' },
   quickLink: { backgroundColor: COLORS.surfaceLight, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
   quickLinkText: { color: COLORS.primary, fontSize: 12, fontWeight: '600' },
