@@ -5,6 +5,12 @@ const CARD_FILES = [
   'cardList_hSD07.json', 'cardList_hPR.json', 'cardList_hBD24.json', 'cardList_hY.json',
 ];
 const BASE = 'https://raw.githubusercontent.com/TETSUNekko/holotcgtw/main/client/src';
+
+// Official card data files (for series not in holotcgtw)
+const OFFICIAL_FILES = [
+  'cardList_hBP04.json', 'cardList_hBP05.json', 'cardList_hBP06.json', 'cardList_hBP07.json',
+];
+const OFFICIAL_BASE = 'https://raw.githubusercontent.com/dicoge/hunterCard/main/data/official';
 const GRADE_RARITY: Record<string, string> = { debut: 'C', '1st': 'U', '2nd': 'R', buzz: 'SR', spot: 'N' };
 const COLOR_MAP: Record<string, string> = {
   white: '白色', blue: '藍色', green: '綠色', red: '紅色',
@@ -13,6 +19,8 @@ const COLOR_MAP: Record<string, string> = {
 const SERIES_NAMES: Record<string, string> = {
   hBP01: 'ブルーミングレディアンス', hBP02: 'クインテットスペクトラム',
   hBP03: 'サバイバル・オブ・ザ・フェイビアス',
+  hBP04: 'キュリアスユニバース', hBP05: 'エンチャントレガリア',
+  hBP06: 'アヤカシヴァーミリオン', hBP07: 'ディーヴァフィーバー',
   hSD01: 'スターターデッキ ときのそら', hSD02: 'スターターデッキ 白上フブキ',
   hSD03: 'スターターデッキ 湊あくあ', hSD04: 'スターターデッキ 天音かなた',
   hSD05: 'スターターデッキ ReGLOSS', hSD06: 'スターターデッキ 風真いろは',
@@ -34,9 +42,21 @@ export default async function handler(req: Request) {
     const searchQ = q.toLowerCase().trim();
     const allCards: any[] = [];
 
+    // Fetch from holotcgtw (primary source)
     for (const file of CARD_FILES) {
       try {
         const res = await fetch(BASE + '/' + file);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) allCards.push(...data);
+        }
+      } catch (_) { /* skip */ }
+    }
+
+    // Fetch official data for newer series (fallback source)
+    for (const file of OFFICIAL_FILES) {
+      try {
+        const res = await fetch(OFFICIAL_BASE + '/' + file);
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data)) allCards.push(...data);
