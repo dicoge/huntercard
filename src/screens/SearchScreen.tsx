@@ -38,9 +38,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       {/* 說明 */}
       <View style={styles.hintBox}>
         <Text style={styles.hintTitle}>🔍 搜尋功能</Text>
-        <Text style={styles.hintText}>輸入卡號或成員名稱，系統會搜尋以下來源：</Text>
-        <Text style={styles.hintText}>• 官方卡牌列表 - 完整卡牌資訊</Text>
-        <Text style={styles.hintText}>• 遊々亭 - 日本二手價格</Text>
+        <Text style={styles.hintText}>輸入卡號（例：hBP01-001）或成員名稱即可搜尋</Text>
       </View>
 
       {/* 熱門搜尋建議 */}
