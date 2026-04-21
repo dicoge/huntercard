@@ -130,21 +130,21 @@ export default async function handler(req: Request) {
       // Series handling
       const series = isOfficial ? [c.expansion] : (c.series || []);
       
-      // Grade/rarity mapping for official data
+      // Grade/rarity mapping
       let grade = safe(c.grade);
       let rarity = GRADE_RARITY[grade] || (grade && ['debut','1st','2nd','buzz'].includes(grade) ? 'C' : 'N');
       
-      // Official data uses rarity codes like OSR, UR, SR, R, U, C, N
+      // Official data uses rarity codes like OSR, UR, SR, RR, R, U, C, N
       if (isOfficial && c.rarity) {
         const rarityCode = c.rarity.toUpperCase();
-        if (rarityCode.includes('OSR') || rarityCode.includes('OUR')) grade = 'buzz';
-        else if (rarityCode === 'UR') grade = '2nd';
-        else if (rarityCode === 'SR') grade = '1st';
-        else if (rarityCode === 'R') grade = 'debut';
-        else if (rarityCode === 'U') grade = 'debut';
-        else if (rarityCode === 'C') grade = 'debut';
-        else if (rarityCode === 'N') grade = 'spot';
-        rarity = GRADE_RARITY[grade] || 'N';
+        if (rarityCode.includes('OSR') || rarityCode.includes('OUR')) { grade = 'buzz'; rarity = 'SR'; }
+        else if (rarityCode === 'UR') { grade = '2nd'; rarity = 'R'; }
+        else if (rarityCode === 'SR') { grade = '1st'; rarity = 'U'; }
+        else if (rarityCode === 'RR') { grade = 'debut'; rarity = 'C'; }
+        else if (rarityCode === 'R') { grade = 'debut'; rarity = 'C'; }
+        else if (rarityCode === 'U') { grade = 'debut'; rarity = 'C'; }
+        else if (rarityCode === 'C') { grade = 'debut'; rarity = 'C'; }
+        else if (rarityCode === 'N') { grade = 'spot'; rarity = 'N'; }
       }
 
       // Type mapping for official data
