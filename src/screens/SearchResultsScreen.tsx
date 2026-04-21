@@ -3,7 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, Linking, ActivityIn
 import { COLORS } from '../constants';
 
 const rarityColors: Record<string, string> = {
-  N: '#6b7280', C: '#6b7280', U: '#10b981', R: '#3b82f6', SR: '#f59e0b',
+  N: '#8B4513', C: '#6b7280', U: '#10b981', R: '#3b82f6', SR: '#f59e0b',
 };
 const gradeLabels: Record<string, string> = {
   debut: 'Debut', '1st': '1st', '2nd': '2nd', buzz: 'Buzz', spot: 'Spot',
@@ -133,13 +133,10 @@ function CardListItem({ card, onPress }: { card: CardResult; onPress: () => void
           {card.colorNames.length > 0 && <Text style={styles.colorText}>{card.colorNames.join(' / ')}</Text>}
         </View>
 
-        <View style={styles.quickLinks}>
-          <TouchableOpacity style={styles.quickLink} onPress={(e) => { e.stopPropagation(); Linking.openURL(card.yuyuUrl); }}>
-            <Text style={styles.quickLinkText}>遊々亭 →</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.quickLink} onPress={(e) => { e.stopPropagation(); Linking.openURL(card.officialUrl); }}>
-            <Text style={styles.quickLinkText}>官方卡面 →</Text>
-          </TouchableOpacity>
+        {/* Estimated price */}
+        <View style={styles.priceRow}>
+          <Text style={styles.priceLabel}>預估 ¥</Text>
+          <Text style={styles.priceValue}>{getEstimatedPrice(card.rarity)}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -176,4 +173,19 @@ const styles = StyleSheet.create({
   quickLinks: { flexDirection: 'row', gap: 8, marginTop: 'auto' },
   quickLink: { backgroundColor: COLORS.surfaceLight, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
   quickLinkText: { color: COLORS.primary, fontSize: 12, fontWeight: '600' },
+  priceRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: 'auto', gap: 4 },
+  priceLabel: { color: COLORS.textSecondary, fontSize: 11 },
+  priceValue: { color: '#10b981', fontSize: 15, fontWeight: '700' },
 });
+
+// Estimated price by rarity (JPY)
+function getEstimatedPrice(rarity: string): string {
+  const prices: Record<string, number> = {
+    'SR': 2000,
+    'R': 800,
+    'U': 300,
+    'C': 150,
+    'N': 100,
+  };
+  return (prices[rarity] || 150).toLocaleString();
+}
