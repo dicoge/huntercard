@@ -1,0 +1,1738 @@
+[
+  {
+    "id": "1254",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP01-032_02_C.png",
+    "name": "アキ・ローゼンタール",
+    "cardNumber": "hBP01-032",
+    "rarity": "02_C"
+  },
+  {
+    "id": "1255",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP01-038_02_C.png",
+    "name": "兎田ぺこら",
+    "cardNumber": "hBP01-038",
+    "rarity": "02_C"
+  },
+  {
+    "id": "1258",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP01-076_02_C.png",
+    "name": "星街すいせい",
+    "cardNumber": "hBP01-076",
+    "rarity": "02_C"
+  },
+  {
+    "id": "1252",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP02-008_02_C.png",
+    "name": "白上フブキ",
+    "cardNumber": "hBP02-008",
+    "rarity": "02_C"
+  },
+  {
+    "id": "1191",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-013_R.png",
+    "name": "ときのそら",
+    "cardNumber": "hBP05-013",
+    "rarity": "R"
+  },
+  {
+    "id": "1192",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-014_C.png",
+    "name": "兎田ぺこら",
+    "cardNumber": "hBP05-014",
+    "rarity": "C"
+  },
+  {
+    "id": "1193",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-015_U.png",
+    "name": "兎田ぺこら",
+    "cardNumber": "hBP05-015",
+    "rarity": "U"
+  },
+  {
+    "id": "1194",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-016_RR.png",
+    "name": "兎田ぺこら",
+    "cardNumber": "hBP05-016",
+    "rarity": "RR"
+  },
+  {
+    "id": "1195",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-017_R.png",
+    "name": "姫森ルーナ",
+    "cardNumber": "hBP05-017",
+    "rarity": "R"
+  },
+  {
+    "id": "1203",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-025_C.png",
+    "name": "アキ・ローゼンタール",
+    "cardNumber": "hBP05-025",
+    "rarity": "C"
+  },
+  {
+    "id": "1204",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-026_U.png",
+    "name": "アキ・ローゼンタール",
+    "cardNumber": "hBP05-026",
+    "rarity": "U"
+  },
+  {
+    "id": "1205",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-027_RR.png",
+    "name": "アキ・ローゼンタール",
+    "cardNumber": "hBP05-027",
+    "rarity": "RR"
+  },
+  {
+    "id": "1206",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-028_R.png",
+    "name": "獅白ぼたん",
+    "cardNumber": "hBP05-028",
+    "rarity": "R"
+  },
+  {
+    "id": "1207",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-029_R.png",
+    "name": "儒烏風亭らでん",
+    "cardNumber": "hBP05-029",
+    "rarity": "R"
+  },
+  {
+    "id": "1214",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-036_C.png",
+    "name": "星街すいせい",
+    "cardNumber": "hBP05-036",
+    "rarity": "C"
+  },
+  {
+    "id": "1215",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-037_RR.png",
+    "name": "星街すいせい",
+    "cardNumber": "hBP05-037",
+    "rarity": "RR"
+  },
+  {
+    "id": "1216",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-038_R.png",
+    "name": "モココ・アビスガード",
+    "cardNumber": "hBP05-038",
+    "rarity": "R"
+  },
+  {
+    "id": "1217",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-039_R.png",
+    "name": "一条莉々華",
+    "cardNumber": "hBP05-039",
+    "rarity": "R"
+  },
+  {
+    "id": "1224",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-046_R.png",
+    "name": "雪花ラミィ",
+    "cardNumber": "hBP05-046",
+    "rarity": "R"
+  },
+  {
+    "id": "1228",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-050_R.png",
+    "name": "フワワ・アビスガード",
+    "cardNumber": "hBP05-050",
+    "rarity": "R"
+  },
+  {
+    "id": "1229",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-051_R.png",
+    "name": "火威青",
+    "cardNumber": "hBP05-051",
+    "rarity": "R"
+  },
+  {
+    "id": "1240",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-062_R.png",
+    "name": "常闇トワ",
+    "cardNumber": "hBP05-062",
+    "rarity": "R"
+  },
+  {
+    "id": "1246",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-068_C.png",
+    "name": "白上フブキ",
+    "cardNumber": "hBP05-068",
+    "rarity": "C"
+  },
+  {
+    "id": "1247",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-069_U.png",
+    "name": "白上フブキ",
+    "cardNumber": "hBP05-069",
+    "rarity": "U"
+  },
+  {
+    "id": "1248",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-070_RR.png",
+    "name": "白上フブキ",
+    "cardNumber": "hBP05-070",
+    "rarity": "RR"
+  },
+  {
+    "id": "1249",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-071_R.png",
+    "name": "戌神ころね",
+    "cardNumber": "hBP05-071",
+    "rarity": "R"
+  },
+  {
+    "id": "1251",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-073_R.png",
+    "name": "アユンダ・リス",
+    "cardNumber": "hBP05-073",
+    "rarity": "R"
+  },
+  {
+    "id": "1264",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-074_C.png",
+    "name": "フレンドリーパソコン",
+    "cardNumber": "hBP05-074",
+    "rarity": "C"
+  },
+  {
+    "id": "1265",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-075_C.png",
+    "name": "牛丼",
+    "cardNumber": "hBP05-075",
+    "rarity": "C"
+  },
+  {
+    "id": "1266",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-076_U.png",
+    "name": "ちょこのビーフストロガノフ",
+    "cardNumber": "hBP05-076",
+    "rarity": "U"
+  },
+  {
+    "id": "1267",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-077_U.png",
+    "name": "バカタレサーカス",
+    "cardNumber": "hBP05-077",
+    "rarity": "U"
+  },
+  {
+    "id": "1268",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-078_U.png",
+    "name": "晩酌配信",
+    "cardNumber": "hBP05-078",
+    "rarity": "U"
+  },
+  {
+    "id": "1269",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-079_U.png",
+    "name": "み俺恥",
+    "cardNumber": "hBP05-079",
+    "rarity": "U"
+  },
+  {
+    "id": "1270",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-080_U.png",
+    "name": "SorAZセレブレーション",
+    "cardNumber": "hBP05-080",
+    "rarity": "U"
+  },
+  {
+    "id": "1271",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-081_U.png",
+    "name": "白銀ノエルのメイス",
+    "cardNumber": "hBP05-081",
+    "rarity": "U"
+  },
+  {
+    "id": "1272",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-082_U.png",
+    "name": "アキ・ローゼンタールの斧",
+    "cardNumber": "hBP05-082",
+    "rarity": "U"
+  },
+  {
+    "id": "1273",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-083_U.png",
+    "name": "ネリッサ・レイヴンクロフトの杖",
+    "cardNumber": "hBP05-083",
+    "rarity": "U"
+  },
+  {
+    "id": "1274",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-084_U.png",
+    "name": "角巻わためのハープ",
+    "cardNumber": "hBP05-084",
+    "rarity": "U"
+  },
+  {
+    "id": "1275",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-085_C.png",
+    "name": "みこだにぇー",
+    "cardNumber": "hBP05-085",
+    "rarity": "C"
+  },
+  {
+    "id": "1276",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-086_C.png",
+    "name": "Cilus",
+    "cardNumber": "hBP05-086",
+    "rarity": "C"
+  },
+  {
+    "id": "1277",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-087_U.png",
+    "name": "Jailbird",
+    "cardNumber": "hBP05-087",
+    "rarity": "U"
+  },
+  {
+    "id": "1256",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP01-052_02_C.png",
+    "name": "アイラニ・イオフィフティーン",
+    "cardNumber": "hBP01-052",
+    "rarity": "02_C"
+  },
+  {
+    "id": "1257",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP01-068_02_C.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hBP01-068",
+    "rarity": "02_C"
+  },
+  {
+    "id": "1260",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP01-082_02_C.png",
+    "name": "こぼ・かなえる",
+    "cardNumber": "hBP01-082",
+    "rarity": "02_C"
+  },
+  {
+    "id": "1278",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP01/hBP01-114_C.png",
+    "name": "石の斧",
+    "cardNumber": "hBP01-114",
+    "rarity": "C"
+  },
+  {
+    "id": "167",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP01/hBP01-126_C.png",
+    "name": "座員",
+    "cardNumber": "hBP01-126",
+    "rarity": "C"
+  },
+  {
+    "id": "1253",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP02-014_02_C.png",
+    "name": "白銀ノエル",
+    "cardNumber": "hBP02-014",
+    "rarity": "02_C"
+  },
+  {
+    "id": "1262",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP02-065_02_C.png",
+    "name": "ネリッサ・レイヴンクロフト",
+    "cardNumber": "hBP02-065",
+    "rarity": "02_C"
+  },
+  {
+    "id": "1179",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-001_OSR.png",
+    "name": "白銀ノエル",
+    "cardNumber": "hBP05-001",
+    "rarity": "OSR"
+  },
+  {
+    "id": "1180",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-002_OSR.png",
+    "name": "アイラニ・イオフィフティーン",
+    "cardNumber": "hBP05-002",
+    "rarity": "OSR"
+  },
+  {
+    "id": "1181",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-003_OSR.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hBP05-003",
+    "rarity": "OSR"
+  },
+  {
+    "id": "1182",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-004_OSR.png",
+    "name": "猫又おかゆ",
+    "cardNumber": "hBP05-004",
+    "rarity": "OSR"
+  },
+  {
+    "id": "1183",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-005_OSR.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hBP05-005",
+    "rarity": "OSR"
+  },
+  {
+    "id": "1184",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-006_OSR.png",
+    "name": "ネリッサ・レイヴンクロフト",
+    "cardNumber": "hBP05-006",
+    "rarity": "OSR"
+  },
+  {
+    "id": "1185",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-007_OSR.png",
+    "name": "不知火フレア",
+    "cardNumber": "hBP05-007",
+    "rarity": "OSR"
+  },
+  {
+    "id": "1186",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-008_U.png",
+    "name": "白銀ノエル",
+    "cardNumber": "hBP05-008",
+    "rarity": "U"
+  },
+  {
+    "id": "1187",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-009_C.png",
+    "name": "白銀ノエル",
+    "cardNumber": "hBP05-009",
+    "rarity": "C"
+  },
+  {
+    "id": "1188",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-010_U.png",
+    "name": "白銀ノエル",
+    "cardNumber": "hBP05-010",
+    "rarity": "U"
+  },
+  {
+    "id": "1189",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-011_R.png",
+    "name": "白銀ノエル",
+    "cardNumber": "hBP05-011",
+    "rarity": "R"
+  },
+  {
+    "id": "1190",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-012_RR.png",
+    "name": "白銀ノエル",
+    "cardNumber": "hBP05-012",
+    "rarity": "RR"
+  },
+  {
+    "id": "1196",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-018_R.png",
+    "name": "ベスティア・ゼータ",
+    "cardNumber": "hBP05-018",
+    "rarity": "R"
+  },
+  {
+    "id": "1197",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-019_U.png",
+    "name": "アイラニ・イオフィフティーン",
+    "cardNumber": "hBP05-019",
+    "rarity": "U"
+  },
+  {
+    "id": "1198",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-020_C.png",
+    "name": "アイラニ・イオフィフティーン",
+    "cardNumber": "hBP05-020",
+    "rarity": "C"
+  },
+  {
+    "id": "1199",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-021_U.png",
+    "name": "アイラニ・イオフィフティーン",
+    "cardNumber": "hBP05-021",
+    "rarity": "U"
+  },
+  {
+    "id": "1200",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-022_R.png",
+    "name": "アイラニ・イオフィフティーン",
+    "cardNumber": "hBP05-022",
+    "rarity": "R"
+  },
+  {
+    "id": "1201",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-023_RR.png",
+    "name": "アイラニ・イオフィフティーン",
+    "cardNumber": "hBP05-023",
+    "rarity": "RR"
+  },
+  {
+    "id": "1202",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-024_R.png",
+    "name": "AZKi",
+    "cardNumber": "hBP05-024",
+    "rarity": "R"
+  },
+  {
+    "id": "1208",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-030_U.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hBP05-030",
+    "rarity": "U"
+  },
+  {
+    "id": "1209",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-031_C.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hBP05-031",
+    "rarity": "C"
+  },
+  {
+    "id": "1210",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-032_U.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hBP05-032",
+    "rarity": "U"
+  },
+  {
+    "id": "1211",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-033_R.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hBP05-033",
+    "rarity": "R"
+  },
+  {
+    "id": "1212",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-034_RR.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hBP05-034",
+    "rarity": "RR"
+  },
+  {
+    "id": "1213",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-035_R.png",
+    "name": "さくらみこ",
+    "cardNumber": "hBP05-035",
+    "rarity": "R"
+  },
+  {
+    "id": "1218",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-040_U.png",
+    "name": "miComet",
+    "cardNumber": "hBP05-040",
+    "rarity": "U"
+  },
+  {
+    "id": "1219",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-041_U.png",
+    "name": "猫又おかゆ",
+    "cardNumber": "hBP05-041",
+    "rarity": "U"
+  },
+  {
+    "id": "1220",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-042_C.png",
+    "name": "猫又おかゆ",
+    "cardNumber": "hBP05-042",
+    "rarity": "C"
+  },
+  {
+    "id": "1221",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-043_U.png",
+    "name": "猫又おかゆ",
+    "cardNumber": "hBP05-043",
+    "rarity": "U"
+  },
+  {
+    "id": "1222",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-044_R.png",
+    "name": "猫又おかゆ",
+    "cardNumber": "hBP05-044",
+    "rarity": "R"
+  },
+  {
+    "id": "1223",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-045_RR.png",
+    "name": "猫又おかゆ",
+    "cardNumber": "hBP05-045",
+    "rarity": "RR"
+  },
+  {
+    "id": "1225",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-047_C.png",
+    "name": "こぼ・かなえる",
+    "cardNumber": "hBP05-047",
+    "rarity": "C"
+  },
+  {
+    "id": "1226",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-048_U.png",
+    "name": "こぼ・かなえる",
+    "cardNumber": "hBP05-048",
+    "rarity": "U"
+  },
+  {
+    "id": "1227",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-049_RR.png",
+    "name": "こぼ・かなえる",
+    "cardNumber": "hBP05-049",
+    "rarity": "RR"
+  },
+  {
+    "id": "1230",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-052_U.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hBP05-052",
+    "rarity": "U"
+  },
+  {
+    "id": "1231",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-053_C.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hBP05-053",
+    "rarity": "C"
+  },
+  {
+    "id": "1232",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-054_U.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hBP05-054",
+    "rarity": "U"
+  },
+  {
+    "id": "1233",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-055_R.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hBP05-055",
+    "rarity": "R"
+  },
+  {
+    "id": "1234",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-056_RR.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hBP05-056",
+    "rarity": "RR"
+  },
+  {
+    "id": "1235",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-057_U.png",
+    "name": "ネリッサ・レイヴンクロフト",
+    "cardNumber": "hBP05-057",
+    "rarity": "U"
+  },
+  {
+    "id": "1236",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-058_C.png",
+    "name": "ネリッサ・レイヴンクロフト",
+    "cardNumber": "hBP05-058",
+    "rarity": "C"
+  },
+  {
+    "id": "1237",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-059_U.png",
+    "name": "ネリッサ・レイヴンクロフト",
+    "cardNumber": "hBP05-059",
+    "rarity": "U"
+  },
+  {
+    "id": "1238",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-060_R.png",
+    "name": "ネリッサ・レイヴンクロフト",
+    "cardNumber": "hBP05-060",
+    "rarity": "R"
+  },
+  {
+    "id": "1239",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-061_RR_02.png",
+    "name": "ネリッサ・レイヴンクロフト",
+    "cardNumber": "hBP05-061",
+    "rarity": "RR_02"
+  },
+  {
+    "id": "1241",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-063_U.png",
+    "name": "不知火フレア",
+    "cardNumber": "hBP05-063",
+    "rarity": "U"
+  },
+  {
+    "id": "1242",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-064_C.png",
+    "name": "不知火フレア",
+    "cardNumber": "hBP05-064",
+    "rarity": "C"
+  },
+  {
+    "id": "1243",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-065_U.png",
+    "name": "不知火フレア",
+    "cardNumber": "hBP05-065",
+    "rarity": "U"
+  },
+  {
+    "id": "1244",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-066_R.png",
+    "name": "不知火フレア",
+    "cardNumber": "hBP05-066",
+    "rarity": "R"
+  },
+  {
+    "id": "1245",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-067_RR.png",
+    "name": "不知火フレア",
+    "cardNumber": "hBP05-067",
+    "rarity": "RR"
+  },
+  {
+    "id": "1250",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-072_R.png",
+    "name": "角巻わため",
+    "cardNumber": "hBP05-072",
+    "rarity": "R"
+  },
+  {
+    "id": "1259",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hSD03-002_02_C.png",
+    "name": "猫又おかゆ",
+    "cardNumber": "hSD03-002",
+    "rarity": "02_C"
+  },
+  {
+    "id": "1261",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hSD04-002_02_C.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hSD04-002",
+    "rarity": "02_C"
+  },
+  {
+    "id": "1263",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hSD07-002_02_C.png",
+    "name": "不知火フレア",
+    "cardNumber": "hSD07-002",
+    "rarity": "02_C"
+  },
+  {
+    "id": "1370",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP01-032_HR.png",
+    "name": "アキ・ローゼンタール",
+    "cardNumber": "hBP01-032",
+    "rarity": "HR"
+  },
+  {
+    "id": "1372",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP01-076_HR.png",
+    "name": "星街すいせい",
+    "cardNumber": "hBP01-076",
+    "rarity": "HR"
+  },
+  {
+    "id": "1296",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-013_SR.png",
+    "name": "ときのそら",
+    "cardNumber": "hBP05-013",
+    "rarity": "SR"
+  },
+  {
+    "id": "1297",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-014_S.png",
+    "name": "兎田ぺこら",
+    "cardNumber": "hBP05-014",
+    "rarity": "S"
+  },
+  {
+    "id": "1298",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-015_S.png",
+    "name": "兎田ぺこら",
+    "cardNumber": "hBP05-015",
+    "rarity": "S"
+  },
+  {
+    "id": "1299",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-016_SR.png",
+    "name": "兎田ぺこら",
+    "cardNumber": "hBP05-016",
+    "rarity": "SR"
+  },
+  {
+    "id": "1300",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-016_UR.png",
+    "name": "兎田ぺこら",
+    "cardNumber": "hBP05-016",
+    "rarity": "UR"
+  },
+  {
+    "id": "1301",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-016_SEC.png",
+    "name": "兎田ぺこら",
+    "cardNumber": "hBP05-016",
+    "rarity": "SEC"
+  },
+  {
+    "id": "1302",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-017_SR.png",
+    "name": "姫森ルーナ",
+    "cardNumber": "hBP05-017",
+    "rarity": "SR"
+  },
+  {
+    "id": "1311",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-025_S.png",
+    "name": "アキ・ローゼンタール",
+    "cardNumber": "hBP05-025",
+    "rarity": "S"
+  },
+  {
+    "id": "1312",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-026_S.png",
+    "name": "アキ・ローゼンタール",
+    "cardNumber": "hBP05-026",
+    "rarity": "S"
+  },
+  {
+    "id": "1313",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-027_SR.png",
+    "name": "アキ・ローゼンタール",
+    "cardNumber": "hBP05-027",
+    "rarity": "SR"
+  },
+  {
+    "id": "1314",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-027_UR.png",
+    "name": "アキ・ローゼンタール",
+    "cardNumber": "hBP05-027",
+    "rarity": "UR"
+  },
+  {
+    "id": "1315",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-028_SR.png",
+    "name": "獅白ぼたん",
+    "cardNumber": "hBP05-028",
+    "rarity": "SR"
+  },
+  {
+    "id": "1316",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-029_SR.png",
+    "name": "儒烏風亭らでん",
+    "cardNumber": "hBP05-029",
+    "rarity": "SR"
+  },
+  {
+    "id": "1324",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-036_S.png",
+    "name": "星街すいせい",
+    "cardNumber": "hBP05-036",
+    "rarity": "S"
+  },
+  {
+    "id": "1325",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-037_SR.png",
+    "name": "星街すいせい",
+    "cardNumber": "hBP05-037",
+    "rarity": "SR"
+  },
+  {
+    "id": "1326",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-037_UR.png",
+    "name": "星街すいせい",
+    "cardNumber": "hBP05-037",
+    "rarity": "UR"
+  },
+  {
+    "id": "1327",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-038_SR.png",
+    "name": "モココ・アビスガード",
+    "cardNumber": "hBP05-038",
+    "rarity": "SR"
+  },
+  {
+    "id": "1328",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-039_SR.png",
+    "name": "一条莉々華",
+    "cardNumber": "hBP05-039",
+    "rarity": "SR"
+  },
+  {
+    "id": "1336",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-046_SR.png",
+    "name": "雪花ラミィ",
+    "cardNumber": "hBP05-046",
+    "rarity": "SR"
+  },
+  {
+    "id": "1341",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-050_SR.png",
+    "name": "フワワ・アビスガード",
+    "cardNumber": "hBP05-050",
+    "rarity": "SR"
+  },
+  {
+    "id": "1342",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-051_SR.png",
+    "name": "火威青",
+    "cardNumber": "hBP05-051",
+    "rarity": "SR"
+  },
+  {
+    "id": "1355",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-062_SR.png",
+    "name": "常闇トワ",
+    "cardNumber": "hBP05-062",
+    "rarity": "SR"
+  },
+  {
+    "id": "1362",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-068_S.png",
+    "name": "白上フブキ",
+    "cardNumber": "hBP05-068",
+    "rarity": "S"
+  },
+  {
+    "id": "1363",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-069_S.png",
+    "name": "白上フブキ",
+    "cardNumber": "hBP05-069",
+    "rarity": "S"
+  },
+  {
+    "id": "1364",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-070_SR.png",
+    "name": "白上フブキ",
+    "cardNumber": "hBP05-070",
+    "rarity": "SR"
+  },
+  {
+    "id": "1365",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-070_UR.png",
+    "name": "白上フブキ",
+    "cardNumber": "hBP05-070",
+    "rarity": "UR"
+  },
+  {
+    "id": "1366",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-071_SR.png",
+    "name": "戌神ころね",
+    "cardNumber": "hBP05-071",
+    "rarity": "SR"
+  },
+  {
+    "id": "1368",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-073_SR.png",
+    "name": "アユンダ・リス",
+    "cardNumber": "hBP05-073",
+    "rarity": "SR"
+  },
+  {
+    "id": "1375",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-074_S.png",
+    "name": "フレンドリーパソコン",
+    "cardNumber": "hBP05-074",
+    "rarity": "S"
+  },
+  {
+    "id": "1376",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-075_S.png",
+    "name": "牛丼",
+    "cardNumber": "hBP05-075",
+    "rarity": "S"
+  },
+  {
+    "id": "1377",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-076_S.png",
+    "name": "ちょこのビーフストロガノフ",
+    "cardNumber": "hBP05-076",
+    "rarity": "S"
+  },
+  {
+    "id": "1378",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-077_S.png",
+    "name": "バカタレサーカス",
+    "cardNumber": "hBP05-077",
+    "rarity": "S"
+  },
+  {
+    "id": "1379",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-078_S.png",
+    "name": "晩酌配信",
+    "cardNumber": "hBP05-078",
+    "rarity": "S"
+  },
+  {
+    "id": "1380",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-079_S.png",
+    "name": "み俺恥",
+    "cardNumber": "hBP05-079",
+    "rarity": "S"
+  },
+  {
+    "id": "1381",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-080_SR.png",
+    "name": "SorAZセレブレーション",
+    "cardNumber": "hBP05-080",
+    "rarity": "SR"
+  },
+  {
+    "id": "1382",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-080_SEC.png",
+    "name": "SorAZセレブレーション",
+    "cardNumber": "hBP05-080",
+    "rarity": "SEC"
+  },
+  {
+    "id": "1383",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-081_S.png",
+    "name": "白銀ノエルのメイス",
+    "cardNumber": "hBP05-081",
+    "rarity": "S"
+  },
+  {
+    "id": "1384",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-082_S.png",
+    "name": "アキ・ローゼンタールの斧",
+    "cardNumber": "hBP05-082",
+    "rarity": "S"
+  },
+  {
+    "id": "1385",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-083_S.png",
+    "name": "ネリッサ・レイヴンクロフトの杖",
+    "cardNumber": "hBP05-083",
+    "rarity": "S"
+  },
+  {
+    "id": "1386",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-084_S.png",
+    "name": "角巻わためのハープ",
+    "cardNumber": "hBP05-084",
+    "rarity": "S"
+  },
+  {
+    "id": "1387",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-085_S.png",
+    "name": "みこだにぇー",
+    "cardNumber": "hBP05-085",
+    "rarity": "S"
+  },
+  {
+    "id": "1388",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-086_S.png",
+    "name": "Cilus",
+    "cardNumber": "hBP05-086",
+    "rarity": "S"
+  },
+  {
+    "id": "1389",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-087_S.png",
+    "name": "Jailbird",
+    "cardNumber": "hBP05-087",
+    "rarity": "S"
+  },
+  {
+    "id": "1371",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP01-068_HR.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hBP01-068",
+    "rarity": "HR"
+  },
+  {
+    "id": "1369",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP02-014_HR.png",
+    "name": "白銀ノエル",
+    "cardNumber": "hBP02-014",
+    "rarity": "HR"
+  },
+  {
+    "id": "1373",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP02-085_HR.png",
+    "name": "ネリッサ・レイヴンクロフト",
+    "cardNumber": "hBP02-085",
+    "rarity": "HR"
+  },
+  {
+    "id": "1280",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-001_OUR.png",
+    "name": "白銀ノエル",
+    "cardNumber": "hBP05-001",
+    "rarity": "OUR"
+  },
+  {
+    "id": "1281",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-002_OUR.png",
+    "name": "アイラニ・イオフィフティーン",
+    "cardNumber": "hBP05-002",
+    "rarity": "OUR"
+  },
+  {
+    "id": "1282",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-002_SEC.png",
+    "name": "アイラニ・イオフィフティーン",
+    "cardNumber": "hBP05-002",
+    "rarity": "SEC"
+  },
+  {
+    "id": "1283",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-003_OUR.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hBP05-003",
+    "rarity": "OUR"
+  },
+  {
+    "id": "1284",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-003_SEC.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hBP05-003",
+    "rarity": "SEC"
+  },
+  {
+    "id": "1285",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-004_OUR.png",
+    "name": "猫又おかゆ",
+    "cardNumber": "hBP05-004",
+    "rarity": "OUR"
+  },
+  {
+    "id": "1286",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-005_OUR.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hBP05-005",
+    "rarity": "OUR"
+  },
+  {
+    "id": "1287",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-005_SEC.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hBP05-005",
+    "rarity": "SEC"
+  },
+  {
+    "id": "1288",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-006_OUR.png",
+    "name": "ネリッサ・レイヴンクロフト",
+    "cardNumber": "hBP05-006",
+    "rarity": "OUR"
+  },
+  {
+    "id": "1289",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-007_OUR.png",
+    "name": "不知火フレア",
+    "cardNumber": "hBP05-007",
+    "rarity": "OUR"
+  },
+  {
+    "id": "1290",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-008_S.png",
+    "name": "白銀ノエル",
+    "cardNumber": "hBP05-008",
+    "rarity": "S"
+  },
+  {
+    "id": "1291",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-009_S.png",
+    "name": "白銀ノエル",
+    "cardNumber": "hBP05-009",
+    "rarity": "S"
+  },
+  {
+    "id": "1292",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-010_S.png",
+    "name": "白銀ノエル",
+    "cardNumber": "hBP05-010",
+    "rarity": "S"
+  },
+  {
+    "id": "1293",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-011_SR.png",
+    "name": "白銀ノエル",
+    "cardNumber": "hBP05-011",
+    "rarity": "SR"
+  },
+  {
+    "id": "1294",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-012_SR.png",
+    "name": "白銀ノエル",
+    "cardNumber": "hBP05-012",
+    "rarity": "SR"
+  },
+  {
+    "id": "1295",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-012_UR.png",
+    "name": "白銀ノエル",
+    "cardNumber": "hBP05-012",
+    "rarity": "UR"
+  },
+  {
+    "id": "1303",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-018_SR.png",
+    "name": "ベスティア・ゼータ",
+    "cardNumber": "hBP05-018",
+    "rarity": "SR"
+  },
+  {
+    "id": "1304",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-019_S.png",
+    "name": "アイラニ・イオフィフティーン",
+    "cardNumber": "hBP05-019",
+    "rarity": "S"
+  },
+  {
+    "id": "1305",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-020_S.png",
+    "name": "アイラニ・イオフィフティーン",
+    "cardNumber": "hBP05-020",
+    "rarity": "S"
+  },
+  {
+    "id": "1306",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-021_S.png",
+    "name": "アイラニ・イオフィフティーン",
+    "cardNumber": "hBP05-021",
+    "rarity": "S"
+  },
+  {
+    "id": "1307",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-022_SR.png",
+    "name": "アイラニ・イオフィフティーン",
+    "cardNumber": "hBP05-022",
+    "rarity": "SR"
+  },
+  {
+    "id": "1308",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-023_SR.png",
+    "name": "アイラニ・イオフィフティーン",
+    "cardNumber": "hBP05-023",
+    "rarity": "SR"
+  },
+  {
+    "id": "1309",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-023_UR.png",
+    "name": "アイラニ・イオフィフティーン",
+    "cardNumber": "hBP05-023",
+    "rarity": "UR"
+  },
+  {
+    "id": "1310",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-024_SR.png",
+    "name": "AZKi",
+    "cardNumber": "hBP05-024",
+    "rarity": "SR"
+  },
+  {
+    "id": "1317",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-030_S.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hBP05-030",
+    "rarity": "S"
+  },
+  {
+    "id": "1318",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-031_S.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hBP05-031",
+    "rarity": "S"
+  },
+  {
+    "id": "1319",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-032_S.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hBP05-032",
+    "rarity": "S"
+  },
+  {
+    "id": "1320",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-033_SR.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hBP05-033",
+    "rarity": "SR"
+  },
+  {
+    "id": "1321",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-034_SR.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hBP05-034",
+    "rarity": "SR"
+  },
+  {
+    "id": "1322",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-034_UR.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hBP05-034",
+    "rarity": "UR"
+  },
+  {
+    "id": "1323",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-035_SR.png",
+    "name": "さくらみこ",
+    "cardNumber": "hBP05-035",
+    "rarity": "SR"
+  },
+  {
+    "id": "1329",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-040_S.png",
+    "name": "miComet",
+    "cardNumber": "hBP05-040",
+    "rarity": "S"
+  },
+  {
+    "id": "1330",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-041_S.png",
+    "name": "猫又おかゆ",
+    "cardNumber": "hBP05-041",
+    "rarity": "S"
+  },
+  {
+    "id": "1331",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-042_S.png",
+    "name": "猫又おかゆ",
+    "cardNumber": "hBP05-042",
+    "rarity": "S"
+  },
+  {
+    "id": "1332",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-043_S.png",
+    "name": "猫又おかゆ",
+    "cardNumber": "hBP05-043",
+    "rarity": "S"
+  },
+  {
+    "id": "1333",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-044_SR.png",
+    "name": "猫又おかゆ",
+    "cardNumber": "hBP05-044",
+    "rarity": "SR"
+  },
+  {
+    "id": "1334",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-045_SR.png",
+    "name": "猫又おかゆ",
+    "cardNumber": "hBP05-045",
+    "rarity": "SR"
+  },
+  {
+    "id": "1335",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-045_UR.png",
+    "name": "猫又おかゆ",
+    "cardNumber": "hBP05-045",
+    "rarity": "UR"
+  },
+  {
+    "id": "1337",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-047_S.png",
+    "name": "こぼ・かなえる",
+    "cardNumber": "hBP05-047",
+    "rarity": "S"
+  },
+  {
+    "id": "1338",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-048_S.png",
+    "name": "こぼ・かなえる",
+    "cardNumber": "hBP05-048",
+    "rarity": "S"
+  },
+  {
+    "id": "1339",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-049_SR.png",
+    "name": "こぼ・かなえる",
+    "cardNumber": "hBP05-049",
+    "rarity": "SR"
+  },
+  {
+    "id": "1340",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-049_UR.png",
+    "name": "こぼ・かなえる",
+    "cardNumber": "hBP05-049",
+    "rarity": "UR"
+  },
+  {
+    "id": "1343",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-052_S.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hBP05-052",
+    "rarity": "S"
+  },
+  {
+    "id": "1344",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-053_S.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hBP05-053",
+    "rarity": "S"
+  },
+  {
+    "id": "1345",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-054_S.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hBP05-054",
+    "rarity": "S"
+  },
+  {
+    "id": "1346",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-055_SR.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hBP05-055",
+    "rarity": "SR"
+  },
+  {
+    "id": "1347",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-056_SR.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hBP05-056",
+    "rarity": "SR"
+  },
+  {
+    "id": "1348",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-056_UR.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hBP05-056",
+    "rarity": "UR"
+  },
+  {
+    "id": "1349",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-057_S.png",
+    "name": "ネリッサ・レイヴンクロフト",
+    "cardNumber": "hBP05-057",
+    "rarity": "S"
+  },
+  {
+    "id": "1350",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-058_S.png",
+    "name": "ネリッサ・レイヴンクロフト",
+    "cardNumber": "hBP05-058",
+    "rarity": "S"
+  },
+  {
+    "id": "1351",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-059_S.png",
+    "name": "ネリッサ・レイヴンクロフト",
+    "cardNumber": "hBP05-059",
+    "rarity": "S"
+  },
+  {
+    "id": "1352",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-060_SR.png",
+    "name": "ネリッサ・レイヴンクロフト",
+    "cardNumber": "hBP05-060",
+    "rarity": "SR"
+  },
+  {
+    "id": "1353",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-061_SR_02.png",
+    "name": "ネリッサ・レイヴンクロフト",
+    "cardNumber": "hBP05-061",
+    "rarity": "SR_02"
+  },
+  {
+    "id": "1354",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-061_UR_02.png",
+    "name": "ネリッサ・レイヴンクロフト",
+    "cardNumber": "hBP05-061",
+    "rarity": "UR_02"
+  },
+  {
+    "id": "1356",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-063_S.png",
+    "name": "不知火フレア",
+    "cardNumber": "hBP05-063",
+    "rarity": "S"
+  },
+  {
+    "id": "1357",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-064_S.png",
+    "name": "不知火フレア",
+    "cardNumber": "hBP05-064",
+    "rarity": "S"
+  },
+  {
+    "id": "1358",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-065_S.png",
+    "name": "不知火フレア",
+    "cardNumber": "hBP05-065",
+    "rarity": "S"
+  },
+  {
+    "id": "1359",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-066_SR.png",
+    "name": "不知火フレア",
+    "cardNumber": "hBP05-066",
+    "rarity": "SR"
+  },
+  {
+    "id": "1360",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-067_SR.png",
+    "name": "不知火フレア",
+    "cardNumber": "hBP05-067",
+    "rarity": "SR"
+  },
+  {
+    "id": "1361",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-067_UR.png",
+    "name": "不知火フレア",
+    "cardNumber": "hBP05-067",
+    "rarity": "UR"
+  },
+  {
+    "id": "1367",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hBP05-072_SR.png",
+    "name": "角巻わため",
+    "cardNumber": "hBP05-072",
+    "rarity": "SR"
+  },
+  {
+    "id": "1374",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hSD07-002_HR.png",
+    "name": "不知火フレア",
+    "cardNumber": "hSD07-002",
+    "rarity": "HR"
+  },
+  {
+    "id": "1390",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hY01-007_SY.png",
+    "name": "白エール",
+    "cardNumber": "hY01-007",
+    "rarity": "SY"
+  },
+  {
+    "id": "1391",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hY02-006_SY.png",
+    "name": "緑エール",
+    "cardNumber": "hY02-006",
+    "rarity": "SY"
+  },
+  {
+    "id": "1392",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hY03-009_SY.png",
+    "name": "赤エール",
+    "cardNumber": "hY03-009",
+    "rarity": "SY"
+  },
+  {
+    "id": "1393",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hY04-006_SY.png",
+    "name": "青エール",
+    "cardNumber": "hY04-006",
+    "rarity": "SY"
+  },
+  {
+    "id": "1394",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hY05-005_SY.png",
+    "name": "紫エール",
+    "cardNumber": "hY05-005",
+    "rarity": "SY"
+  },
+  {
+    "id": "1395",
+    "expansion": "hBP05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP05/hY06-005_SY.png",
+    "name": "黄エール",
+    "cardNumber": "hY06-005",
+    "rarity": "SY"
+  }
+]
