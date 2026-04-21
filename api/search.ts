@@ -150,7 +150,7 @@ export default async function handler(req: Request) {
         else if (rarityCode === 'N') { grade = 'spot'; rarity = 'N'; }
       }
 
-      // Type mapping for official data
+      // Type mapping - support both holotcgtw and official formats
       let type = safe(c.type);
       // Try cardType field from official data
       if (c.cardType) {
