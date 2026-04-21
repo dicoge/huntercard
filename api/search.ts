@@ -108,10 +108,8 @@ export default async function handler(req: Request) {
         return gameTerms.some(term => kw.includes(term)) && kw.trim().length > 5;
       });
 
-      // Image URL - use official URL for official data, holotcgtw for community data
-      const imageUrl = isOfficial 
-        ? (c.imageUrl || `https://hololive-official-cardgame.com/wp-content/images/cardlist/${imgFolder}${id}${ver}`)
-        : `https://tetsunekko.github.io/holotcgtw/cards/${imgFolder}${id}${ver}`;
+      // Image URL - always use official URL (holotcgtw images are 404)
+      const imageUrl = `https://hololive-official-cardgame.com/wp-content/images/cardlist/${imgFolder}${id}${ver}`;
 
       // Series handling
       const series = isOfficial ? [c.expansion] : (c.series || []);
