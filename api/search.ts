@@ -67,17 +67,18 @@ export default async function handler(req: Request) {
 
     const matched = allCards.filter((c: any) => {
       // Support both holotcgtw and official formats
-      const id = safe(c.id || c.cardNumber).toLowerCase();
+      const internalId = safe(c.id).toLowerCase();
+      const cardNum = safe(c.cardNumber).toLowerCase();
       const name = safe(c.name).toLowerCase();
       const sk = (c.searchKeywords || []).map((k: any) => safe(k).toLowerCase()).join(' ');
       const series = (c.series || [c.expansion]).map((s: any) => safe(s).toLowerCase()).join(' ');
       const tags = (c.tags || []).map((t: any) => safe(t).toLowerCase()).join(' ');
-      return id.includes(searchQ) || name.includes(searchQ) || sk.includes(searchQ) || series.includes(searchQ) || tags.includes(searchQ);
+      return internalId.includes(searchQ) || cardNum.includes(searchQ) || name.includes(searchQ) || sk.includes(searchQ) || series.includes(searchQ) || tags.includes(searchQ);
     });
 
     const seen = new Set<string>();
     const unique = matched.filter((c: any) => {
-      const id = safe(c.id || c.cardNumber);
+      const id = safe(c.cardNumber || c.id);
       if (seen.has(id)) return false;
       seen.add(id);
       return true;
