@@ -97,7 +97,23 @@ export default async function handler(req: Request) {
       const imgFolder = isOfficial 
         ? (c.imageUrl ? c.imageUrl.match(/\/cardlist\/([^\/]+)\//)?.[1] + '/' : `${c.expansion}/`)
         : safe(c.imageFolder);
-      const ver = (c.versions && c.versions.length > 0) ? c.versions[0] : '_C.png';
+      
+      // Determine image version suffix
+      let ver = '_C.png';
+      if (c.versions && c.versions.length > 0) {
+        ver = c.versions[0];
+      } else if (isOfficial && c.rarity) {
+        // Map official rarity codes to image suffixes
+        const rc = c.rarity.toUpperCase();
+        if (rc.includes('OSR') || rc.includes('OUR')) ver = '_OSR.png';
+        else if (rc === 'UR') ver = '_UR.png';
+        else if (rc === 'SR') ver = '_SR.png';
+        else if (rc === 'RR') ver = '_RR.png';
+        else if (rc === 'R') ver = '_R.png';
+        else if (rc === 'U') ver = '_U.png';
+        else if (rc === 'C') ver = '_C.png';
+        else if (rc === 'N') ver = '_N.png';
+      }
       const rawColors = Array.isArray(c.color) ? c.color : [c.color];
       const colors = rawColors.filter(Boolean).map(String);
 
