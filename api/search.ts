@@ -1,10 +1,6 @@
-const CARD_FILES = [
-  'cardList_hBP01.json', 'cardList_hBP02.json', 'cardList_hBP03.json',
-  'cardList_hSD01.json', 'cardList_hSD02.json', 'cardList_hSD03.json',
-  'cardList_hSD04.json', 'cardList_hSD05.json', 'cardList_hSD06.json',
-  'cardList_hSD07.json', 'cardList_hPR.json', 'cardList_hBD24.json', 'cardList_hY.json',
-];
-const BASE = 'https://raw.githubusercontent.com/TETSUNekko/holotcgtw/main/client/src';
+// Note: holotcgtw data is incomplete and images are 404, using official data only
+const CARD_FILES: string[] = [];
+const BASE = '';
 
 // Official card data files (scraped from official site)
 // Using individual series files for complete data (all-cards.json is simplified)
