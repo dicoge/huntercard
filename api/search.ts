@@ -85,13 +85,17 @@ export default async function handler(req: Request) {
 
     const results = await Promise.all(unique.map(async (c: any) => {
       // Support both holotcgtw and official formats
-      const id = safe(c.id || c.cardNumber);
+      // Prefer cardNumber for display, fallback to id
+      const id = safe(c.cardNumber || c.id);
       const name = safe(c.name);
       
       // Check if this is official data (has expansion field but no series)
       const isOfficial = c.expansion && !c.series;
       
-      const imgFolder = isOfficial ? `${c.expansion}/` : safe(c.imageFolder);
+      // For official data, extract image folder from imageUrl or use expansion
+      const imgFolder = isOfficial 
+        ? (c.imageUrl ? c.imageUrl.match(/\/cardlist\/([^\/]+)\//)?.[1] + '/' : `${c.expansion}/`)
+        : safe(c.imageFolder);
       const ver = (c.versions && c.versions.length > 0) ? c.versions[0] : '_C.png';
       const rawColors = Array.isArray(c.color) ? c.color : [c.color];
       const colors = rawColors.filter(Boolean).map(String);
