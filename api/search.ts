@@ -155,7 +155,7 @@ export default async function handler(req: Request) {
       // Try cardType field from official data
       if (c.cardType) {
         if (c.cardType.includes('推し')) type = 'Oshi';
-        else if (c.cardType.includes('メンバー') || c.cardType.includes(' member')) type = 'Member';
+        else if (c.cardType.includes('メンバー') || c.cardType.includes('ホロメン') || c.cardType.includes(' member')) type = 'Member';
         else if (c.cardType.includes('サポート')) type = 'Support';
         else if (c.cardType.includes('エナジー')) type = 'Energy';
         else if (c.cardType.includes('バズ')) type = 'Buzz';
