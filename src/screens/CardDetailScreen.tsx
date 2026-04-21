@@ -90,8 +90,8 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const tags = card.tags || [];
   const versions = card.versions || [];
 
-  // Build image URL from official site
-  const imageUrl = buildImageUrl(id, versions, card.type || '');
+  // Use API-provided imageUrl when available, otherwise build from pattern
+  const imageUrl = card.imageUrl || buildImageUrl(id, versions, card.type || '');
   const officialUrl = `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`;
   const yuyuUrl = `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`;
 

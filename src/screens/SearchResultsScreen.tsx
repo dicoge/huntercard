@@ -104,6 +104,18 @@ function CardListItem({ card, onPress }: { card: CardResult; onPress: () => void
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.rarityStrip, { backgroundColor: rarityColors[card.rarity] || '#6b7280' }]} />
+      {/* Card Image */}
+      {!imgErr && card.imageUrl ? (
+        <View style={styles.cardImageContainer}>
+          {/* @ts-ignore - using HTML img tag for web */}
+          <img
+            src={card.imageUrl}
+            alt={card.name}
+            style={{ width: 80, height: 112, objectFit: 'contain', borderRadius: 4 }}
+            onError={() => setImgErr(true)}
+          />
+        </View>
+      ) : null}
       <View style={styles.cardContent}>
         <View style={styles.cardHeader}>
           <Text style={styles.cardNumber}>{id}</Text>
@@ -149,6 +161,7 @@ const styles = StyleSheet.create({
   resultCount: { fontSize: 13 },
   list: { padding: 16, paddingTop: 0 },
   card: { flexDirection: 'row', backgroundColor: COLORS.surface, borderRadius: 12, marginBottom: 12, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border, minHeight: 140 },
+  cardImageContainer: { padding: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.surfaceLight, borderRadius: 4, marginRight: 4 },
   rarityStrip: { width: 5, minWidth: 5 },
   cardContent: { flex: 1, padding: 14, paddingRight: 8 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
