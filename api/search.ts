@@ -149,9 +149,10 @@ export default async function handler(req: Request) {
 
       // Type mapping for official data
       let type = safe(c.type);
-      if (isOfficial && c.cardType) {
+      // Try cardType field from official data
+      if (c.cardType) {
         if (c.cardType.includes('推し')) type = 'Oshi';
-        else if (c.cardType.includes('メンバー')) type = 'Member';
+        else if (c.cardType.includes('メンバー') || c.cardType.includes(' member')) type = 'Member';
         else if (c.cardType.includes('サポート')) type = 'Support';
         else if (c.cardType.includes('エナジー')) type = 'Energy';
         else if (c.cardType.includes('バズ')) type = 'Buzz';
