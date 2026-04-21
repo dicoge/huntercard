@@ -148,6 +148,7 @@ export default async function handler(req: Request) {
         else if (rarityCode === 'U') { grade = 'debut'; rarity = 'C'; }
         else if (rarityCode === 'C') { grade = 'debut'; rarity = 'C'; }
         else if (rarityCode === 'N') { grade = 'spot'; rarity = 'N'; }
+        else if (rarityCode === 'SY') { grade = 'spot'; rarity = 'N'; }
       }
 
       // Type mapping - support both holotcgtw and official formats
@@ -159,6 +160,7 @@ export default async function handler(req: Request) {
         else if (c.cardType.includes('サポート')) type = 'Support';
         else if (c.cardType.includes('エナジー')) type = 'Energy';
         else if (c.cardType.includes('バズ')) type = 'Buzz';
+        else if (c.cardType.includes('エール') || c.cardType.includes('Yell')) type = 'Yell';
       }
 
       return {
