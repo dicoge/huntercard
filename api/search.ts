@@ -6,9 +6,10 @@ const CARD_FILES = [
 ];
 const BASE = 'https://raw.githubusercontent.com/TETSUNekko/holotcgtw/main/client/src';
 
-// Official card data files (for series not in holotcgtw)
+// Official card data files (scraped from official site)
+// Using all-cards.json for comprehensive data
 const OFFICIAL_FILES = [
-  'cardList_hBP04.json', 'cardList_hBP05.json', 'cardList_hBP06.json', 'cardList_hBP07.json',
+  'all-cards.json',
 ];
 const OFFICIAL_BASE = 'https://raw.githubusercontent.com/dicoge/hunterCard/main/data/official';
 const GRADE_RARITY: Record<string, string> = { debut: 'C', '1st': 'U', '2nd': 'R', buzz: 'SR', spot: 'N' };
@@ -65,26 +66,32 @@ export default async function handler(req: Request) {
     }
 
     const matched = allCards.filter((c: any) => {
-      const id = safe(c.id).toLowerCase();
+      // Support both holotcgtw and official formats
+      const id = safe(c.id || c.cardNumber).toLowerCase();
       const name = safe(c.name).toLowerCase();
       const sk = (c.searchKeywords || []).map((k: any) => safe(k).toLowerCase()).join(' ');
-      const series = (c.series || []).map((s: any) => safe(s).toLowerCase()).join(' ');
+      const series = (c.series || [c.expansion]).map((s: any) => safe(s).toLowerCase()).join(' ');
       const tags = (c.tags || []).map((t: any) => safe(t).toLowerCase()).join(' ');
       return id.includes(searchQ) || name.includes(searchQ) || sk.includes(searchQ) || series.includes(searchQ) || tags.includes(searchQ);
     });
 
     const seen = new Set<string>();
     const unique = matched.filter((c: any) => {
-      const id = safe(c.id);
+      const id = safe(c.id || c.cardNumber);
       if (seen.has(id)) return false;
       seen.add(id);
       return true;
     });
 
     const results = await Promise.all(unique.map(async (c: any) => {
-      const id = safe(c.id);
+      // Support both holotcgtw and official formats
+      const id = safe(c.id || c.cardNumber);
       const name = safe(c.name);
-      const imgFolder = safe(c.imageFolder);
+      
+      // Check if this is official data (has expansion field but no series)
+      const isOfficial = c.expansion && !c.series;
+      
+      const imgFolder = isOfficial ? `${c.expansion}/` : safe(c.imageFolder);
       const ver = (c.versions && c.versions.length > 0) ? c.versions[0] : '_C.png';
       const rawColors = Array.isArray(c.color) ? c.color : [c.color];
       const colors = rawColors.filter(Boolean).map(String);
@@ -96,21 +103,50 @@ export default async function handler(req: Request) {
         return gameTerms.some(term => kw.includes(term)) && kw.trim().length > 5;
       });
 
-      // Image URL (holotcgtw doesn't host images, but format is known)
-      const imageUrl = `https://tetsunekko.github.io/holotcgtw/cards/${imgFolder}${id}${ver}`;
+      // Image URL - use official URL for official data, holotcgtw for community data
+      const imageUrl = isOfficial 
+        ? (c.imageUrl || `https://hololive-official-cardgame.com/wp-content/images/cardlist/${imgFolder}${id}${ver}`)
+        : `https://tetsunekko.github.io/holotcgtw/cards/${imgFolder}${id}${ver}`;
 
-      // Prices are fetched live from external sites when user clicks the links
-      const prices = null;
+      // Series handling
+      const series = isOfficial ? [c.expansion] : (c.series || []);
+      
+      // Grade/rarity mapping for official data
+      let grade = safe(c.grade);
+      let rarity = GRADE_RARITY[grade] || (grade && ['debut','1st','2nd','buzz'].includes(grade) ? 'C' : 'N');
+      
+      // Official data uses rarity codes like OSR, UR, SR, R, U, C, N
+      if (isOfficial && c.rarity) {
+        const rarityCode = c.rarity.toUpperCase();
+        if (rarityCode.includes('OSR') || rarityCode.includes('OUR')) grade = 'buzz';
+        else if (rarityCode === 'UR') grade = '2nd';
+        else if (rarityCode === 'SR') grade = '1st';
+        else if (rarityCode === 'R') grade = 'debut';
+        else if (rarityCode === 'U') grade = 'debut';
+        else if (rarityCode === 'C') grade = 'debut';
+        else if (rarityCode === 'N') grade = 'spot';
+        rarity = GRADE_RARITY[grade] || 'N';
+      }
+
+      // Type mapping for official data
+      let type = safe(c.type);
+      if (isOfficial && c.cardType) {
+        if (c.cardType.includes('推し')) type = 'Oshi';
+        else if (c.cardType.includes('メンバー')) type = 'Member';
+        else if (c.cardType.includes('サポート')) type = 'Support';
+        else if (c.cardType.includes('エナジー')) type = 'Energy';
+        else if (c.cardType.includes('バズ')) type = 'Buzz';
+      }
 
       return {
         id, name,
-        type: safe(c.type),
-        grade: safe(c.grade),
-        rarity: GRADE_RARITY[safe(c.grade)] || (c.grade && ['debut','1st','2nd','buzz'].includes(c.grade) ? 'C' : 'N'),
+        type,
+        grade,
+        rarity,
         colors,
         colorNames: colors.map((x: string) => COLOR_MAP[x] || x),
-        series: (c.series || []).map(String),
-        seriesNames: (c.series || []).map((s: any) => SERIES_NAMES[safe(s)] || safe(s)),
+        series,
+        seriesNames: series.map((s: any) => SERIES_NAMES[safe(s)] || safe(s)),
         tags: (c.tags || []).map(String),
         cardNumber: id,
         imageFolder: imgFolder,

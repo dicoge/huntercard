@@ -2735,7 +2735,12 @@
     "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP04/hBP04-081_S.png",
     "name": "夏色まつり",
     "cardNumber": "hBP04-081",
-    "rarity": "S"
+    "rarity": "S",
+    "cardType": "ホロメン",
+    "color": "yellow",
+    "life": "",
+    "arts": "",
+    "hp": "120"
   },
   {
     "id": "1050",
@@ -2743,7 +2748,12 @@
     "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP04/hBP04-082_SR.png",
     "name": "夏色まつり",
     "cardNumber": "hBP04-082",
-    "rarity": "SR"
+    "rarity": "SR",
+    "cardType": "ホロメン",
+    "color": "yellow",
+    "life": "",
+    "arts": "",
+    "hp": "180"
   },
   {
     "id": "1051",
@@ -2751,7 +2761,12 @@
     "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP04/hBP04-082_UR.png",
     "name": "夏色まつり",
     "cardNumber": "hBP04-082",
-    "rarity": "UR"
+    "rarity": "UR",
+    "cardType": "ホロメン",
+    "color": "yellow",
+    "life": "",
+    "arts": "",
+    "hp": "180"
   },
   {
     "id": "1052",
@@ -2759,7 +2774,12 @@
     "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP04/hBP04-084_S.png",
     "name": "桃鈴ねね",
     "cardNumber": "hBP04-084",
-    "rarity": "S"
+    "rarity": "S",
+    "cardType": "ホロメン",
+    "color": "yellow",
+    "life": "",
+    "arts": "",
+    "hp": "190"
   },
   {
     "id": "1053",
@@ -2767,7 +2787,12 @@
     "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP04/hBP04-085_S.png",
     "name": "桃鈴ねね",
     "cardNumber": "hBP04-085",
-    "rarity": "S"
+    "rarity": "S",
+    "cardType": "ホロメン",
+    "color": "yellow",
+    "life": "",
+    "arts": "",
+    "hp": "130"
   },
   {
     "id": "1054",
@@ -2775,7 +2800,12 @@
     "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP04/hBP04-086_SR.png",
     "name": "桃鈴ねね",
     "cardNumber": "hBP04-086",
-    "rarity": "SR"
+    "rarity": "SR",
+    "cardType": "ホロメン",
+    "color": "yellow",
+    "life": "",
+    "arts": "",
+    "hp": "200"
   },
   {
     "id": "1055",
@@ -2783,7 +2813,12 @@
     "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP04/hBP04-086_UR.png",
     "name": "桃鈴ねね",
     "cardNumber": "hBP04-086",
-    "rarity": "UR"
+    "rarity": "UR",
+    "cardType": "ホロメン",
+    "color": "yellow",
+    "life": "",
+    "arts": "",
+    "hp": "200"
   },
   {
     "id": "1056",
@@ -2791,7 +2826,12 @@
     "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP04/hBP04-087_S.png",
     "name": "エリザベス・ローズ・ブラッドフレイム",
     "cardNumber": "hBP04-087",
-    "rarity": "S"
+    "rarity": "S",
+    "cardType": "ホロメン",
+    "color": "◇",
+    "life": "",
+    "arts": "",
+    "hp": "140"
   },
   {
     "id": "1057",
@@ -2799,7 +2839,12 @@
     "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP04/hBP04-088_S.png",
     "name": "ジジ・ムリン",
     "cardNumber": "hBP04-088",
-    "rarity": "S"
+    "rarity": "S",
+    "cardType": "ホロメン",
+    "color": "◇",
+    "life": "",
+    "arts": "",
+    "hp": "130"
   },
   {
     "id": "1082",
@@ -2807,7 +2852,12 @@
     "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP04/hY01-006_SY.png",
     "name": "白エール",
     "cardNumber": "hY01-006",
-    "rarity": "SY"
+    "rarity": "SY",
+    "cardType": "エール",
+    "color": "white",
+    "life": "",
+    "arts": "",
+    "hp": ""
   },
   {
     "id": "1083",
@@ -2815,7 +2865,12 @@
     "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP04/hY02-005_SY.png",
     "name": "緑エール",
     "cardNumber": "hY02-005",
-    "rarity": "SY"
+    "rarity": "SY",
+    "cardType": "エール",
+    "color": "green",
+    "life": "",
+    "arts": "",
+    "hp": ""
   },
   {
     "id": "1084",
@@ -2823,7 +2878,12 @@
     "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP04/hY03-004_SY.png",
     "name": "赤エール",
     "cardNumber": "hY03-004",
-    "rarity": "SY"
+    "rarity": "SY",
+    "cardType": "エール",
+    "color": "red",
+    "life": "",
+    "arts": "",
+    "hp": ""
   },
   {
     "id": "1085",
@@ -2831,7 +2891,12 @@
     "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP04/hY04-005_SY.png",
     "name": "青エール",
     "cardNumber": "hY04-005",
-    "rarity": "SY"
+    "rarity": "SY",
+    "cardType": "エール",
+    "color": "blue",
+    "life": "",
+    "arts": "",
+    "hp": ""
   },
   {
     "id": "1086",
@@ -2839,7 +2904,12 @@
     "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP04/hY05-004_SY.png",
     "name": "紫エール",
     "cardNumber": "hY05-004",
-    "rarity": "SY"
+    "rarity": "SY",
+    "cardType": "エール",
+    "color": "purple",
+    "life": "",
+    "arts": "",
+    "hp": ""
   },
   {
     "id": "1087",
@@ -2847,6 +2917,11 @@
     "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP04/hY06-004_SY.png",
     "name": "黄エール",
     "cardNumber": "hY06-004",
-    "rarity": "SY"
+    "rarity": "SY",
+    "cardType": "エール",
+    "color": "yellow",
+    "life": "",
+    "arts": "",
+    "hp": ""
   }
 ]
