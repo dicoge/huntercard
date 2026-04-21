@@ -7,9 +7,12 @@ const CARD_FILES = [
 const BASE = 'https://raw.githubusercontent.com/TETSUNekko/holotcgtw/main/client/src';
 
 // Official card data files (scraped from official site)
-// Using all-cards.json for comprehensive data
+// Using individual series files for complete data (all-cards.json is simplified)
 const OFFICIAL_FILES = [
-  'all-cards.json',
+  'hBP04.json', 'hBP05.json', 'hBP06.json', 'hBP07.json',
+  'hSD08.json', 'hSD09.json', 'hSD10.json', 'hSD11.json', 'hSD12.json', 'hSD13.json',
+  'hSD14.json', 'hSD15.json', 'hSD16.json', 'hSD17.json', 'hSD18.json', 'hSD19.json',
+  'hSD2025summer.json', 'ent07.json', 'hCS01.json', 'hPC01.json', 'hYS01.json',
 ];
 const OFFICIAL_BASE = 'https://raw.githubusercontent.com/dicoge/hunterCard/main/data/official';
 const GRADE_RARITY: Record<string, string> = { debut: 'C', '1st': 'U', '2nd': 'R', buzz: 'SR', spot: 'N' };
