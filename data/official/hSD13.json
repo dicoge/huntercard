@@ -1,0 +1,202 @@
+[
+  {
+    "id": "1782",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-014_C.png",
+    "name": "セシリア・イマーグリーン",
+    "cardNumber": "hSD13-014",
+    "rarity": "C"
+  },
+  {
+    "id": "1783",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-015_C.png",
+    "name": "ラオーラ・パンテーラ",
+    "cardNumber": "hSD13-015",
+    "rarity": "C"
+  },
+  {
+    "id": "1784",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-016_U.png",
+    "name": "Justice",
+    "cardNumber": "hSD13-016",
+    "rarity": "U"
+  },
+  {
+    "id": "1785",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-017_U.png",
+    "name": "JUSTICE, JUST LIKE THAT!!!!",
+    "cardNumber": "hSD13-017",
+    "rarity": "U"
+  },
+  {
+    "id": "1786",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-018_C.png",
+    "name": "Popo",
+    "cardNumber": "hSD13-018",
+    "rarity": "C"
+  },
+  {
+    "id": "145",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP01/hBP01-104_C.png",
+    "name": "ふつうのパソコン",
+    "cardNumber": "hBP01-104",
+    "rarity": "C"
+  },
+  {
+    "id": "652",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP03/hBP03-088_U.png",
+    "name": "凸待ち",
+    "cardNumber": "hBP03-088",
+    "rarity": "U"
+  },
+  {
+    "id": "1768",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD12/hBP05-074_02_C.png",
+    "name": "フレンドリーパソコン",
+    "cardNumber": "hBP05-074",
+    "rarity": "02_C"
+  },
+  {
+    "id": "16",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD01/hSD01-016_C.png",
+    "name": "春先のどか",
+    "cardNumber": "hSD01-016",
+    "rarity": "C"
+  },
+  {
+    "id": "19",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD01/hSD01-019_C_02.png",
+    "name": "スゴイパソコン",
+    "cardNumber": "hSD01-019",
+    "rarity": "C_02"
+  },
+  {
+    "id": "1769",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-001_OSR.png",
+    "name": "エリザベス・ローズ・ブラッドフレイム",
+    "cardNumber": "hSD13-001",
+    "rarity": "OSR"
+  },
+  {
+    "id": "1770",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-002_OSR.png",
+    "name": "ジジ・ムリン",
+    "cardNumber": "hSD13-002",
+    "rarity": "OSR"
+  },
+  {
+    "id": "1771",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-003_C.png",
+    "name": "エリザベス・ローズ・ブラッドフレイム",
+    "cardNumber": "hSD13-003",
+    "rarity": "C"
+  },
+  {
+    "id": "1772",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-004_C.png",
+    "name": "エリザベス・ローズ・ブラッドフレイム",
+    "cardNumber": "hSD13-004",
+    "rarity": "C"
+  },
+  {
+    "id": "1773",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-005_U.png",
+    "name": "エリザベス・ローズ・ブラッドフレイム",
+    "cardNumber": "hSD13-005",
+    "rarity": "U"
+  },
+  {
+    "id": "1774",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-006_U.png",
+    "name": "エリザベス・ローズ・ブラッドフレイム",
+    "cardNumber": "hSD13-006",
+    "rarity": "U"
+  },
+  {
+    "id": "1775",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-007_RR.png",
+    "name": "エリザベス・ローズ・ブラッドフレイム",
+    "cardNumber": "hSD13-007",
+    "rarity": "RR"
+  },
+  {
+    "id": "1776",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-008_C.png",
+    "name": "ジジ・ムリン",
+    "cardNumber": "hSD13-008",
+    "rarity": "C"
+  },
+  {
+    "id": "1777",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-009_C.png",
+    "name": "ジジ・ムリン",
+    "cardNumber": "hSD13-009",
+    "rarity": "C"
+  },
+  {
+    "id": "1778",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-010_C.png",
+    "name": "ジジ・ムリン",
+    "cardNumber": "hSD13-010",
+    "rarity": "C"
+  },
+  {
+    "id": "1779",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-011_U.png",
+    "name": "ジジ・ムリン",
+    "cardNumber": "hSD13-011",
+    "rarity": "U"
+  },
+  {
+    "id": "1780",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-012_U.png",
+    "name": "ジジ・ムリン",
+    "cardNumber": "hSD13-012",
+    "rarity": "U"
+  },
+  {
+    "id": "1781",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD13/hSD13-013_RR.png",
+    "name": "ジジ・ムリン",
+    "cardNumber": "hSD13-013",
+    "rarity": "RR"
+  },
+  {
+    "id": "170",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/COMMON/hY03-001_C.png",
+    "name": "赤エール",
+    "cardNumber": "hY03-001",
+    "rarity": "C"
+  },
+  {
+    "id": "561",
+    "expansion": "hSD13",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hY06-001_C.png",
+    "name": "黄エール",
+    "cardNumber": "hY06-001",
+    "rarity": "C"
+  }
+]

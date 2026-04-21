@@ -1,0 +1,130 @@
+[
+  {
+    "id": "2118",
+    "expansion": "hSD18",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD18/hBP01-104_06_C.png",
+    "name": "ふつうのパソコン",
+    "cardNumber": "hBP01-104",
+    "rarity": "06_C"
+  },
+  {
+    "id": "2109",
+    "expansion": "hSD18",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD18/hSD18-001_OC.png",
+    "name": "森カリオペ",
+    "cardNumber": "hSD18-001",
+    "rarity": "OC"
+  },
+  {
+    "id": "2110",
+    "expansion": "hSD18",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD18/hSD18-002_C.png",
+    "name": "森カリオペ",
+    "cardNumber": "hSD18-002",
+    "rarity": "C"
+  },
+  {
+    "id": "2111",
+    "expansion": "hSD18",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD18/hSD18-003_C.png",
+    "name": "森カリオペ",
+    "cardNumber": "hSD18-003",
+    "rarity": "C"
+  },
+  {
+    "id": "2112",
+    "expansion": "hSD18",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD18/hSD18-004_C.png",
+    "name": "森カリオペ",
+    "cardNumber": "hSD18-004",
+    "rarity": "C"
+  },
+  {
+    "id": "2113",
+    "expansion": "hSD18",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD18/hSD18-005_U.png",
+    "name": "森カリオペ",
+    "cardNumber": "hSD18-005",
+    "rarity": "U"
+  },
+  {
+    "id": "2114",
+    "expansion": "hSD18",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD18/hSD18-006_C.png",
+    "name": "森カリオペ",
+    "cardNumber": "hSD18-006",
+    "rarity": "C"
+  },
+  {
+    "id": "2115",
+    "expansion": "hSD18",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD18/hSD18-007_U.png",
+    "name": "森カリオペ",
+    "cardNumber": "hSD18-007",
+    "rarity": "U"
+  },
+  {
+    "id": "2116",
+    "expansion": "hSD18",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD18/hSD18-008_R.png",
+    "name": "森カリオペ",
+    "cardNumber": "hSD18-008",
+    "rarity": "R"
+  },
+  {
+    "id": "2117",
+    "expansion": "hSD18",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD18/hSD18-009_RR.png",
+    "name": "森カリオペ",
+    "cardNumber": "hSD18-009",
+    "rarity": "RR"
+  },
+  {
+    "id": "344",
+    "expansion": "hSD18",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP02/hBP02-077_C.png",
+    "name": "レトロパソコン",
+    "cardNumber": "hBP02-077",
+    "rarity": "C"
+  },
+  {
+    "id": "351",
+    "expansion": "hSD18",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP02/hBP02-084_U.png",
+    "name": "みっころね24",
+    "cardNumber": "hBP02-084",
+    "rarity": "U"
+  },
+  {
+    "id": "355",
+    "expansion": "hSD18",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP02/hBP02-088_U.png",
+    "name": "森カリオペの鎌",
+    "cardNumber": "hBP02-088",
+    "rarity": "U"
+  },
+  {
+    "id": "17",
+    "expansion": "hSD18",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD01/hSD01-017_C.png",
+    "name": "マネちゃん",
+    "cardNumber": "hSD01-017",
+    "rarity": "C"
+  },
+  {
+    "id": "2074",
+    "expansion": "hSD18",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD14/hSD14-010_C.png",
+    "name": "holoAN",
+    "cardNumber": "hSD14-010",
+    "rarity": "C"
+  },
+  {
+    "id": "267",
+    "expansion": "hSD18",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/COMMON/hY05-001_C.png",
+    "name": "紫エール",
+    "cardNumber": "hY05-001",
+    "rarity": "C"
+  }
+]

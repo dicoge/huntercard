@@ -1,0 +1,42 @@
+[
+  {
+    "id": "841",
+    "expansion": "hPC01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hPR/hBP01-104_SR.png",
+    "name": "ふつうのパソコン",
+    "cardNumber": "hBP01-104",
+    "rarity": "SR"
+  },
+  {
+    "id": "844",
+    "expansion": "hPC01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hPR/hBP02-076_SR.png",
+    "name": "カスタムパソコン",
+    "cardNumber": "hBP02-076",
+    "rarity": "SR"
+  },
+  {
+    "id": "845",
+    "expansion": "hPC01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hPR/hBP02-077_SR.png",
+    "name": "レトロパソコン",
+    "cardNumber": "hBP02-077",
+    "rarity": "SR"
+  },
+  {
+    "id": "842",
+    "expansion": "hPC01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hPR/hSD01-018_SR.png",
+    "name": "サブパソコン",
+    "cardNumber": "hSD01-018",
+    "rarity": "SR"
+  },
+  {
+    "id": "843",
+    "expansion": "hPC01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hPR/hSD01-019_SR.png",
+    "name": "スゴイパソコン",
+    "cardNumber": "hSD01-019",
+    "rarity": "SR"
+  }
+]

@@ -1,0 +1,162 @@
+[
+  {
+    "id": "558",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hSD07-013_U.png",
+    "name": "星街すいせい",
+    "cardNumber": "hSD07-013",
+    "rarity": "U"
+  },
+  {
+    "id": "559",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hSD07-014_U.png",
+    "name": "不知火建設",
+    "cardNumber": "hSD07-014",
+    "rarity": "U"
+  },
+  {
+    "id": "560",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hSD07-015_C.png",
+    "name": "エルフレンド",
+    "cardNumber": "hSD07-015",
+    "rarity": "C"
+  },
+  {
+    "id": "145",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP01/hBP01-104_C.png",
+    "name": "ふつうのパソコン",
+    "cardNumber": "hBP01-104",
+    "rarity": "C"
+  },
+  {
+    "id": "16",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD01/hSD01-016_C.png",
+    "name": "春先のどか",
+    "cardNumber": "hSD01-016",
+    "rarity": "C"
+  },
+  {
+    "id": "17",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD01/hSD01-017_C.png",
+    "name": "マネちゃん",
+    "cardNumber": "hSD01-017",
+    "rarity": "C"
+  },
+  {
+    "id": "18",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD01/hSD01-018_C.png",
+    "name": "サブパソコン",
+    "cardNumber": "hSD01-018",
+    "rarity": "C"
+  },
+  {
+    "id": "546",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hSD07-001_OC.png",
+    "name": "不知火フレア",
+    "cardNumber": "hSD07-001",
+    "rarity": "OC"
+  },
+  {
+    "id": "547",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hSD07-002_C.png",
+    "name": "不知火フレア",
+    "cardNumber": "hSD07-002",
+    "rarity": "C"
+  },
+  {
+    "id": "548",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hSD07-003_C.png",
+    "name": "不知火フレア",
+    "cardNumber": "hSD07-003",
+    "rarity": "C"
+  },
+  {
+    "id": "549",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hSD07-004_U.png",
+    "name": "不知火フレア",
+    "cardNumber": "hSD07-004",
+    "rarity": "U"
+  },
+  {
+    "id": "550",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hSD07-005_C.png",
+    "name": "不知火フレア",
+    "cardNumber": "hSD07-005",
+    "rarity": "C"
+  },
+  {
+    "id": "551",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hSD07-006_C.png",
+    "name": "不知火フレア",
+    "cardNumber": "hSD07-006",
+    "rarity": "C"
+  },
+  {
+    "id": "552",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hSD07-007_U.png",
+    "name": "不知火フレア",
+    "cardNumber": "hSD07-007",
+    "rarity": "U"
+  },
+  {
+    "id": "553",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hSD07-008_R.png",
+    "name": "不知火フレア",
+    "cardNumber": "hSD07-008",
+    "rarity": "R"
+  },
+  {
+    "id": "554",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hSD07-009_RR.png",
+    "name": "不知火フレア",
+    "cardNumber": "hSD07-009",
+    "rarity": "RR"
+  },
+  {
+    "id": "555",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hSD07-010_U.png",
+    "name": "白銀ノエル",
+    "cardNumber": "hSD07-010",
+    "rarity": "U"
+  },
+  {
+    "id": "556",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hSD07-011_U.png",
+    "name": "さくらみこ",
+    "cardNumber": "hSD07-011",
+    "rarity": "U"
+  },
+  {
+    "id": "557",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hSD07-012_U.png",
+    "name": "尾丸ポルカ",
+    "cardNumber": "hSD07-012",
+    "rarity": "U"
+  },
+  {
+    "id": "561",
+    "expansion": "hSD07",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD07/hY06-001_C.png",
+    "name": "黄エール",
+    "cardNumber": "hY06-001",
+    "rarity": "C"
+  }
+]

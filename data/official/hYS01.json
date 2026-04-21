@@ -1,0 +1,66 @@
+[
+  {
+    "id": "172",
+    "expansion": "hYS01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hY01/hYS01-001_OC.png",
+    "name": "七詩ムメイ",
+    "cardNumber": "hYS01-001",
+    "rarity": "OC"
+  },
+  {
+    "id": "173",
+    "expansion": "hYS01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hY01/hYS01-002_OC.png",
+    "name": "兎田ぺこら",
+    "cardNumber": "hYS01-002",
+    "rarity": "OC"
+  },
+  {
+    "id": "174",
+    "expansion": "hYS01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hY01/hYS01-003_OC.png",
+    "name": "小鳥遊キアラ",
+    "cardNumber": "hYS01-003",
+    "rarity": "OC"
+  },
+  {
+    "id": "175",
+    "expansion": "hYS01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hY01/hYS01-004_OC.png",
+    "name": "星街すいせい",
+    "cardNumber": "hYS01-004",
+    "rarity": "OC"
+  },
+  {
+    "id": "168",
+    "expansion": "hYS01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/COMMON/hY01-001_C.png",
+    "name": "白エール",
+    "cardNumber": "hY01-001",
+    "rarity": "C"
+  },
+  {
+    "id": "169",
+    "expansion": "hYS01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/COMMON/hY02-001_C.png",
+    "name": "緑エール",
+    "cardNumber": "hY02-001",
+    "rarity": "C"
+  },
+  {
+    "id": "170",
+    "expansion": "hYS01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/COMMON/hY03-001_C.png",
+    "name": "赤エール",
+    "cardNumber": "hY03-001",
+    "rarity": "C"
+  },
+  {
+    "id": "171",
+    "expansion": "hYS01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/COMMON/hY04-001_C.png",
+    "name": "青エール",
+    "cardNumber": "hY04-001",
+    "rarity": "C"
+  }
+]

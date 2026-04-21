@@ -1,0 +1,162 @@
+[
+  {
+    "id": "262",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD04/hSD04-010_U.png",
+    "name": "大空スバル",
+    "cardNumber": "hSD04-010",
+    "rarity": "U"
+  },
+  {
+    "id": "263",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD04/hSD04-011_U.png",
+    "name": "姫森ルーナ",
+    "cardNumber": "hSD04-011",
+    "rarity": "U"
+  },
+  {
+    "id": "264",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD04/hSD04-012_U.png",
+    "name": "スバちょこルーナ",
+    "cardNumber": "hSD04-012",
+    "rarity": "U"
+  },
+  {
+    "id": "265",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD04/hSD04-013_C.png",
+    "name": "ちょこのオムライス",
+    "cardNumber": "hSD04-013",
+    "rarity": "C"
+  },
+  {
+    "id": "266",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD04/hSD04-014_C.png",
+    "name": "しょこら",
+    "cardNumber": "hSD04-014",
+    "rarity": "C"
+  },
+  {
+    "id": "145",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP01/hBP01-104_C.png",
+    "name": "ふつうのパソコン",
+    "cardNumber": "hBP01-104",
+    "rarity": "C"
+  },
+  {
+    "id": "147",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP01/hBP01-106_U.png",
+    "name": "あとは任せた！",
+    "cardNumber": "hBP01-106",
+    "rarity": "U"
+  },
+  {
+    "id": "16",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD01/hSD01-016_C.png",
+    "name": "春先のどか",
+    "cardNumber": "hSD01-016",
+    "rarity": "C"
+  },
+  {
+    "id": "17",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD01/hSD01-017_C.png",
+    "name": "マネちゃん",
+    "cardNumber": "hSD01-017",
+    "rarity": "C"
+  },
+  {
+    "id": "19",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD01/hSD01-019_C_02.png",
+    "name": "スゴイパソコン",
+    "cardNumber": "hSD01-019",
+    "rarity": "C_02"
+  },
+  {
+    "id": "253",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD04/hSD04-001_OC.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hSD04-001",
+    "rarity": "OC"
+  },
+  {
+    "id": "254",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD04/hSD04-002_C.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hSD04-002",
+    "rarity": "C"
+  },
+  {
+    "id": "255",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD04/hSD04-003_C.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hSD04-003",
+    "rarity": "C"
+  },
+  {
+    "id": "256",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD04/hSD04-004_U.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hSD04-004",
+    "rarity": "U"
+  },
+  {
+    "id": "257",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD04/hSD04-005_C.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hSD04-005",
+    "rarity": "C"
+  },
+  {
+    "id": "258",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD04/hSD04-006_C.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hSD04-006",
+    "rarity": "C"
+  },
+  {
+    "id": "259",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD04/hSD04-007_U.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hSD04-007",
+    "rarity": "U"
+  },
+  {
+    "id": "260",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD04/hSD04-008_R.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hSD04-008",
+    "rarity": "R"
+  },
+  {
+    "id": "261",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD04/hSD04-009_RR.png",
+    "name": "癒月ちょこ",
+    "cardNumber": "hSD04-009",
+    "rarity": "RR"
+  },
+  {
+    "id": "267",
+    "expansion": "hSD04",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/COMMON/hY05-001_C.png",
+    "name": "紫エール",
+    "cardNumber": "hY05-001",
+    "rarity": "C"
+  }
+]

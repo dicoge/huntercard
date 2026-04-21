@@ -1,0 +1,138 @@
+[
+  {
+    "id": "2108",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD17/hBP01-104_05_C.png",
+    "name": "ふつうのパソコン",
+    "cardNumber": "hBP01-104",
+    "rarity": "05_C"
+  },
+  {
+    "id": "2098",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD17/hSD17-001_OC.png",
+    "name": "星街すいせい",
+    "cardNumber": "hSD17-001",
+    "rarity": "OC"
+  },
+  {
+    "id": "2099",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD17/hSD17-002_C.png",
+    "name": "星街すいせい",
+    "cardNumber": "hSD17-002",
+    "rarity": "C"
+  },
+  {
+    "id": "2100",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD17/hSD17-003_C.png",
+    "name": "星街すいせい",
+    "cardNumber": "hSD17-003",
+    "rarity": "C"
+  },
+  {
+    "id": "2101",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD17/hSD17-004_C.png",
+    "name": "星街すいせい",
+    "cardNumber": "hSD17-004",
+    "rarity": "C"
+  },
+  {
+    "id": "2102",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD17/hSD17-005_U.png",
+    "name": "星街すいせい",
+    "cardNumber": "hSD17-005",
+    "rarity": "U"
+  },
+  {
+    "id": "2103",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD17/hSD17-006_C.png",
+    "name": "星街すいせい",
+    "cardNumber": "hSD17-006",
+    "rarity": "C"
+  },
+  {
+    "id": "2104",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD17/hSD17-007_U.png",
+    "name": "星街すいせい",
+    "cardNumber": "hSD17-007",
+    "rarity": "U"
+  },
+  {
+    "id": "2105",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD17/hSD17-008_R.png",
+    "name": "星街すいせい",
+    "cardNumber": "hSD17-008",
+    "rarity": "R"
+  },
+  {
+    "id": "2106",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD17/hSD17-009_RR.png",
+    "name": "星街すいせい",
+    "cardNumber": "hSD17-009",
+    "rarity": "RR"
+  },
+  {
+    "id": "2107",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD17/hSD17-010_C.png",
+    "name": "ステラ",
+    "cardNumber": "hSD17-010",
+    "rarity": "C"
+  },
+  {
+    "id": "344",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP02/hBP02-077_C.png",
+    "name": "レトロパソコン",
+    "cardNumber": "hBP02-077",
+    "rarity": "C"
+  },
+  {
+    "id": "351",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP02/hBP02-084_U.png",
+    "name": "みっころね24",
+    "cardNumber": "hBP02-084",
+    "rarity": "U"
+  },
+  {
+    "id": "17",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD01/hSD01-017_C.png",
+    "name": "マネちゃん",
+    "cardNumber": "hSD01-017",
+    "rarity": "C"
+  },
+  {
+    "id": "19",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD01/hSD01-019_C_02.png",
+    "name": "スゴイパソコン",
+    "cardNumber": "hSD01-019",
+    "rarity": "C_02"
+  },
+  {
+    "id": "2074",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD14/hSD14-010_C.png",
+    "name": "holoAN",
+    "cardNumber": "hSD14-010",
+    "rarity": "C"
+  },
+  {
+    "id": "171",
+    "expansion": "hSD17",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/COMMON/hY04-001_C.png",
+    "name": "青エール",
+    "cardNumber": "hY04-001",
+    "rarity": "C"
+  }
+]

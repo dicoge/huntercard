@@ -1,0 +1,42 @@
+[
+  {
+    "id": "1174",
+    "expansion": "hCS01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hCS01/hBP01-081_02_SR.png",
+    "name": "星街すいせい",
+    "cardNumber": "hBP01-081",
+    "rarity": "02_SR"
+  },
+  {
+    "id": "1175",
+    "expansion": "hCS01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hCS01/hBP02-013_02_SR.png",
+    "name": "白上フブキ",
+    "cardNumber": "hBP02-013",
+    "rarity": "02_SR"
+  },
+  {
+    "id": "1177",
+    "expansion": "hCS01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hCS01/hBP04-013_02_SR.png",
+    "name": "博衣こより",
+    "cardNumber": "hBP04-013",
+    "rarity": "02_SR"
+  },
+  {
+    "id": "1176",
+    "expansion": "hCS01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hCS01/hBP03-030_02_SR.png",
+    "name": "さくらみこ",
+    "cardNumber": "hBP03-030",
+    "rarity": "02_SR"
+  },
+  {
+    "id": "1178",
+    "expansion": "hCS01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hCS01/hBP04-059_02_SR.png",
+    "name": "ラプラス・ダークネス",
+    "cardNumber": "hBP04-059",
+    "rarity": "02_SR"
+  }
+]

@@ -1,0 +1,162 @@
+[
+  {
+    "id": "530",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD05/hPR-002_U.png",
+    "name": "ReGLOSS",
+    "cardNumber": "hPR-002",
+    "rarity": "U"
+  },
+  {
+    "id": "517",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD05/hSD05-001_OC.png",
+    "name": "轟はじめ",
+    "cardNumber": "hSD05-001",
+    "rarity": "OC"
+  },
+  {
+    "id": "518",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD05/hSD05-002_C.png",
+    "name": "轟はじめ",
+    "cardNumber": "hSD05-002",
+    "rarity": "C"
+  },
+  {
+    "id": "519",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD05/hSD05-003_C.png",
+    "name": "轟はじめ",
+    "cardNumber": "hSD05-003",
+    "rarity": "C"
+  },
+  {
+    "id": "520",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD05/hSD05-004_U.png",
+    "name": "轟はじめ",
+    "cardNumber": "hSD05-004",
+    "rarity": "U"
+  },
+  {
+    "id": "521",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD05/hSD05-005_C.png",
+    "name": "轟はじめ",
+    "cardNumber": "hSD05-005",
+    "rarity": "C"
+  },
+  {
+    "id": "522",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD05/hSD05-006_C.png",
+    "name": "轟はじめ",
+    "cardNumber": "hSD05-006",
+    "rarity": "C"
+  },
+  {
+    "id": "523",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD05/hSD05-007_U.png",
+    "name": "轟はじめ",
+    "cardNumber": "hSD05-007",
+    "rarity": "U"
+  },
+  {
+    "id": "524",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD05/hSD05-008_R.png",
+    "name": "轟はじめ",
+    "cardNumber": "hSD05-008",
+    "rarity": "R"
+  },
+  {
+    "id": "525",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD05/hSD05-009_RR.png",
+    "name": "轟はじめ",
+    "cardNumber": "hSD05-009",
+    "rarity": "RR"
+  },
+  {
+    "id": "526",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD05/hSD05-010_U.png",
+    "name": "儒烏風亭らでん",
+    "cardNumber": "hSD05-010",
+    "rarity": "U"
+  },
+  {
+    "id": "527",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD05/hSD05-011_U.png",
+    "name": "一条莉々華",
+    "cardNumber": "hSD05-011",
+    "rarity": "U"
+  },
+  {
+    "id": "528",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD05/hSD05-012_U.png",
+    "name": "火威青",
+    "cardNumber": "hSD05-012",
+    "rarity": "U"
+  },
+  {
+    "id": "529",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD05/hSD05-013_U.png",
+    "name": "音乃瀬奏",
+    "cardNumber": "hSD05-013",
+    "rarity": "U"
+  },
+  {
+    "id": "531",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD05/hSD05-014_C.png",
+    "name": "ばんぺん",
+    "cardNumber": "hSD05-014",
+    "rarity": "C"
+  },
+  {
+    "id": "145",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP01/hBP01-104_C.png",
+    "name": "ふつうのパソコン",
+    "cardNumber": "hBP01-104",
+    "rarity": "C"
+  },
+  {
+    "id": "149",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hBP01/hBP01-108_U.png",
+    "name": "じゃあ敵だね",
+    "cardNumber": "hBP01-108",
+    "rarity": "U"
+  },
+  {
+    "id": "16",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD01/hSD01-016_C.png",
+    "name": "春先のどか",
+    "cardNumber": "hSD01-016",
+    "rarity": "C"
+  },
+  {
+    "id": "17",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hSD01/hSD01-017_C.png",
+    "name": "マネちゃん",
+    "cardNumber": "hSD01-017",
+    "rarity": "C"
+  },
+  {
+    "id": "168",
+    "expansion": "hSD05",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/COMMON/hY01-001_C.png",
+    "name": "白エール",
+    "cardNumber": "hY01-001",
+    "rarity": "C"
+  }
+]
