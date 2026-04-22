@@ -1,81 +1,84 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { COLORS } from '../constants';
 
-const popularCards = [
-  { id: 'hBP01-007', name: '星街すいせい', series: 'ブルーミングレディアンス', rarity: 'R', cardNumber: 'hBP01-007' },
-  { id: 'hBP01-004', name: '兎田ぺこら', series: 'ブルーミングレディアンス', rarity: 'R', cardNumber: 'hBP01-004' },
-  { id: 'hBP01-042', name: '兎田ぺこら', series: 'ブルーミングレディアンス', rarity: 'R', cardNumber: 'hBP01-042' },
-  { id: 'hBP01-014', name: '天音かなた', series: 'ブルーミングレディアンス', rarity: 'R', cardNumber: 'hBP01-014' },
-  { id: 'hBP01-005', name: '鷹嶺ルイ', series: 'ブルーミングレディアンス', rarity: 'R', cardNumber: 'hBP01-005' },
-  { id: 'hBP01-006', name: '小鳥遊キアラ', series: 'ブルーミングレディアンス', rarity: 'R', cardNumber: 'hBP01-006' },
+// Series quick access buttons
+const SERIES_BUTTONS = [
+  { label: 'hBP01', query: 'hBP01' },
+  { label: 'hBP02', query: 'hBP02' },
+  { label: 'hBP03', query: 'hBP03' },
+  { label: 'hBP04', query: 'hBP04' },
+  { label: 'hBP05', query: 'hBP05' },
+  { label: 'hBP06', query: 'hBP06' },
+  { label: 'hBP07', query: 'hBP07' },
 ];
 
-const rarityColors: Record<string, string> = {
-  C: '#6b7280', U: '#10b981', R: '#3b82f6', SR: '#f59e0b', N: '#6b7280',
-};
+// Color quick access buttons
+const COLOR_BUTTONS = [
+  { label: '⚪ 白', query: '白色', color: '#ffffff' },
+  { label: '🔵 青', query: '藍色', color: '#3b82f6' },
+  { label: '🟢 緑', query: '綠色', color: '#10b981' },
+  { label: '🔴 赤', query: '紅色', color: '#ef4444' },
+  { label: '🟣 紫', query: '紫色', color: '#8b5cf6' },
+  { label: '🟡 黄', query: '黃色', color: '#f59e0b' },
+];
 
 export default function HomeScreen({ navigation }: any) {
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>🌸 HoloHunter</Text>
-        <Text style={styles.subtitle}>hololive TCG 卡牌查價工具</Text>
+        <Text style={styles.subtitle}>hololive TCG 卡牌查詢工具</Text>
       </View>
 
+      {/* Search Input */}
       <TouchableOpacity
         style={styles.searchPrompt}
         onPress={() => navigation.navigate('Search')}
         activeOpacity={0.7}
       >
-        <Text style={styles.searchPromptText}>🔍 輸入卡號或關鍵字搜尋卡牌</Text>
+        <Text style={styles.searchPromptText}>🔍 輸入卡號或成員名稱搜尋</Text>
       </TouchableOpacity>
 
-      <Text style={styles.sectionTitle}>🔥 熱門卡牌</Text>
+      {/* Series Quick Access */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>📦 系列搜尋</Text>
+        <View style={styles.buttonRow}>
+          {SERIES_BUTTONS.map((btn) => (
+            <TouchableOpacity
+              key={btn.query}
+              style={styles.seriesBtn}
+              onPress={() => navigation.navigate('SearchResults', { query: btn.query })}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.seriesBtnText}>{btn.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
 
-      <FlatList
-        data={popularCards}
-        keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.popCard}
-            onPress={() => navigation.navigate('SearchResults', { query: item.cardNumber })}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.popRarity, { backgroundColor: rarityColors[item.rarity] }]}>
-              <Text style={styles.popRarityText}>{item.rarity}</Text>
-            </View>
-            <Text style={styles.popNumber} numberOfLines={1}>{item.cardNumber}</Text>
-            <Text style={styles.popName} numberOfLines={1}>{item.name}</Text>
-            <Text style={styles.popSeries} numberOfLines={1}>{item.series}</Text>
-          </TouchableOpacity>
-        )}
-        contentContainerStyle={styles.popList}
-      />
-    </View>
+      {/* Color Quick Access */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🎨 顏色搜尋</Text>
+        <View style={styles.buttonRow}>
+          {COLOR_BUTTONS.map((btn) => (
+            <TouchableOpacity
+              key={btn.query}
+              style={[styles.colorBtn, { borderColor: btn.color }]}
+              onPress={() => navigation.navigate('SearchResults', { query: btn.query })}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.colorBtnText, { color: btn.color }]}>{btn.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background, padding: 16 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
   header: { marginBottom: 20, paddingTop: 8 },
   title: { color: COLORS.primary, fontSize: 30, fontWeight: 'bold', marginBottom: 4 },
   subtitle: { color: COLORS.textSecondary, fontSize: 14 },
@@ -89,26 +92,24 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   searchPromptText: { color: COLORS.text, fontSize: 15, textAlign: 'center' },
+  section: { marginBottom: 24 },
   sectionTitle: { color: COLORS.text, fontSize: 18, fontWeight: 'bold', marginBottom: 12 },
-  popList: { paddingRight: 16 },
-  popCard: {
-    width: 160,
+  buttonRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  seriesBtn: {
     backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    padding: 14,
-    marginRight: 10,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  popRarity: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 4,
-    marginBottom: 8,
+  seriesBtnText: { color: COLORS.text, fontSize: 14, fontWeight: '600' },
+  colorBtn: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderWidth: 2,
   },
-  popRarityText: { color: COLORS.text, fontSize: 11, fontWeight: '800' },
-  popNumber: { color: COLORS.textSecondary, fontSize: 11, fontWeight: '600', marginBottom: 4 },
-  popName: { color: COLORS.text, fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
-  popSeries: { color: COLORS.textSecondary, fontSize: 11 },
+  colorBtnText: { fontSize: 14, fontWeight: '600' },
 });
