@@ -95,9 +95,11 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const officialUrl = `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`;
   const yuyuUrl = `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`;
 
-  // Price estimate
-  const priceInfo = priceEstimate[rarityKey] || priceEstimate['C'];
-  const displayPrice = priceInfo.est;
+  // Use actual yuyu-tei price if available, otherwise estimate
+  const actualPrice = card.yuyuPrice;
+  const priceName = card.yuyuPriceName || '';
+  const displayPrice = actualPrice;
+  const hasActualPrice = actualPrice != null && actualPrice > 0;
 
   return (
     <ScrollView style={styles.container}>
@@ -130,13 +132,23 @@ export default function CardDetailScreen({ route, navigation }: any) {
       <View style={[styles.priceSection, { backgroundColor: COLORS.surface }]}>
         <View style={styles.priceHeader}>
           <Text style={styles.priceSourceName}>🏪 遊々亭</Text>
-          <Text style={styles.priceBadge}>預估價格</Text>
+          <Text style={styles.priceBadge}>
+            {hasActualPrice ? '實際售價' : '預估價格'}
+          </Text>
         </View>
         <View style={styles.priceRow}>
           <Text style={styles.priceValue}>¥{displayPrice.toLocaleString()}</Text>
-          <Text style={styles.priceRange}> (¥{priceInfo.min} ~ ¥{priceInfo.max})</Text>
+          {!hasActualPrice && priceInfo && (
+            <Text style={styles.priceRange}> (¥{priceInfo.min} ~ ¥{priceInfo.max})</Text>
+          )}
         </View>
-        <Text style={styles.priceNote}>⚠️ 非即時價格，僅供參考</Text>
+        {hasActualPrice ? (
+          priceName ? (
+            <Text style={styles.priceNote}>💰 {priceName}</Text>
+          ) : null
+        ) : (
+          <Text style={styles.priceNote}>⚠️ 非即時價格，僅供參考</Text>
+        )}
         <TouchableOpacity style={styles.checkPriceBtn} onPress={() => window.open(yuyuUrl, '_blank')}>
           <Text style={styles.checkPriceBtnText}>🔍 查看遊々亭即時價格 →</Text>
         </TouchableOpacity>
