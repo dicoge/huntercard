@@ -64,6 +64,13 @@ export default async function handler(req: Request) {
       } catch (_) { /* skip */ }
     }
 
+    // Color mapping (English to Chinese) for color search
+    const COLOR_TO_CN: Record<string, string> = {
+      'white': '白色', 'blue': '藍色', 'green': '綠色',
+      'red': '紅色', 'purple': '紫色', 'yellow': '黃色',
+      'colorless': '無色',
+    };
+
     const matched = allCards.filter((c: any) => {
       // Support both holotcgtw and official formats
       const internalId = safe(c.id).toLowerCase();
@@ -72,9 +79,11 @@ export default async function handler(req: Request) {
       const sk = (c.searchKeywords || []).map((k: any) => safe(k).toLowerCase()).join(' ');
       const series = (c.series || [c.expansion]).map((s: any) => safe(s).toLowerCase()).join(' ');
       const tags = (c.tags || []).map((t: any) => safe(t).toLowerCase()).join(' ');
-      // Check colorNames for color search
-      const colorNames = (Array.isArray(c.colorNames) ? c.colorNames : [c.color]).map((col: any) => safe(col).toLowerCase()).join(' ');
-      return internalId.includes(searchQ) || cardNum.includes(searchQ) || name.includes(searchQ) || sk.includes(searchQ) || series.includes(searchQ) || tags.includes(searchQ) || colorNames.includes(searchQ);
+      // Check color for color search (both English and Chinese)
+      const rawColor = Array.isArray(c.color) ? c.color.join(' ') : safe(c.color);
+      const colorCn = COLOR_TO_CN[rawColor.toLowerCase()] || '';
+      const colorSearch = (rawColor + ' ' + colorCn).toLowerCase();
+      return internalId.includes(searchQ) || cardNum.includes(searchQ) || name.includes(searchQ) || sk.includes(searchQ) || series.includes(searchQ) || tags.includes(searchQ) || colorSearch.includes(searchQ);
     });
 
     const seen = new Set<string>();
