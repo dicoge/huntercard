@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { COLORS } from '../constants';
 
 // Series quick access buttons
@@ -15,35 +15,37 @@ const SERIES_BUTTONS = [
 
 // Color quick access buttons
 const COLOR_BUTTONS = [
-  { label: '⚪ 白', query: '白色', color: '#ffffff' },
-  { label: '🔵 青', query: '藍色', color: '#3b82f6' },
-  { label: '🟢 緑', query: '綠色', color: '#10b981' },
-  { label: '🔴 赤', query: '紅色', color: '#ef4444' },
-  { label: '🟣 紫', query: '紫色', color: '#8b5cf6' },
-  { label: '🟡 黄', query: '黃色', color: '#f59e0b' },
+  { label: '白', query: '白色', color: '#ffffff' },
+  { label: '青', query: '藍色', color: '#3b82f6' },
+  { label: '緑', query: '綠色', color: '#10b981' },
+  { label: '赤', query: '紅色', color: '#ef4444' },
+  { label: '紫', query: '紫色', color: '#8b5cf6' },
+  { label: '黄', query: '黃色', color: '#f59e0b' },
 ];
 
 export default function HomeScreen({ navigation }: any) {
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>🌸 HoloHunter</Text>
-        <Text style={styles.subtitle}>hololive TCG 卡牌查詢工具</Text>
+      {/* Hero Section */}
+      <View style={styles.hero}>
+        <Text style={styles.heroTitle}>hololive OFFICIAL CARD GAME</Text>
+        <Text style={styles.heroSub}>卡牌查詢</Text>
       </View>
 
       {/* Search Input */}
       <TouchableOpacity
-        style={styles.searchPrompt}
+        style={styles.searchBar}
         onPress={() => navigation.navigate('Search')}
         activeOpacity={0.7}
       >
-        <Text style={styles.searchPromptText}>🔍 輸入卡號或成員名稱搜尋</Text>
+        <Text style={styles.searchIcon}>🔍</Text>
+        <Text style={styles.searchPlaceholder}>卡號或成員名稱...</Text>
       </TouchableOpacity>
 
-      {/* Series Quick Access */}
+      {/* Series Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>📦 系列搜尋</Text>
-        <View style={styles.buttonRow}>
+        <Text style={styles.sectionTitle}>シリーズ</Text>
+        <View style={styles.seriesGrid}>
           {SERIES_BUTTONS.map((btn) => (
             <TouchableOpacity
               key={btn.query}
@@ -57,17 +59,18 @@ export default function HomeScreen({ navigation }: any) {
         </View>
       </View>
 
-      {/* Color Quick Access */}
+      {/* Color Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>🎨 顏色搜尋</Text>
-        <View style={styles.buttonRow}>
+        <Text style={styles.sectionTitle}>カラー</Text>
+        <View style={styles.colorGrid}>
           {COLOR_BUTTONS.map((btn) => (
             <TouchableOpacity
               key={btn.query}
-              style={[styles.colorBtn, { borderColor: btn.color }]}
+              style={[styles.colorBtn, { backgroundColor: btn.color + '15', borderColor: btn.color }]}
               onPress={() => navigation.navigate('SearchResults', { query: btn.query })}
               activeOpacity={0.7}
             >
+              <View style={[styles.colorDot, { backgroundColor: btn.color }]} />
               <Text style={[styles.colorBtnText, { color: btn.color }]}>{btn.label}</Text>
             </TouchableOpacity>
           ))}
@@ -78,38 +81,78 @@ export default function HomeScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background, padding: 16 },
-  header: { marginBottom: 20, paddingTop: 8 },
-  title: { color: COLORS.primary, fontSize: 30, fontWeight: 'bold', marginBottom: 4 },
-  subtitle: { color: COLORS.textSecondary, fontSize: 14 },
-  searchPrompt: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    padding: 18,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    borderStyle: 'dashed',
+  container: { flex: 1, backgroundColor: '#0a0a0a' },
+  hero: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1a1a1a',
   },
-  searchPromptText: { color: COLORS.text, fontSize: 15, textAlign: 'center' },
-  section: { marginBottom: 24 },
-  sectionTitle: { color: COLORS.text, fontSize: 18, fontWeight: 'bold', marginBottom: 12 },
-  buttonRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  heroTitle: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 3,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  heroSub: {
+    color: '#666666',
+    fontSize: 24,
+    fontWeight: '300',
+    letterSpacing: 2,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    borderRadius: 4,
+    marginHorizontal: 16,
+    marginTop: 20,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#333333',
+  },
+  searchIcon: { fontSize: 16, marginRight: 12 },
+  searchPlaceholder: { color: '#666666', fontSize: 14 },
+  section: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#1a1a1a' },
+  sectionTitle: {
+    color: '#888888',
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 2,
+    marginBottom: 16,
+    textTransform: 'uppercase',
+  },
+  seriesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
   seriesBtn: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 8,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 2,
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: '#333333',
   },
-  seriesBtnText: { color: COLORS.text, fontSize: 14, fontWeight: '600' },
+  seriesBtnText: { color: '#cccccc', fontSize: 13, fontWeight: '500', letterSpacing: 1 },
+  colorGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
   colorBtn: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 2,
     paddingVertical: 10,
     paddingHorizontal: 14,
-    borderWidth: 2,
+    borderWidth: 1,
+    gap: 8,
   },
-  colorBtnText: { fontSize: 14, fontWeight: '600' },
+  colorDot: { width: 8, height: 8, borderRadius: 4 },
+  colorBtnText: { fontSize: 13, fontWeight: '500', letterSpacing: 1 },
 });
