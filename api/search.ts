@@ -72,7 +72,9 @@ export default async function handler(req: Request) {
       const sk = (c.searchKeywords || []).map((k: any) => safe(k).toLowerCase()).join(' ');
       const series = (c.series || [c.expansion]).map((s: any) => safe(s).toLowerCase()).join(' ');
       const tags = (c.tags || []).map((t: any) => safe(t).toLowerCase()).join(' ');
-      return internalId.includes(searchQ) || cardNum.includes(searchQ) || name.includes(searchQ) || sk.includes(searchQ) || series.includes(searchQ) || tags.includes(searchQ);
+      // Check colorNames for color search
+      const colorNames = (Array.isArray(c.colorNames) ? c.colorNames : [c.color]).map((col: any) => safe(col).toLowerCase()).join(' ');
+      return internalId.includes(searchQ) || cardNum.includes(searchQ) || name.includes(searchQ) || sk.includes(searchQ) || series.includes(searchQ) || tags.includes(searchQ) || colorNames.includes(searchQ);
     });
 
     const seen = new Set<string>();
