@@ -98,40 +98,47 @@ function MainTabs() {
   );
 }
 
+// Stack Navigator for screens that need navigation (CardDetail, SearchResults)
+function StackNavigator() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: COLORS.surface,
+        },
+        headerTintColor: COLORS.text,
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+        contentStyle: {
+          backgroundColor: COLORS.background,
+        },
+      }}
+    >
+      <Stack.Screen
+        name="MainTabs"
+        component={MainTabs}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CardDetail"
+        component={CardDetailScreen}
+        options={{ title: '卡牌詳情' }}
+      />
+      <Stack.Screen
+        name="SearchResults"
+        component={SearchResultsScreen}
+        options={{ title: '搜尋結果' }}
+      />
+    </Stack.Navigator>
+  );
+}
+
 // Root Navigator
 export default function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: COLORS.surface,
-          },
-          headerTintColor: COLORS.text,
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
-          contentStyle: {
-            backgroundColor: COLORS.background,
-          },
-        }}
-      >
-        <Stack.Screen
-          name="MainTabs"
-          component={MainTabs}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="CardDetail"
-          component={CardDetailScreen}
-          options={{ title: '卡牌詳情' }}
-        />
-        <Stack.Screen
-          name="SearchResults"
-          component={SearchResultsScreen}
-          options={{ title: '搜尋結果' }}
-        />
-      </Stack.Navigator>
+      <StackNavigator />
     </NavigationContainer>
   );
 }
