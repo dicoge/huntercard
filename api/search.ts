@@ -11,6 +11,9 @@ const OFFICIAL_FILES = [
   'hSD2025summer.json', 'ent07.json', 'hCS01.json', 'hPC01.json', 'hYS01.json',
 ];
 const OFFICIAL_BASE = 'https://raw.githubusercontent.com/dicoge/hunterCard/main/data/official';
+
+// Yuyu-tei price data (scraped daily at 5 AM)
+const YUYU_PRICES_URL = 'https://raw.githubusercontent.com/dicoge/hunterCard/main/data/yuyu-prices/yuyu-prices.json';
 const GRADE_RARITY: Record<string, string> = { debut: 'C', '1st': 'U', '2nd': 'R', buzz: 'SR', spot: 'N' };
 const COLOR_MAP: Record<string, string> = {
   white: '白色', blue: '藍色', green: '綠色', red: '紅色',
@@ -41,6 +44,18 @@ export default async function handler(req: Request) {
 
     const searchQ = q.toLowerCase().trim();
     const allCards: any[] = [];
+
+    // Fetch yuyu-tei prices (cached, non-blocking)
+    let yuyuPrices: Record<string, any> = {};
+    try {
+      const priceRes = await fetch(YUYU_PRICES_URL + '?t=' + Date.now());
+      if (priceRes.ok) {
+        const priceData = await priceRes.json();
+        yuyuPrices = priceData.prices || {};
+      }
+    } catch (e) {
+      // Prices unavailable, continue without
+    }
 
     // Fetch from holotcgtw (primary source)
     for (const file of CARD_FILES) {
@@ -174,6 +189,9 @@ export default async function handler(req: Request) {
         else if (c.cardType.includes('エール') || c.cardType.includes('Yell')) type = 'Yell';
       }
 
+      // Check yuyu-tei price
+      const yuyuPrice = yuyuPrices[id];
+
       return {
         id, name,
         type,
@@ -191,6 +209,8 @@ export default async function handler(req: Request) {
         effectType: safe(c.effectType),
         effects,
         imageUrl,
+        yuyuPrice: yuyuPrice?.sellPrice || null,
+        yuyuPriceName: yuyuPrice?.name || '',
         yuyuUrl: `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`,
         carousellUrl: `https://www.carousell.com.tw/search/?q=${encodeURIComponent(id)}`,
         officialUrl: `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`,
