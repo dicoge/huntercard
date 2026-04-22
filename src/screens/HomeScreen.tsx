@@ -49,7 +49,7 @@ const SPECIAL = [
 // Color quick access buttons
 const COLOR_BUTTONS = [
   { label: '白', query: '白色', color: '#ffffff' },
-  { label: '青', query: '藍色', color: '#3b82f6' },
+  { label: '青', query: '青色', color: '#3b82f6' },
   { label: '緑', query: '綠色', color: '#10b981' },
   { label: '赤', query: '紅色', color: '#ef4444' },
   { label: '紫', query: '紫色', color: '#8b5cf6' },
