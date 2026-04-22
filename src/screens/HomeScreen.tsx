@@ -1,41 +1,49 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { COLORS } from '../constants';
 
-// Series quick access buttons
-const SERIES_BUTTONS = [
-  // Booster Packs
-  { label: 'hBP01', query: 'hBP01' },
-  { label: 'hBP02', query: 'hBP02' },
-  { label: 'hBP03', query: 'hBP03' },
-  { label: 'hBP04', query: 'hBP04' },
-  { label: 'hBP05', query: 'hBP05' },
-  { label: 'hBP06', query: 'hBP06' },
-  { label: 'hBP07', query: 'hBP07' },
-  // Starter Decks
-  { label: 'hSD01', query: 'hSD01' },
-  { label: 'hSD02', query: 'hSD02' },
-  { label: 'hSD03', query: 'hSD03' },
-  { label: 'hSD04', query: 'hSD04' },
-  { label: 'hSD05', query: 'hSD05' },
-  { label: 'hSD06', query: 'hSD06' },
-  { label: 'hSD07', query: 'hSD07' },
-  { label: 'hSD08', query: 'hSD08' },
-  { label: 'hSD09', query: 'hSD09' },
-  { label: 'hSD10', query: 'hSD10' },
-  { label: 'hSD11', query: 'hSD11' },
-  { label: 'hSD12', query: 'hSD12' },
-  { label: 'hSD13', query: 'hSD13' },
-  { label: 'hSD14', query: 'hSD14' },
-  { label: 'hSD15', query: 'hSD15' },
-  { label: 'hSD16', query: 'hSD16' },
-  { label: 'hSD17', query: 'hSD17' },
-  { label: 'hSD18', query: 'hSD18' },
-  { label: 'hSD19', query: 'hSD19' },
-  // Special & Promo
-  { label: 'hPR', query: 'hPR' },
-  { label: 'hY', query: 'hY' },
-  { label: 'ent07', query: 'ent07' },
+// Booster Packs (ブースターパック)
+const BOOSTER_PACKS = [
+  { label: 'hBP01', query: 'hBP01', name: 'ブルーミングレディアンス' },
+  { label: 'hBP02', query: 'hBP02', name: 'クインテットスペクトラム' },
+  { label: 'hBP03', query: 'hBP03', name: 'サバイバル・オブ・ザ・フェイビアス' },
+  { label: 'hBP04', query: 'hBP04', name: 'キュリアスユニバース' },
+  { label: 'hBP05', query: 'hBP05', name: 'エンチャントレガリア' },
+  { label: 'hBP06', query: 'hBP06', name: 'アヤカシヴァーミリオン' },
+  { label: 'hBP07', query: 'hBP07', name: 'ディーヴァフィーバー' },
+];
+
+// Starter Decks (スタートデッキ)
+const STARTER_DECKS = [
+  { label: 'hSD01', query: 'hSD01', name: 'ときのそら' },
+  { label: 'hSD02', query: 'hSD02', name: '白上フブキ' },
+  { label: 'hSD03', query: 'hSD03', name: '湊あくあ' },
+  { label: 'hSD04', query: 'hSD04', name: '天音かなた' },
+  { label: 'hSD05', query: 'hSD05', name: 'ReGLOSS' },
+  { label: 'hSD06', query: 'hSD06', name: '風真いろは' },
+  { label: 'hSD07', query: 'hSD07', name: '癒月ちょこ' },
+  { label: 'hSD08', query: 'hSD08', name: '轟はじめ' },
+  { label: 'hSD09', query: 'hSD09', name: '宝鐘マリン' },
+  { label: 'hSD10', query: 'hSD10', name: '輪堂千速' },
+  { label: 'hSD11', query: 'hSD11', name: '虎金妃笑虎' },
+  { label: 'hSD12', query: 'hSD12', name: '推し Advent' },
+  { label: 'hSD13', query: 'hSD13', name: '推し Justice' },
+  { label: 'hSD14', query: 'hSD14', name: '白上フブキ' },
+  { label: 'hSD15', query: 'hSD15', name: '儒烏風亭らでん' },
+  { label: 'hSD16', query: 'hSD16', name: 'さくらみこ' },
+  { label: 'hSD17', query: 'hSD17', name: '星街すいせい' },
+  { label: 'hSD18', query: 'hSD18', name: '森カリオペ' },
+  { label: 'hSD19', query: 'hSD19', name: '大空スバル' },
+];
+
+// Special & Promo (特殊・PR)
+const SPECIAL = [
+  { label: 'hPR', query: 'hPR', name: 'PRカード' },
+  { label: 'hY', query: 'hY', name: 'Yokohama Promo' },
+  { label: 'ent07', query: 'ent07', name: 'ディーヴァフィーバーEC' },
+  { label: 'hCS01', query: 'hCS01', name: '1st Anniversary' },
+  { label: 'hPC01', query: 'hPC01', name: 'オフィシャルコレクション' },
+  { label: 'hSD2025summer', query: 'hSD2025summer', name: 'ホロナツパラダイス' },
 ];
 
 // Color quick access buttons
@@ -67,24 +75,61 @@ export default function HomeScreen({ navigation }: any) {
         <Text style={styles.searchPlaceholder}>卡號或成員名稱...</Text>
       </TouchableOpacity>
 
-      {/* Series Section */}
+      {/* Booster Packs */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>シリーズ</Text>
-        <View style={styles.seriesGrid}>
-          {SERIES_BUTTONS.map((btn) => (
+        <Text style={styles.sectionTitle}>ブースターパック</Text>
+        <View style={styles.cardGrid}>
+          {BOOSTER_PACKS.map((item) => (
             <TouchableOpacity
-              key={btn.query}
-              style={styles.seriesBtn}
-              onPress={() => navigation.navigate('SearchResults', { query: btn.query })}
+              key={item.query}
+              style={styles.cardBtn}
+              onPress={() => navigation.navigate('SearchResults', { query: item.query })}
               activeOpacity={0.7}
             >
-              <Text style={styles.seriesBtnText}>{btn.label}</Text>
+              <Text style={styles.cardLabel}>{item.label}</Text>
+              <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
 
-      {/* Color Section */}
+      {/* Starter Decks */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>スタートデッキ</Text>
+        <View style={styles.cardGrid}>
+          {STARTER_DECKS.map((item) => (
+            <TouchableOpacity
+              key={item.query}
+              style={styles.cardBtn}
+              onPress={() => navigation.navigate('SearchResults', { query: item.query })}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.cardLabel}>{item.label}</Text>
+              <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* Special & Promo */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>特殊・PR</Text>
+        <View style={styles.cardGrid}>
+          {SPECIAL.map((item) => (
+            <TouchableOpacity
+              key={item.query}
+              style={styles.cardBtn}
+              onPress={() => navigation.navigate('SearchResults', { query: item.query })}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.cardLabel}>{item.label}</Text>
+              <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* Color Search */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>カラー</Text>
         <View style={styles.colorGrid}>
@@ -135,6 +180,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginHorizontal: 16,
     marginTop: 20,
+    marginBottom: 20,
     padding: 14,
     borderWidth: 1,
     borderColor: '#333333',
@@ -150,20 +196,31 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textTransform: 'uppercase',
   },
-  seriesGrid: {
+  cardGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
-  seriesBtn: {
+  cardBtn: {
     backgroundColor: '#1a1a1a',
     borderRadius: 2,
     paddingVertical: 10,
-    paddingHorizontal: 18,
+    paddingHorizontal: 14,
     borderWidth: 1,
     borderColor: '#333333',
+    width: '31%',
   },
-  seriesBtnText: { color: '#cccccc', fontSize: 13, fontWeight: '500', letterSpacing: 1 },
+  cardLabel: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  cardName: {
+    color: '#666666',
+    fontSize: 10,
+    fontWeight: '400',
+  },
   colorGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
