@@ -4,6 +4,7 @@ import { COLORS } from '../constants';
 
 // Series quick access buttons
 const SERIES_BUTTONS = [
+  // Booster Packs
   { label: 'hBP01', query: 'hBP01' },
   { label: 'hBP02', query: 'hBP02' },
   { label: 'hBP03', query: 'hBP03' },
@@ -11,6 +12,30 @@ const SERIES_BUTTONS = [
   { label: 'hBP05', query: 'hBP05' },
   { label: 'hBP06', query: 'hBP06' },
   { label: 'hBP07', query: 'hBP07' },
+  // Starter Decks
+  { label: 'hSD01', query: 'hSD01' },
+  { label: 'hSD02', query: 'hSD02' },
+  { label: 'hSD03', query: 'hSD03' },
+  { label: 'hSD04', query: 'hSD04' },
+  { label: 'hSD05', query: 'hSD05' },
+  { label: 'hSD06', query: 'hSD06' },
+  { label: 'hSD07', query: 'hSD07' },
+  { label: 'hSD08', query: 'hSD08' },
+  { label: 'hSD09', query: 'hSD09' },
+  { label: 'hSD10', query: 'hSD10' },
+  { label: 'hSD11', query: 'hSD11' },
+  { label: 'hSD12', query: 'hSD12' },
+  { label: 'hSD13', query: 'hSD13' },
+  { label: 'hSD14', query: 'hSD14' },
+  { label: 'hSD15', query: 'hSD15' },
+  { label: 'hSD16', query: 'hSD16' },
+  { label: 'hSD17', query: 'hSD17' },
+  { label: 'hSD18', query: 'hSD18' },
+  { label: 'hSD19', query: 'hSD19' },
+  // Special & Promo
+  { label: 'hPR', query: 'hPR' },
+  { label: 'hY', query: 'hY' },
+  { label: 'ent07', query: 'ent07' },
 ];
 
 // Color quick access buttons
