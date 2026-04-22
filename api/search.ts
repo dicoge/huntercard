@@ -5,7 +5,8 @@ const BASE = '';
 // Official card data files (scraped from official site)
 // Using individual series files for complete data (all-cards.json is simplified)
 const OFFICIAL_FILES = [
-  'hBP04.json', 'hBP05.json', 'hBP06.json', 'hBP07.json',
+  'hBP01.json', 'hBP02.json', 'hBP03.json', 'hBP04.json', 'hBP05.json', 'hBP06.json', 'hBP07.json',
+  'hSD01.json', 'hSD02.json', 'hSD03.json', 'hSD04.json', 'hSD05.json', 'hSD06.json', 'hSD07.json',
   'hSD08.json', 'hSD09.json', 'hSD10.json', 'hSD11.json', 'hSD12.json', 'hSD13.json',
   'hSD14.json', 'hSD15.json', 'hSD16.json', 'hSD17.json', 'hSD18.json', 'hSD19.json',
   'hSD2025summer.json', 'ent07.json', 'hCS01.json', 'hPC01.json', 'hYS01.json',
