@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "scrape": "node scraper.js"
+    "scrape": "node scraper.js",
+    "scrape-yuyu": "node scrape-yuyu-prices.js"
   },
-  "dependencies": {}
+  "dependencies": {
+    "puppeteer": "^22.0.0"
+  }
 }
