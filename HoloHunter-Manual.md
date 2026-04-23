@@ -78,9 +78,36 @@ scripts/
 
 ### 1. 搜尋 API (`api/search.ts`)
 
-#### 資料來源順序
-1. **holotcgtw**（已停用，資料不完整）
-2. **官方卡牌資料**（主要來源）
+#### API 端點
+```
+GET /api/search?q={關鍵字}
+```
+
+#### 回應格式
+```json
+{
+  "query": "hBP04-001",
+  "total": 1,
+  "results": [
+    {
+      "id": "hBP04-001",
+      "name": "博衣こより",
+      "cardNumber": "hBP04-001",
+      "type": "Oshi",
+      "grade": "buzz",
+      "rarity": "SR",
+      "colors": ["blue"],
+      "colorNames": ["藍色"],
+      "series": ["hBP04"],
+      "seriesNames": ["キュリアスユニバース"],
+      "yuyuPrice": 99800,
+      "yuyuPriceName": "博衣こより(パラレル/サイン)",
+      "imageUrl": "https://...",
+      "officialUrl": "https://..."
+    }
+  ]
+}
+```
 
 #### 搜尋邏輯
 ```typescript
@@ -97,12 +124,16 @@ const COLOR_MAP = {
   white: '白色', blue: ['藍色', '青色'], green: '綠色',
   red: '紅色', purple: '紫色', yellow: '黃色', colorless: '無色'
 };
+// 說明：blue 對應兩個中文名稱是因為日文「青色」= 中文「藍色」
+// 搜尋時會同時匹配「藍色」和「青色」關鍵字
 ```
 
 #### 稀有度與價格映射
 ```typescript
-// 官方稀有度 → 顯示稀有度
-OSR/OUR → SR, UR → R, SR → U, RR/R/U/C → C, N/SY → N
+// 官方稀有度（原始）→ 顯示稀有度（UI 用）
+// 注意：這是 UI 顯示用映射，實際卡牌資料保留原始稀有度
+OSR/OUR → SR（金色）, UR → R（藍色）, SR → U（綠色）,
+RR/R/U/C → C（灰色）, N/SY → N（棕色）
 
 // 遊々亭價格（實際）
 從 yuyu-prices.json 讀取，優先顯示
@@ -116,7 +147,17 @@ OSR/OUR → SR, UR → R, SR → U, RR/R/U/C → C, N/SY → N
 https://hololive-official-cardgame.com/wp-content/images/cardlist/{series}/{cardNumber}_{version}.png
 ```
 
-版本後綴對應：
+#### 系列代碼格式
+- Booster Packs: `hBP01` ~ `hBP07`
+- Starter Decks: `hSD01` ~ `hSD19`
+- 特殊/PR: `hPR`, `hY`, `ent07`, `hCS01`, `hPC01`, `hSD2025summer`
+
+#### 系列代碼格式
+- Booster Packs: `hBP01` ~ `hBP07`
+- Starter Decks: `hSD01` ~ `hSD19`
+- 特殊/PR: `hPR`, `hY`, `ent07`, `hCS01`, `hPC01`, `hSD2025summer`
+
+#### 版本後綴對應
 - `OSR`/`OUR` → `_OSR.png`（主推卡特殊版）
 - `UR` → `_UR.png`
 - `SR` → `_SR.png`
@@ -173,8 +214,49 @@ Root Stack Navigator
 | 總卡牌數 | 3,000+ |
 | Booster Packs | 7 個系列 (hBP01-hBP07) |
 | Starter Decks | 19 個系列 (hSD01-hSD19) |
-| 特殊/PR | 6 个系列 (hPR, hY, ent07, hCS01, hPC01, hSD2025summer) |
+| 特殊/PR | 6 個系列 (hPR, hY, ent07, hCS01, hPC01, hSD2025summer) |
 | 有遊々亭價格 | ~1,569 張 |
+
+## 📝 卡牌資料結構
+
+### `data/official/*.json` 欄位定義
+| 欄位 | 類型 | 說明 |
+|------|------|------|
+| `id` | string | 內部 ID（數字） |
+| `expansion` | string | 系列代碼（如 hBP04） |
+| `cardNumber` | string | 卡號（如 hBP04-001） |
+| `name` | string | 日文名稱 |
+| `rarity` | string | 官方稀有度（OSR, UR, SR, RR, R, U, C, N） |
+| `cardType` | string | 卡牌類型（推し, メンバー, サポート, エナジー, バズ, エール） |
+| `color` | string | 顏色（white, blue, green, red, purple, yellow, colorless） |
+| `imageUrl` | string | 官方圖片 URL |
+| `life` | string | 生命值 |
+
+### `data/yuyu-prices/yuyu-prices.json` 欄位定義
+| 欄位 | 類型 | 說明 |
+|------|------|------|
+| `lastUpdated` | string | 最後更新時間（ISO 8601） |
+| `totalCards` | number | 有價格的卡牌總數 |
+| `seriesWithPrices` | number | 有價格的系列數 |
+| `prices` | object | 價格資料（key 為卡號） |
+
+`prices` 子欄位：
+| 欄位 | 類型 | 說明 |
+|------|------|------|
+| `sellPrice` | number | 遊々亭售價（日元） |
+| `name` | string | 卡牌 variant 名稱 |
+| `timestamp` | string | 爬取時間 |
+
+## 📱 PWA 離線功能
+
+### 可離線使用
+- 已載入的卡牌圖片（瀏覽器 cache）
+- 基本 UI 介面
+
+### 需連線使用
+- 卡牌搜尋（需要 API）
+- 價格查詢（需要 yuyu-prices.json）
+- 卡牌詳情（需要 API 資料）
 
 ---
 
