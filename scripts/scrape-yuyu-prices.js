@@ -59,6 +59,7 @@ async function scrapeYuyuPrices() {
   const allPrices = {};
   let totalCards = 0;
   let seriesWithPrices = 0;
+  let savePath;
 
   try {
     for (const seriesInfo of SERIES_PAGES) {
@@ -139,7 +140,7 @@ async function scrapeYuyuPrices() {
     const duration = ((Date.now() - startTime) / 1000).toFixed(1);
     
     // Save results - outputFile already declared in outer scope
-    const savePath = path.join(OUTPUT_DIR, 'yuyu-prices.json');
+    savePath = path.join(OUTPUT_DIR, 'yuyu-prices.json');
     const metadata = {
       lastUpdated: new Date().toISOString(),
       totalCards,
