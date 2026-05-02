@@ -29,7 +29,14 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "plugins": [],
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "允許 HoloHunter 存取相機以掃描卡牌"
+        }
+      ]
+    ],
     "web": {
       "bundler": "metro",
       "favicon": "./assets/favicon.png",
