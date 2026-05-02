@@ -26,18 +26,6 @@
       "package": "com.dicoge.holohunter"
     },
     "web": {
-      "favicon": "./assets/favicon.png",
-      "bundler": "metro"
-    },
-    "plugins": [
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "允許 HoloHunter 存取相機以掃描卡牌"
-        }
-      ]
-    ],
-    "web": {
       "bundler": "metro",
       "favicon": "./assets/favicon.png",
       "pwa": {
@@ -46,6 +34,15 @@
         "backgroundColor": "#ffffff",
         "description": "hololive TCG 卡牌查價 App"
       }
-    }
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "允許 HoloHunter 存取相機以掃描卡牌"
+        }
+      ],
+      "expo-ocr-kit"
+    ]
   }
 }

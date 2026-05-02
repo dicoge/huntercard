@@ -14,6 +14,8 @@ import {
   Modal,
 } from 'react-native';
 import { CameraView, useCameraPermissions, CameraType } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
+import { recognizeText } from 'expo-ocr-kit';
 import { COLORS } from '../constants';
 import { recognizeCard, searchCards, CardInfo } from '../services/cardRecognition';
 
@@ -23,6 +25,11 @@ const SCAN_AREA_SIZE = SCREEN_WIDTH * 0.75;
 export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState<CameraType>('back');
+  const cameraRef = useRef<CameraView>(null);
+  
+  // 辨識結果狀態
+  const [recognizedText, setRecognizedText] = useState<string>('');
+  const [isProcessingOCR, setIsProcessingOCR] = useState<boolean>(false);
   const [flash, setFlash] = useState<boolean>(false);
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanComplete, setScanComplete] = useState<boolean>(false);
@@ -110,40 +117,159 @@ export default function ScanScreen() {
     setFlash(current => !current);
   };
 
-  const handleScan = () => {
-    if (isScanning) return;
+  // OCR 識別功能
+  const captureAndRecognize = async () => {
+    if (!cameraRef.current) {
+      Alert.alert('錯誤', '相機未準備好');
+      return;
+    }
     
-    setIsScanning(true);
-    setScanComplete(false);
-    setSearchError(null);
-    setRecognizedCard(null);
-    setSuggestions([]);
-    
-    // 模擬 OCR 識別過程（實際需要使用 ML Kit 或 Vision Framework）
-    setTimeout(() => {
+    try {
+      setIsProcessingOCR(true);
+      setIsScanning(true);
+      
+      // 拍攝照片
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.8,
+      });
+      
+      if (!photo?.uri) {
+        throw new Error('無法拍攝照片');
+      }
+      
+      // 使用 expo-ocr-kit 識別文字
+      const ocrResult = await recognizeText(photo.uri);
+      
+      const recognizedText = ocrResult.text;
+      setRecognizedText(recognizedText);
+      
+      setIsProcessingOCR(false);
       setIsScanning(false);
-      setScanComplete(true);
       
-      // 這裡需要实际的图像识别
-      // 暂时使用演示数据，展示功能流程
-      // 实际实现需要使用 expo-ml-kit 或 Apple Vision
+      if (recognizedText && recognizedText.trim().length > 0) {
+        // 使用識別的文字進行卡牌匹配
+        const result = recognizeCard(recognizedText);
+        
+        if (result.success && result.card) {
+          setRecognizedCard(result.card);
+          setSuggestions(result.suggestions || []);
+        } else {
+          // 沒有精確匹配，顯示文字讓用戶確認
+          Alert.alert(
+            '🔍 識別結果',
+            `識別到的文字：\n\n"${recognizedText}"\n\n請選擇：`,
+            [
+              { 
+                text: '使用此文字搜尋', 
+                onPress: () => {
+                  const result = recognizeCard(recognizedText);
+                  if (result.success && result.card) {
+                    setRecognizedCard(result.card);
+                    setSuggestions(result.suggestions || []);
+                  } else {
+                    setSearchError(result.error || '找不到匹配的卡牌');
+                    const searchResult = searchCards(recognizedText, 5);
+                    setSearchResults(searchResult);
+                  }
+                }
+              },
+              { 
+                text: '手動輸入', 
+                onPress: () => setShowSearch(true)
+              },
+            ]
+          );
+        }
+      } else {
+        Alert.alert(
+          '❌ 無法識別',
+          '請確保卡牌文字清晰可見，或使用手動輸入',
+          [
+            { text: '重試', onPress: () => captureAndRecognize() },
+            { text: '手動輸入', onPress: () => setShowSearch(true) },
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('OCR Error:', error);
+      setIsProcessingOCR(false);
+      setIsScanning(false);
       
-      // 演示：提示用户输入卡牌名称进行识别
       Alert.alert(
-        '📷 掃描完成',
-        '請輸入卡牌名稱或編號進行識別',
+        '⚠️ 識別失敗',
+        '無法識別圖像，請重試或使用手動輸入',
         [
-          { 
-            text: '輸入名稱', 
-            onPress: () => setShowSearch(true)
-          },
-          { 
-            text: '隨機演示', 
-            onPress: () => demoRecognition()
-          },
+          { text: '重試', onPress: () => captureAndRecognize() },
+          { text: '手動輸入', onPress: () => setShowSearch(true) },
         ]
       );
-    }, 1500);
+    }
+  };
+
+  // 從相冊選擇圖片進行識別
+  const pickFromGallery = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.8,
+      });
+      
+      if (!result.canceled && result.assets[0]?.uri) {
+        setIsProcessingOCR(true);
+        setIsScanning(true);
+        
+        const ocrResult = await recognizeText(result.assets[0].uri);
+        const recognizedText = ocrResult.text;
+        setRecognizedText(recognizedText);
+        
+        setIsProcessingOCR(false);
+        setIsScanning(false);
+        
+        if (recognizedText && recognizedText.trim().length > 0) {
+          const cardResult = recognizeCard(recognizedText);
+          if (cardResult.success && cardResult.card) {
+            setRecognizedCard(cardResult.card);
+            setSuggestions(cardResult.suggestions || []);
+          } else {
+            setSearchError(cardResult.error || '找不到匹配的卡牌');
+            const searchResult = searchCards(recognizedText, 5);
+            setSearchResults(searchResult);
+          }
+        } else {
+          Alert.alert('無法識別', '請確保圖片文字清晰');
+        }
+      }
+    } catch (error) {
+      console.error('Gallery OCR Error:', error);
+      setIsProcessingOCR(false);
+      setIsScanning(false);
+      Alert.alert('錯誤', '無法讀取圖片');
+    }
+  };
+
+  const handleScan = () => {
+    if (isScanning || isProcessingOCR) return;
+    
+    Alert.alert(
+      '📷 選擇掃描方式',
+      '請選擇如何掃描卡牌',
+      [
+        { 
+          text: '📸 拍照識別', 
+          onPress: () => captureAndRecognize()
+        },
+        { 
+          text: '🖼️ 從相冊選擇', 
+          onPress: () => pickFromGallery()
+        },
+        { 
+          text: '🔤 手動輸入', 
+          onPress: () => setShowSearch(true)
+        },
+        { text: '取消', style: 'cancel' },
+      ]
+    );
   };
   
   // 演示識別功能
@@ -245,6 +371,7 @@ export default function ScanScreen() {
     <View style={styles.container}>
       {/* 相机预览 */}
       <CameraView
+        ref={cameraRef}
         style={styles.camera}
         facing={facing}
         flash={flash ? 'on' : 'off'}

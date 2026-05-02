@@ -100,6 +100,7 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const priceName = card.yuyuPriceName || '';
   const displayPrice = actualPrice;
   const hasActualPrice = actualPrice != null && actualPrice > 0;
+  const priceInfo = !hasActualPrice ? priceEstimate[rarityKey] : null;
 
   return (
     <ScrollView style={styles.container}>
