@@ -26,12 +26,18 @@ function getEffectPreview(kw: string[] = []): string {
 }
 
 export default function SearchResultsScreen({ route, navigation }: any) {
-  const { query } = route.params;
+  const query = route?.params?.query || '';
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!query.trim()) {
+      setError('無搜尋關鍵字');
+      setLoading(false);
+      return;
+    }
+    
     const fetchData = async () => {
       setLoading(true);
       setError(null);
@@ -42,7 +48,8 @@ export default function SearchResultsScreen({ route, navigation }: any) {
           setError(body?.error || `HTTP ${res.status}`);
           return;
         }
-        setData(await res.json());
+        const json = await res.json();
+        setData(json);
       } catch (err) {
         setError(err instanceof Error ? err.message : '查詢失敗');
       } finally {

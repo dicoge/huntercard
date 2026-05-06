@@ -23,7 +23,11 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.dicoge.holohunter"
+      "package": "com.dicoge.holohunter",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -43,6 +47,12 @@
         }
       ],
       "expo-ocr-kit"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ca0d046f-cb70-4a42-b36c-2d7f7e01482d"
+      }
+    },
+    "owner": "dicoge"
   }
 }

@@ -89,3 +89,11 @@ export interface FavoriteCard {
   addedAt: string;
   notes?: string;
 }
+
+// Search filters
+export interface SearchFilters {
+  rarity?: string[];
+  type?: string[];
+  color?: string[];
+  series?: string[];
+}

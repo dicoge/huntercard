@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { COLORS } from '../constants';
 
 // Booster Packs (ブースターパック)
@@ -58,7 +58,8 @@ const COLOR_BUTTONS = [
 
 export default function HomeScreen({ navigation }: any) {
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+      <ScrollView style={styles.container}>
       {/* Hero Section */}
       <View style={styles.hero}>
         <Text style={styles.heroTitle}>hololive OFFICIAL CARD GAME</Text>
@@ -147,6 +148,7 @@ export default function HomeScreen({ navigation }: any) {
         </View>
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 

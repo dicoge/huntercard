@@ -5,7 +5,7 @@ import type { Card, SearchFilters } from '../types';
  * HoloHunter App Store
  * 統一狀態管理 - 取代散落在各組件的 useState
  */
-interface HoloStore {
+export interface HoloStore {
   // ===== 搜尋狀態 =====
   searchQuery: string;
   searchResults: Card[];
