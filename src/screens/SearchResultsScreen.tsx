@@ -112,15 +112,13 @@ function CardListItem({ card, onPress }: { card: CardResult; onPress: () => void
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.rarityStrip, { backgroundColor: rarityColors[card.rarity] || '#6b7280' }]} />
       {/* Card Image */}
-      {card.imageUrl && (
+      {card.imageUrl && !imgErr && (
         <View style={styles.cardImageContainer}>
-          {/* @ts-ignore - using HTML img tag for web */}
-          <img
-            key={card.imageUrl}
-            src={card.imageUrl}
-            alt={card.name}
-            style={{ width: 80, height: 112, objectFit: 'contain', borderRadius: 4 }}
-            onErrorCapture={() => setImgErr(true)}
+          <Image
+            source={{ uri: card.imageUrl }}
+            style={{ width: 80, height: 112, borderRadius: 4 }}
+            resizeMode="contain"
+            onError={() => setImgErr(true)}
           />
         </View>
       )}
