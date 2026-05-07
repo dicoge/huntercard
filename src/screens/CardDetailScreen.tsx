@@ -93,8 +93,8 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const tags = card.tags || [];
   const versions = card.versions || [];
 
-  // Use API-provided imageUrl when available, otherwise build from pattern
-  const imageUrl = card.imageUrl || buildImageUrl(id, versions, card.type || '');
+  // Use card.images[0] when available, otherwise use API-provided imageUrl, or build from pattern
+  const imageUrl = (card.images && card.images[0]) || card.imageUrl || buildImageUrl(id, versions, card.type || '');
   const officialUrl = `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`;
   const yuyuUrl = `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`;
 
@@ -116,7 +116,7 @@ export default function CardDetailScreen({ route, navigation }: any) {
             {/* @ts-ignore */}
             <Image
               source={{ uri: imageUrl }}
-              style={{ maxWidth: width * 0.7, maxHeight: width * 0.85 }}
+              style={{ width: width * 0.7, height: width * 0.85, borderRadius: 12, margin: 12 }}
               resizeMode="contain"
               onError={() => setImageError(true)}
             />
