@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Linking, Image, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Image } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants';
 import { openUrl } from '../utils/openUrl';
 
@@ -62,6 +63,7 @@ function buildImageUrl(cardNumber: string, versions: string[], cardType: string)
 export default function CardDetailScreen({ route, navigation }: any) {
   const { card } = route.params || {};
   const [imageError, setImageError] = useState(false);
+  const insets = useSafeAreaInsets();
 
   if (!card) {
     return (
@@ -104,7 +106,7 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const priceInfo = !hasActualPrice ? priceEstimate[rarityKey] : null;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background, paddingBottom: insets.bottom }}>
       <ScrollView style={styles.container}>
       {/* ====== CARD IMAGE ====== */}
       <View style={[styles.imageArea, { backgroundColor: rarityColors[rarityKey] + '0a' }]}>
@@ -121,7 +123,7 @@ export default function CardDetailScreen({ route, navigation }: any) {
           </View>
         ) : (
           /* Fallback when image fails */
-          <TouchableOpacity style={styles.fallbackArea} activeOpacity={0.8} onPress={() => window.open(officialUrl, '_blank')}>
+          <TouchableOpacity style={styles.fallbackArea} activeOpacity={0.8} onPress={() => openUrl(officialUrl)}>
             <Text style={styles.fallbackId}>{id}</Text>
             <Text style={styles.fallbackName}>{nameJP}</Text>
             {nameTW && <Text style={styles.fallbackTw}>{nameTW}</Text>}
@@ -151,7 +153,7 @@ export default function CardDetailScreen({ route, navigation }: any) {
         ) : (
           <Text style={styles.priceNote}>⚠️ 非即時價格，僅供參考</Text>
         )}
-        <TouchableOpacity style={styles.checkPriceBtn} onPress={() => window.open(yuyuUrl, '_blank')}>
+        <TouchableOpacity style={styles.checkPriceBtn} onPress={() => openUrl(yuyuUrl)}>
           <Text style={styles.checkPriceBtnText}>🔍 查看遊々亭即時價格 →</Text>
         </TouchableOpacity>
       </View>
@@ -247,7 +249,7 @@ function Tag({ text }: { text: string }) {
 
 function LinkButton({ icon, text, url }: { icon: string; text: string; url: string }) {
   return (
-    <TouchableOpacity style={styles.linkButton} onPress={() => window.open(url, '_blank')}>
+    <TouchableOpacity style={styles.linkButton} onPress={() => openUrl(url)}>
       <Text style={styles.linkText}>{icon} {text}</Text>
     </TouchableOpacity>
   );
