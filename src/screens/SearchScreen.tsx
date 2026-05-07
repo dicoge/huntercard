@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 import { COLORS } from '../constants';
 
 interface SearchScreenProps {
@@ -16,7 +16,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+      <ScrollView style={styles.container}>
       {/* 搜尋欄 */}
       <View style={styles.searchBar}>
         <TextInput
@@ -84,6 +85,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         </View>
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 

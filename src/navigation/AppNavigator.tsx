@@ -1,8 +1,8 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, View, StyleSheet } from 'react-native';
+import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList, DrawerContentComponentProps } from '@react-navigation/drawer';
+import { Text, View, StyleSheet, Image } from 'react-native';
 import { COLORS } from '../constants';
 
 // Screens
@@ -15,50 +15,39 @@ import CardDetailScreen from '../screens/CardDetailScreen';
 import SearchResultsScreen from '../screens/SearchResultsScreen';
 
 // Types
-import { RootStackParamList, MainTabParamList } from '../types';
+import { RootStackParamList, MainDrawerParamList } from '../types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-const Tab = createBottomTabNavigator<MainTabParamList>();
+const Drawer = createDrawerNavigator<MainDrawerParamList>();
 
-// Tab Icon component
-function TabIcon({ name, focused }: { name: string; focused: boolean }) {
-  const icons: Record<string, string> = {
-    Home: '🏠',
-    Scan: '📷',
-    Search: '🔍',
-    Favorites: '❤️',
-    Settings: '⚙️',
-  };
-  
+// Custom Drawer Content
+function CustomDrawerContent(props: DrawerContentComponentProps) {
   return (
-    <View style={styles.iconContainer}>
-      <Text style={[styles.icon, focused && styles.iconFocused]}>
-        {icons[name] || '📄'}
-      </Text>
-    </View>
+    <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerContent}>
+      <View style={styles.drawerHeader}>
+        <Text style={styles.appTitle}>HoloHunter</Text>
+        <Text style={styles.appSubtitle}>卡牌獵人</Text>
+      </View>
+      <DrawerItemList {...props} />
+    </DrawerContentScrollView>
   );
 }
 
-// Main Tab Navigator
-function MainTabs() {
+// Main Drawer Navigator
+function MainDrawer() {
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused }) => (
-          <TabIcon name={route.name} focused={focused} />
-        ),
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textSecondary,
-        tabBarStyle: {
+    <Drawer.Navigator
+      drawerContent={(props) => <CustomDrawerContent {...props} />}
+      screenOptions={{
+        drawerActiveTintColor: COLORS.primary,
+        drawerInactiveTintColor: COLORS.textSecondary,
+        drawerStyle: {
           backgroundColor: COLORS.surface,
-          borderTopColor: COLORS.border,
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
+          width: 280,
         },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          marginTop: -5,
+        drawerLabelStyle: {
+          marginLeft: -20,
+          fontSize: 16,
         },
         headerStyle: {
           backgroundColor: COLORS.surface,
@@ -67,34 +56,59 @@ function MainTabs() {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
-      })}
+      }}
     >
-      <Tab.Screen 
+      <Drawer.Screen 
         name="Home" 
         component={HomeScreen}
-        options={{ title: '首頁' }}
+        options={{ 
+          title: '首頁',
+          drawerIcon: ({ focused }) => (
+            <Text style={[styles.drawerIcon, focused && styles.drawerIconFocused]}>🏠</Text>
+          ),
+        }}
       />
-      <Tab.Screen 
+      <Drawer.Screen 
         name="Scan" 
         component={ScanScreen}
-        options={{ title: '掃描卡牌' }}
+        options={{ 
+          title: '掃描卡牌',
+          drawerIcon: ({ focused }) => (
+            <Text style={[styles.drawerIcon, focused && styles.drawerIconFocused]}>📷</Text>
+          ),
+        }}
       />
-      <Tab.Screen 
+      <Drawer.Screen 
         name="Search" 
         component={SearchScreen}
-        options={{ title: '搜尋' }}
+        options={{ 
+          title: '搜尋',
+          drawerIcon: ({ focused }) => (
+            <Text style={[styles.drawerIcon, focused && styles.drawerIconFocused]}>🔍</Text>
+          ),
+        }}
       />
-      <Tab.Screen 
+      <Drawer.Screen 
         name="Favorites" 
         component={FavoritesScreen}
-        options={{ title: '收藏' }}
+        options={{ 
+          title: '收藏',
+          drawerIcon: ({ focused }) => (
+            <Text style={[styles.drawerIcon, focused && styles.drawerIconFocused]}>❤️</Text>
+          ),
+        }}
       />
-      <Tab.Screen 
+      <Drawer.Screen 
         name="Settings" 
         component={SettingsScreen}
-        options={{ title: '設定' }}
+        options={{ 
+          title: '設定',
+          drawerIcon: ({ focused }) => (
+            <Text style={[styles.drawerIcon, focused && styles.drawerIconFocused]}>⚙️</Text>
+          ),
+        }}
       />
-    </Tab.Navigator>
+    </Drawer.Navigator>
   );
 }
 
@@ -115,9 +129,9 @@ function StackNavigator() {
         },
       }}
     >
-      <Stack.Screen
-        name="MainTabs"
-        component={MainTabs}
+<Stack.Screen
+        name="MainDrawer"
+        component={MainDrawer}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -144,6 +158,32 @@ export default function AppNavigator() {
 }
 
 const styles = StyleSheet.create({
+  drawerContent: {
+    flex: 1,
+  },
+  drawerHeader: {
+    padding: 20,
+    marginBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  appTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+  },
+  appSubtitle: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginTop: 4,
+  },
+  drawerIcon: {
+    fontSize: 20,
+    opacity: 0.6,
+  },
+  drawerIconFocused: {
+    opacity: 1,
+  },
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',

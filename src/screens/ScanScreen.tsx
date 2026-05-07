@@ -12,6 +12,7 @@ import {
   ScrollView,
   TextInput,
   Modal,
+  SafeAreaView,
 } from 'react-native';
 import { CameraView, useCameraPermissions, CameraType } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';

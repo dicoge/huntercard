@@ -41,13 +41,13 @@ export interface ScanResult {
 
 // Navigation types
 export type RootStackParamList = {
-  MainTabs: undefined;
+  MainDrawer: undefined;
   CardDetail: { card: Card };
   Scanner: undefined;
   SearchResults: { query: string; results: SearchResult };
 };
 
-export type MainTabParamList = {
+export type MainDrawerParamList = {
   Home: undefined;
   Scan: undefined;
   Search: undefined;
