@@ -46,7 +46,7 @@ function MainDrawer() {
           width: 280,
         },
         drawerLabelStyle: {
-          marginLeft: 10,
+          marginLeft: 15,
           fontSize: 16,
         },
         headerStyle: {
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   },
   drawerIcon: {
     fontSize: 20,
-    marginRight: 10,
+    marginRight: 15,
     opacity: 0.6,
   },
   drawerIconFocused: {
