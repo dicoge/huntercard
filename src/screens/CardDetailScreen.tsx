@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Linking, Image, SafeAreaView } from 'react-native';
 import { COLORS } from '../constants';
+import { openUrl } from '../utils/openUrl';
 
 const { width } = Dimensions.get('window');
 
@@ -103,18 +104,18 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const priceInfo = !hasActualPrice ? priceEstimate[rarityKey] : null;
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+      <ScrollView style={styles.container}>
       {/* ====== CARD IMAGE ====== */}
       <View style={[styles.imageArea, { backgroundColor: rarityColors[rarityKey] + '0a' }]}>
         {!imageError ? (
           <View style={styles.imgContainer}>
             {/* HTML <img> tag — works directly, no CORS issues for display */}
             {/* @ts-ignore */}
-            <img
-              src={imageUrl}
-              alt={`${id} ${nameJP}`}
-              style={{ maxWidth: width * 0.7, maxHeight: width * 0.85, objectFit: 'contain', cursor: 'pointer' }}
-              onClick={() => window.open(officialUrl, '_blank')}
+            <Image
+              source={{ uri: imageUrl }}
+              style={{ maxWidth: width * 0.7, maxHeight: width * 0.85 }}
+              resizeMode="contain"
               onError={() => setImageError(true)}
             />
           </View>
@@ -221,6 +222,7 @@ export default function CardDetailScreen({ route, navigation }: any) {
 
       <View style={{ height: 20 }} />
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
