@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Card, SearchFilters } from '../types';
 
 /**
@@ -125,9 +127,6 @@ export const useHoloStore = create<HoloStore>((set, get) => ({
 }));
 
 // ===== 持久化 Middleware =====
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 // 帶持久化的 Store 版本
 export const useHoloStorePersisted = create<HoloStore>()(
   persist(

@@ -7,13 +7,13 @@ export interface Card {
   rarity?: string;
   cardNumber: string;
   imageUrl?: string;
-  price?: PriceInfo;
+  price?: TCGPriceInfo;
   description?: string;
   artist?: string;
   category: CardCategory;
 }
 
-export interface PriceInfo {
+export interface TCGPriceInfo {
   marketPrice?: number;
   sellPrice?: number;
   buyPrice?: number;
@@ -25,7 +25,7 @@ export interface PriceInfo {
 export type CardCategory = 'pokemon' | 'magic' | 'yugioh' | 'sports' | 'other';
 
 // Search types
-export interface SearchResult {
+export interface TCGSearchResult {
   cards: Card[];
   totalFound: number;
   query: string;
@@ -44,7 +44,7 @@ export type RootStackParamList = {
   MainDrawer: undefined;
   CardDetail: { card: Card };
   Scanner: undefined;
-  SearchResults: { query: string; results: SearchResult };
+  SearchResults: { query: string; results: TCGSearchResult };
 };
 
 export type MainDrawerParamList = {

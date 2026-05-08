@@ -101,7 +101,7 @@ export default function CardDetailScreen({ route, navigation }: any) {
   // Use actual yuyu-tei price if available, otherwise estimate
   const actualPrice = card.yuyuPrice;
   const priceName = card.yuyuPriceName || '';
-  const displayPrice = actualPrice;
+  const displayPrice = actualPrice ?? 0;
   const hasActualPrice = actualPrice != null && actualPrice > 0;
   const priceInfo = !hasActualPrice ? priceEstimate[rarityKey] : null;
 
