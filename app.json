@@ -46,7 +46,12 @@
           "cameraPermission": "允許 HoloHunter 存取相機以掃描卡牌"
         }
       ],
-      "expo-ocr-kit"
+      [
+        "expo-ocr-kit",
+        {
+          "cameraPermission": "允許 HoloHunter 存取相機以識別卡牌文字"
+        }
+      ]
     ],
     "extra": {
       "eas": {
