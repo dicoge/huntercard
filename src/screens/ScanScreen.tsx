@@ -28,6 +28,11 @@ export default function ScanScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
   const cameraRef = useRef<CameraView>(null);
   
+  // 相機狀態
+  const [isCameraReady, setIsCameraReady] = useState<boolean>(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [permissionJustGranted, setPermissionJustGranted] = useState<boolean>(false);
+  
   // 辨識結果狀態
   const [recognizedText, setRecognizedText] = useState<string>('');
   const [isProcessingOCR, setIsProcessingOCR] = useState<boolean>(false);
@@ -140,18 +145,20 @@ export default function ScanScreen() {
       
       // 使用 expo-ocr-kit 識別文字
       const ocrResult = await recognizeText(photo.uri);
-      
-      const recognizedText = ocrResult.text;
+
+      const recognizedText = typeof ocrResult?.text === 'string' ? ocrResult.text : '';
       setRecognizedText(recognizedText);
-      
+
       setIsProcessingOCR(false);
       setIsScanning(false);
-      
-      if (recognizedText && recognizedText.trim().length > 0) {
+
+      if (recognizedText.trim().length > 0) {
         // 使用識別的文字進行卡牌匹配
         const result = recognizeCard(recognizedText);
         
         if (result.success && result.card) {
+          setSearchResults([]);
+          setSearchError(null);
           setRecognizedCard(result.card);
           setSuggestions(result.suggestions || []);
         } else {
@@ -165,6 +172,8 @@ export default function ScanScreen() {
                 onPress: () => {
                   const result = recognizeCard(recognizedText);
                   if (result.success && result.card) {
+                    setSearchResults([]);
+                    setSearchError(null);
                     setRecognizedCard(result.card);
                     setSuggestions(result.suggestions || []);
                   } else {
@@ -221,15 +230,17 @@ export default function ScanScreen() {
         setIsScanning(true);
         
         const ocrResult = await recognizeText(result.assets[0].uri);
-        const recognizedText = ocrResult.text;
+        const recognizedText = typeof ocrResult?.text === 'string' ? ocrResult.text : '';
         setRecognizedText(recognizedText);
-        
+
         setIsProcessingOCR(false);
         setIsScanning(false);
-        
-        if (recognizedText && recognizedText.trim().length > 0) {
+
+        if (recognizedText.trim().length > 0) {
           const cardResult = recognizeCard(recognizedText);
           if (cardResult.success && cardResult.card) {
+            setSearchResults([]);
+            setSearchError(null);
             setRecognizedCard(cardResult.card);
             setSuggestions(cardResult.suggestions || []);
           } else {
@@ -238,14 +249,28 @@ export default function ScanScreen() {
             setSearchResults(searchResult);
           }
         } else {
-          Alert.alert('無法識別', '請確保圖片文字清晰');
+          Alert.alert(
+            '❌ 無法識別',
+            '請確保卡牌文字清晰可見，或使用手動輸入',
+            [
+              { text: '重試', onPress: () => pickFromGallery() },
+              { text: '手動輸入', onPress: () => setShowSearch(true) },
+            ]
+          );
         }
       }
     } catch (error) {
       console.error('Gallery OCR Error:', error);
       setIsProcessingOCR(false);
       setIsScanning(false);
-      Alert.alert('錯誤', '無法讀取圖片');
+      Alert.alert(
+        '⚠️ 識別失敗',
+        '無法讀取或識別圖片，請重試或使用手動輸入',
+        [
+          { text: '重試', onPress: () => pickFromGallery() },
+          { text: '手動輸入', onPress: () => setShowSearch(true) },
+        ]
+      );
     }
   };
 
@@ -272,6 +297,28 @@ export default function ScanScreen() {
       ]
     );
   };
+
+  // 當權限被授予時，設置標記並等待相機準備
+  useEffect(() => {
+    if (permission?.granted && !permissionJustGranted) {
+      setPermissionJustGranted(true);
+      setIsCameraReady(false);
+      setCameraError(null);
+    }
+  }, [permission?.granted]);
+
+  // 相機準備好的回調
+  const handleCameraReady = () => {
+    setIsCameraReady(true);
+    setCameraError(null);
+  };
+
+  // 相機載入錯誤的回調
+  const handleMountError = (error: { message?: string }) => {
+    const errorMessage = error?.message || '相機載入失敗，請重新開啟應用程式';
+    setCameraError(errorMessage);
+    setIsCameraReady(false);
+  };
   
   // 演示識別功能
   const demoRecognition = () => {
@@ -280,6 +327,8 @@ export default function ScanScreen() {
     
     const result = recognizeCard(randomName);
     if (result.success && result.card) {
+      setSearchResults([]);
+      setSearchError(null);
       setRecognizedCard(result.card);
       setSuggestions(result.suggestions || []);
     } else {
@@ -296,6 +345,8 @@ export default function ScanScreen() {
     
     const result = recognizeCard(searchQuery);
     if (result.success && result.card) {
+      setSearchResults([]);
+      setSearchError(null);
       setRecognizedCard(result.card);
       setSuggestions(result.suggestions || []);
       setShowSearch(false);
@@ -368,6 +419,31 @@ export default function ScanScreen() {
     );
   }
 
+  // 權限已授予但相機尚未準備好
+  if (!isCameraReady) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>相機初始化中...</Text>
+          {cameraError && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>❌ {cameraError}</Text>
+              <TouchableOpacity 
+                style={styles.retryButton}
+                onPress={() => {
+                  setCameraError(null);
+                  setIsCameraReady(false);
+                }}
+              >
+                <Text style={styles.retryText}>重試</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* 相机预览 */}
@@ -376,6 +452,8 @@ export default function ScanScreen() {
         style={styles.camera}
         facing={facing}
         flash={flash ? 'on' : 'off'}
+        onCameraReady={handleCameraReady}
+        onMountError={handleMountError}
       >
         {/* 遮罩层 */}
         <View style={styles.overlay}>
