@@ -14,7 +14,7 @@ import {
   Modal,
   SafeAreaView,
 } from 'react-native';
-import { CameraView, useCameraPermissions, CameraType } from 'expo-camera';
+import { CameraView, useCameraPermissions, CameraType, requestCameraPermissionsAsync } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { recognizeText } from 'expo-ocr-kit';
 import { COLORS } from '../constants';
@@ -54,6 +54,21 @@ export default function ScanScreen() {
   const scanLineAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const borderAnim = useRef(new Animated.Value(0)).current;
+
+  // 显式请求相机权限 - 修复 Android 权限问题
+  useEffect(() => {
+    const requestPermissionExplicitly = async () => {
+      if (!permission?.granted) {
+        try {
+          const { status } = await requestCameraPermissionsAsync();
+          console.log('Camera permission status:', status);
+        } catch (error) {
+          console.error('Error requesting camera permission:', error);
+        }
+      }
+    };
+    requestPermissionExplicitly();
+  }, []);
 
   // 扫描线动画
   useEffect(() => {
