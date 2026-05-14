@@ -54,6 +54,17 @@ async function scrapeYuyuPrices() {
   });
 
   const page = await browser.newPage();
+
+  // Forward browser console.log to Node.js stdout (CI-friendly)
+  page.on('console', msg => {
+    const text = msg.text();
+    // Tag browser-side logs so we can distinguish them
+    console.log(`[browser] ${text}`);
+  });
+  page.on('pageerror', err => {
+    console.error(`[browser-error] ${err.message}`);
+  });
+
   await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
   const allPrices = {};
@@ -70,6 +81,36 @@ async function scrapeYuyuPrices() {
       try {
         await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
         await sleep(1500);
+
+        // [Diagnostic] Check HTML structure — helps debug 0-card issues in CI
+        const htmlDiag = await page.evaluate(() => {
+          return {
+            title: document.title || '',
+            bodyLen: document.body?.innerHTML?.length || 0,
+            bodyTextLen: document.body?.innerText?.length || 0,
+            cardProductCount: document.querySelectorAll('.card-product').length,
+            otherSelectors: {
+              itemList: document.querySelectorAll('.item-list').length,
+              productList: document.querySelectorAll('.product-list').length,
+              cardItem: document.querySelectorAll('.card-item').length,
+              product: document.querySelectorAll('.product').length,
+            },
+          };
+        });
+        console.log(`  [diag] Page title: "${htmlDiag.title}"`);
+        console.log(`  [diag] Body HTML length: ${htmlDiag.bodyLen}, text length: ${htmlDiag.bodyTextLen}`);
+        console.log(`  [diag] .card-product element count on page: ${htmlDiag.cardProductCount}`);
+        console.log(`  [diag] Other selector counts: ${JSON.stringify(htmlDiag.otherSelectors)}`);
+        if (htmlDiag.cardProductCount === 0) {
+          const bodyPreview = await page.evaluate(() => {
+            const txt = document.body?.innerText || '';
+            return txt.substring(0, 500);
+          });
+          console.log(`  [diag-warn] ZERO .card-product — body text preview (500 chars):`);
+          console.log(`  [diag-warn] ${bodyPreview.replace(/\n/g, '\\n')}`);
+        }
+
+        console.log(`  [diag] Entering page.evaluate for ${seriesInfo.name}...`);
 
         // Extract prices using the correct selectors
         const seriesPrices = await page.evaluate(() => {
