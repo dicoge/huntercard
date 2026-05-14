@@ -1,0 +1,63 @@
+{
+  "expo": {
+    "name": "HoloHunter",
+    "slug": "holohunter",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.dicoge.holohunter"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.dicoge.holohunter",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png",
+      "pwa": {
+        "shortName": "HoloHunter",
+        "themeColor": "#ffffff",
+        "backgroundColor": "#ffffff",
+        "description": "hololive TCG 卡牌查價 App"
+      }
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "允許 HoloHunter 存取相機以掃描卡牌"
+        }
+      ],
+      [
+        "expo-ocr-kit",
+        {
+          "cameraPermission": "允許 HoloHunter 存取相機以識別卡牌文字"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ca0d046f-cb70-4a42-b36c-2d7f7e01482d"
+      }
+    },
+    "owner": "dicoge"
+  }
+}

@@ -14,7 +14,7 @@ import {
   Modal,
   SafeAreaView,
 } from 'react-native';
-import { CameraView, useCameraPermissions, CameraType, requestCameraPermissionsAsync } from 'expo-camera';
+import { CameraView, useCameraPermissions, CameraType } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { recognizeText } from 'expo-ocr-kit';
 import { COLORS } from '../constants';
@@ -60,7 +60,7 @@ export default function ScanScreen() {
     const requestPermissionExplicitly = async () => {
       if (!permission?.granted) {
         try {
-          const { status } = await requestCameraPermissionsAsync();
+          const { status } = await requestPermission();
           console.log('Camera permission status:', status);
         } catch (error) {
           console.error('Error requesting camera permission:', error);
@@ -441,16 +441,16 @@ export default function ScanScreen() {
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>相機初始化中...</Text>
           {cameraError && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>❌ {cameraError}</Text>
+            <View style={resultStyles.errorContainer}>
+              <Text style={resultStyles.errorText}>❌ {cameraError}</Text>
               <TouchableOpacity 
-                style={styles.retryButton}
+                style={resultStyles.retryButton}
                 onPress={() => {
                   setCameraError(null);
                   setIsCameraReady(false);
                 }}
               >
-                <Text style={styles.retryText}>重試</Text>
+                <Text style={resultStyles.retryText}>重試</Text>
               </TouchableOpacity>
             </View>
           )}
