@@ -100,7 +100,7 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const yuyuUrl = `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`;
 
   // Use actual yuyu-tei price if available, otherwise estimate
-  const priceData = (yuyuPrices as any).prices?.[id];
+  const priceData = (yuyuPrices as any).prices?.[id.toLowerCase()];
   const actualPrice = priceData?.sellPrice ?? card.yuyuPrice;
   const priceName = priceData?.name || card.yuyuPriceName || '';
   const displayPrice = actualPrice ?? 0;
