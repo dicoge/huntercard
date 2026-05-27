@@ -1,8 +1,8 @@
 /**
  * build-database.js — 統合爬蟲 + 圖片下載 + 資料庫產出
- * 
+ *
  * 流程：
- * 1. 用 Puppeteer 爬 yuyu-tei 價格 + 圖片 URL
+ * 1. 用 Puppeteer 爬 yuyu-tei 價格 + 圖片 URL（含反偵測頭部）
  * 2. 下載新卡片圖片到 data/images/
  * 3. 讀取 data/official/*.json 合併基本資料
  * 4. 產出 data/database.json
@@ -26,6 +26,12 @@ const IMAGES_DIR = path.join(DATA_DIR, 'images');
 const OFFICIAL_DIR = path.join(DATA_DIR, 'official');
 const OUTPUT_PATH = path.join(DATA_DIR, 'database.json');
 const YUYU_IMAGE_BASE = 'https://card.yuyu-tei.jp/hocg/100_140';
+
+// Extra HTTP headers to mimic a real browser
+const EXTRA_HEADERS = {
+  'Accept-Language': 'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+};
 
 // Series URLs - same as scrape-yuyu-prices.js
 const SERIES_PAGES = [
@@ -87,96 +93,153 @@ async function downloadImage(url, destPath) {
 }
 
 /**
- * 從 yuyu-tei 爬價格和圖片
+ * 用 Puppeteer 開啟頁面、等待卡片元素載入、用 page.evaluate 抽取資料
+ * 含反偵測：額外 header、navigator.webdriver 覆蓋、隨機 viewport
  */
-async function scrapeYuyuPrices(page) {
-  console.log('[database] Starting yuyu-tei scrape...');
+async function scrapeSeriesPage(browser, url) {
+  const page = await browser.newPage();
+
+  // 1. Set extra HTTP headers
+  await page.setExtraHTTPHeaders(EXTRA_HEADERS);
+
+  // 2. Override navigator.webdriver to avoid detection
+  await page.evaluateOnNewDocument(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => false });
+  });
+
+  // 3. Random viewport size (1280-1366 width, 768-900 height)
+  const width = Math.floor(Math.random() * (1366 - 1280 + 1)) + 1280;
+  const height = Math.floor(Math.random() * (900 - 768 + 1)) + 768;
+  await page.setViewport({ width, height });
+
+  try {
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+
+    // Wait for card-product elements to appear
+    await page.waitForSelector('.card-product', { timeout: 15000 });
+
+    // Extract card data directly from the DOM using page.evaluate
+    const cards = await page.evaluate(() => {
+      const results = [];
+      const products = document.querySelectorAll('.card-product');
+      products.forEach(el => {
+        const text = el.textContent.trim();
+
+        // Extract card number
+        const numMatch = text.match(/(h[A-Z]{1,3}\d+-\d{2,3})/i);
+        if (!numMatch) return;
+        const cardNum = numMatch[1];
+
+        // Extract price
+        const priceMatch = text.match(/([\d,]+)\s*円/);
+        if (!priceMatch) return;
+        const price = parseInt(priceMatch[1].replace(/,/g, ''));
+        if (isNaN(price) || price <= 0) return;
+
+        // Extract card name
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+        let name = '';
+        const numIdx = lines.findIndex(l => l.match(/h[A-Z]{1,3}\d+-\d{2,3}/i));
+        if (numIdx >= 0 && numIdx + 1 < lines.length) {
+          for (let i = numIdx + 1; i < lines.length; i++) {
+            if (!lines[i].match(/[\d,]+\s*円/) && !lines[i].includes('在庫') && !lines[i].includes('カート')) {
+              name = lines[i];
+              break;
+            }
+          }
+        }
+
+        // Extract image URL
+        let imageUrl = '';
+        const imgs = el.querySelectorAll('img');
+        imgs.forEach(img => {
+          const src = img.getAttribute('src') || '';
+          if (src.includes('card.yuyu-tei.jp')) {
+            imageUrl = src;
+          }
+        });
+
+        // Extract version/cid for backup URL
+        const versionInput = el.querySelector('.cart_ver');
+        const cidInput = el.querySelector('.cart_cid');
+        const version = versionInput ? versionInput.value : '';
+        const cardId = cidInput ? cidInput.value : '';
+
+        results.push({
+          cardNum,
+          sellPrice: price,
+          name,
+          yuyuImage: imageUrl || (version && cardId ? `https://card.yuyu-tei.jp/hocg/100_140/${version}/${cardId}.jpg` : ''),
+          imageVersion: version,
+          imageCid: cardId,
+        });
+      });
+      return results;
+    });
+
+    return cards;
+  } finally {
+    await page.close();
+  }
+}
+
+/**
+ * 從 yuyu-tei 爬價格和圖片
+ * 使用 Puppeteer 搭配反偵測措施避免 403
+ */
+async function scrapeYuyuPrices() {
+  console.log('[database] Starting yuyu-tei scrape (Puppeteer)...');
+
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-blink-features=AutomationControlled',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+    ],
+  });
 
   const allPrices = {};
   let totalCards = 0;
   let seriesWithPrices = 0;
 
-  await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+  try {
+    for (const seriesInfo of SERIES_PAGES) {
+      console.log(`[database] Scraping ${seriesInfo.name}: ${seriesInfo.url}`);
 
-  for (const seriesInfo of SERIES_PAGES) {
-    console.log(`[database] Scraping ${seriesInfo.name}: ${seriesInfo.url}`);
+      const url = BASE_URL + seriesInfo.url;
 
-    const url = BASE_URL + seriesInfo.url;
+      try {
+        // Random delay between series requests (3-5s)
+        await sleep(3000 + Math.random() * 2000);
 
-    try {
-      await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
-      await sleep(1500);
+        const cards = await scrapeSeriesPage(browser, url);
 
-      const seriesPrices = await page.evaluate(() => {
-        const results = {};
-        const productCards = document.querySelectorAll('.card-product');
-
-        productCards.forEach(card => {
-          const text = card.textContent?.trim() || '';
-
-          // Extract card number
-          const numMatch = text.match(/(h[A-Z]{1,3}\d+-\d{2,3})/i);
-          if (!numMatch) return;
-          const cardNum = numMatch[1];
-
-          // Extract price
-          const priceMatch = text.match(/([\d,]+)\s*円/);
-          if (!priceMatch) return;
-          const price = parseInt(priceMatch[1].replace(/,/g, ''));
-          if (isNaN(price) || price <= 0) return;
-
-          // Extract card name
-          const lines = text.split('\n').map(l => l.trim()).filter(l => l);
-          let name = '';
-          const numIdx = lines.findIndex(l => l.match(/h[A-Z]{1,3}\d+-\d{2,3}/i));
-          if (numIdx >= 0 && numIdx + 1 < lines.length) {
-            for (let i = numIdx + 1; i < lines.length; i++) {
-              if (!lines[i].match(/[\d,]+\s*円/) && !lines[i].includes('在庫') && !lines[i].includes('カート')) {
-                name = lines[i];
-                break;
-              }
-            }
-          }
-
-          // Extract image URL - the second img is the card image
-          const imgs = card.querySelectorAll('img');
-          let imageUrl = '';
-          for (const img of imgs) {
-            if (img.src && img.src.includes('card.yuyu-tei.jp')) {
-              imageUrl = img.src;
-              break;
-            }
-          }
-
-          // Also get version/cid for backup URL
-          const ver = card.querySelector('.cart_ver');
-          const cid = card.querySelector('.cart_cid');
-          const version = ver ? ver.value : '';
-          const cardId = cid ? cid.value : '';
-
-          results[cardNum] = {
-            sellPrice: price,
-            name: name,
-            yuyuImage: imageUrl || (version && cardId ? `https://card.yuyu-tei.jp/hocg/100_140/${version}/${cardId}.jpg` : ''),
-            imageVersion: version,
-            imageCid: cardId,
+        const seriesPrices = {};
+        for (const card of cards) {
+          seriesPrices[card.cardNum] = {
+            sellPrice: card.sellPrice,
+            name: card.name,
+            yuyuImage: card.yuyuImage,
+            imageVersion: card.imageVersion,
+            imageCid: card.imageCid,
             timestamp: new Date().toISOString(),
           };
-        });
+        }
 
-        return results;
-      });
+        const count = Object.keys(seriesPrices).length;
+        console.log(`  → Found ${count} cards with prices`);
+        if (count > 0) seriesWithPrices++;
+        totalCards += count;
+        Object.assign(allPrices, seriesPrices);
 
-      const count = Object.keys(seriesPrices).length;
-      console.log(`  → Found ${count} cards with prices`);
-      if (count > 0) seriesWithPrices++;
-      totalCards += count;
-      Object.assign(allPrices, seriesPrices);
-
-      await sleep(2000 + Math.random() * 1000);
-    } catch (err) {
-      console.error(`  → Error: ${err.message}`);
+      } catch (err) {
+        console.error(`  → Error: ${err.message}`);
+      }
     }
+  } finally {
+    await browser.close();
   }
 
   return { prices: allPrices, totalCards, seriesWithPrices };
@@ -287,22 +350,9 @@ async function buildDatabase() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(IMAGES_DIR)) fs.mkdirSync(IMAGES_DIR, { recursive: true });
 
-  // Step 1: Scrape yuyu-tei
+  // Step 1: Scrape yuyu-tei with Puppeteer + anti-detection
   console.log('── Step 1: Scrape yuyu-tei ──');
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
-  const page = await browser.newPage();
-  page.on('console', msg => console.log(`  [browser] ${msg.text()}`));
-  page.on('pageerror', err => console.error(`  [browser-error] ${err.message}`));
-
-  let yuyuResult;
-  try {
-    yuyuResult = await scrapeYuyuPrices(page);
-  } finally {
-    await browser.close();
-  }
+  const yuyuResult = await scrapeYuyuPrices();
 
   const { prices, totalCards, seriesWithPrices } = yuyuResult;
   console.log(`\n  Total cards from yuyu-tei: ${totalCards}`);
