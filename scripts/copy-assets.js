@@ -2,9 +2,14 @@
  * copy-assets.js — Build 時複製 database.json 和圖片到 dist/
  *
  * 在 Vercel build 流程中執行，確保靜態資源可以被 App 存取
+ * 注意：此專案使用 "type": "module"，必須用 import 語法
  */
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const PROJECT_DIR = path.resolve(__dirname, '..');
 const DIST_DIR = path.join(PROJECT_DIR, 'dist');
