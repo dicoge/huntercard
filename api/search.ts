@@ -1,25 +1,10 @@
-// Note: holotcgtw data is incomplete and images are 404, using official data only
-const CARD_FILES: string[] = [];
-const BASE = '';
+// hunterCard Search API
+// 從統一的 database.json 提供卡片查詢服務
+// 不再依賴外部來源（GitHub raw / 官方網站）
 
-// Official card data files (scraped from official site)
-// Using individual series files for complete data (all-cards.json is simplified)
-const OFFICIAL_FILES = [
-  'hBP01.json', 'hBP02.json', 'hBP03.json', 'hBP04.json', 'hBP05.json', 'hBP06.json', 'hBP07.json',
-  'hSD01.json', 'hSD02.json', 'hSD03.json', 'hSD04.json', 'hSD05.json', 'hSD06.json', 'hSD07.json',
-  'hSD08.json', 'hSD09.json', 'hSD10.json', 'hSD11.json', 'hSD12.json', 'hSD13.json',
-  'hSD14.json', 'hSD15.json', 'hSD16.json', 'hSD17.json', 'hSD18.json', 'hSD19.json',
-  'hSD2025summer.json', 'ent07.json', 'hCS01.json', 'hPC01.json', 'hYS01.json',
-];
-const OFFICIAL_BASE = 'https://raw.githubusercontent.com/dicoge/hunterCard/main/data/official';
+import fs from 'fs';
+import path from 'path';
 
-// Yuyu-tei price data (scraped daily at 5 AM)
-const YUYU_PRICES_URL = 'https://raw.githubusercontent.com/dicoge/hunterCard/main/data/yuyu-prices/yuyu-prices.json';
-const GRADE_RARITY: Record<string, string> = { debut: 'C', '1st': 'U', '2nd': 'R', buzz: 'SR', spot: 'N' };
-const COLOR_MAP: Record<string, string> = {
-  white: '白色', blue: '藍色', green: '綠色', red: '紅色',
-  purple: '紫色', yellow: '黃色', colorless: '無色',
-};
 const SERIES_NAMES: Record<string, string> = {
   hBP01: 'ブルーミングレディアンス', hBP02: 'クインテットスペクトラム',
   hBP03: 'サバイバル・オブ・ザ・フェイビアス',
@@ -31,59 +16,55 @@ const SERIES_NAMES: Record<string, string> = {
   hSD07: 'スターターデッキ 癒月ちょこ',
   hPR: 'Promo', hBD24: 'Bandai Distribution 2024', hY: 'Yokohama Promo',
 };
+const COLOR_MAP: Record<string, string> = {
+  white: '白色', blue: '藍色', green: '綠色', red: '紅色',
+  purple: '紫色', yellow: '黃色', colorless: '無色',
+};
+const GRADE_RARITY: Record<string, string> = { debut: 'C', '1st': 'U', '2nd': 'R', buzz: 'SR', spot: 'N' };
 
-export const config = { runtime: 'edge' };
+// Read database.json at module load time
+// Use path relative to project root
+let database: any = { cards: {}, totalCards: 0, lastUpdated: '' };
+try {
+  const dbPath = path.resolve(process.cwd(), 'data/database.json');
+  if (fs.existsSync(dbPath)) {
+    const raw = fs.readFileSync(dbPath, 'utf-8');
+    database = JSON.parse(raw);
+    console.log(`[search-api] Loaded database: ${database.totalCards} cards, updated ${database.lastUpdated}`);
+  } else {
+    console.warn(`[search-api] database.json not found at ${dbPath}`);
+  }
+} catch (e: any) {
+  console.error('[search-api] Failed to load database:', e.message);
+}
+
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req: Request) {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET' } });
+    return new Response(null, {
+      status: 204,
+      headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET' },
+    });
   }
+
   try {
     const url = new URL(req.url);
     const q = url.searchParams.get('q');
-    if (!q) return Response.json({ error: 'Missing q param' }, { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } });
+    if (!q) {
+      return Response.json({ error: 'Missing q param' }, {
+        status: 400,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+      });
+    }
 
     const searchQ = q.toLowerCase().trim();
-    const allCards: any[] = [];
+    const cards = database.cards || {};
 
-    // Fetch yuyu-tei prices (cached, non-blocking)
-    let yuyuPrices: Record<string, any> = {};
-    try {
-      const priceRes = await fetch(YUYU_PRICES_URL + '?t=' + Date.now());
-      if (priceRes.ok) {
-        const priceData = await priceRes.json();
-        yuyuPrices = priceData.prices || {};
-      }
-    } catch (e) {
-      // Prices unavailable, continue without
-    }
-
-    // Fetch from holotcgtw (primary source)
-    for (const file of CARD_FILES) {
-      try {
-        const res = await fetch(BASE + '/' + file);
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data)) allCards.push(...data);
-        }
-      } catch (_) { /* skip */ }
-    }
-
-    // Fetch official data for newer series (fallback source)
-    for (const file of OFFICIAL_FILES) {
-      try {
-        const res = await fetch(OFFICIAL_BASE + '/' + file);
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data)) allCards.push(...data);
-        }
-      } catch (_) { /* skip */ }
-    }
-
-    // Color mapping (English to Chinese) for color search
+    // Color search mapping
     const COLOR_TO_CN: Record<string, string[]> = {
       'white': ['白色'],
-      'blue': ['藍色', '青色'],  // 青色 = blue in some contexts
+      'blue': ['藍色', '青色'],
       'green': ['綠色'],
       'red': ['紅色'],
       'purple': ['紫色'],
@@ -91,143 +72,93 @@ export default async function handler(req: Request) {
       'colorless': ['無色'],
     };
 
-    const matched = allCards.filter((c: any) => {
-      // Support both holotcgtw and official formats
-      const internalId = safe(c.id).toLowerCase();
-      const cardNum = safe(c.cardNumber).toLowerCase();
-      const name = safe(c.name).toLowerCase();
-      const sk = (c.searchKeywords || []).map((k: any) => safe(k).toLowerCase()).join(' ');
-      const series = (c.series || [c.expansion]).map((s: any) => safe(s).toLowerCase()).join(' ');
-      const tags = (c.tags || []).map((t: any) => safe(t).toLowerCase()).join(' ');
-      // Check color for color search (both English and Chinese)
-      const rawColor = Array.isArray(c.color) ? c.color.join(' ') : safe(c.color);
-      const colorCnList = COLOR_TO_CN[rawColor.toLowerCase()] || [];
-      const colorSearch = (rawColor + ' ' + colorCnList.join(' ')).toLowerCase();
-      return internalId.includes(searchQ) || cardNum.includes(searchQ) || name.includes(searchQ) || sk.includes(searchQ) || series.includes(searchQ) || tags.includes(searchQ) || colorSearch.includes(searchQ);
+    const matched = Object.values(cards).filter((c: any) => {
+      const id = (c.id || '').toLowerCase();
+      const name = (c.name || '').toLowerCase();
+      const series = (c.series || '').toLowerCase();
+      const type = (c.type || '').toLowerCase();
+      const rarity = (c.rarity || '').toLowerCase();
+      const color = (c.color || '').toLowerCase();
+      const colorCnList = COLOR_TO_CN[color] || [];
+      const colorSearch = (color + ' ' + colorCnList.join(' ')).toLowerCase();
+
+      return id.includes(searchQ) ||
+             name.includes(searchQ) ||
+             series.includes(searchQ) ||
+             type.includes(searchQ) ||
+             rarity.includes(searchQ) ||
+             colorSearch.includes(searchQ);
     });
 
-    const seen = new Set<string>();
-    const unique = matched.filter((c: any) => {
-      const id = safe(c.cardNumber || c.id);
-      if (seen.has(id)) return false;
-      seen.add(id);
-      return true;
-    });
+    const results = matched.map((c: any) => {
+      const id = c.id || '';
+      const name = c.name || '';
+      const rawColor = (c.color || '').toLowerCase();
+      const colors = rawColor ? [rawColor] : [];
+      const colorNames = colors.map((x: string) => COLOR_MAP[x] || x);
+      const series = c.series ? [c.series] : [];
+      const seriesNames = series.map((s: any) => SERIES_NAMES[s] || s);
 
-    const results = await Promise.all(unique.map(async (c: any) => {
-      // Support both holotcgtw and official formats
-      // Prefer cardNumber for display, fallback to id
-      const id = safe(c.cardNumber || c.id);
-      const name = safe(c.name);
-      
-      // Check if this is official data (has expansion field but no series)
-      const isOfficial = c.expansion && !c.series;
-      
-      // For official data, extract image folder from imageUrl or use expansion
-      const imgFolder = isOfficial 
-        ? (c.imageUrl ? c.imageUrl.match(/\/cardlist\/([^\/]+)\//)?.[1] + '/' : `${c.expansion}/`)
-        : safe(c.imageFolder);
-      
-      // Determine image version suffix
-      let ver = '_C.png';
-      if (c.versions && c.versions.length > 0) {
-        ver = c.versions[0];
-      } else if (isOfficial && c.rarity) {
-        // Map official rarity codes to image suffixes
-        const rc = c.rarity.toUpperCase();
-        if (rc.includes('OSR') || rc.includes('OUR')) ver = '_OSR.png';
-        else if (rc === 'UR') ver = '_UR.png';
-        else if (rc === 'SR') ver = '_SR.png';
-        else if (rc === 'RR') ver = '_RR.png';
-        else if (rc === 'R') ver = '_R.png';
-        else if (rc === 'U') ver = '_U.png';
-        else if (rc === 'C') ver = '_C.png';
-        else if (rc === 'N') ver = '_N.png';
-      }
-      const rawColors = Array.isArray(c.color) ? c.color : [c.color];
-      const colors = rawColors.filter(Boolean).map(String);
-
-      // Effects: index 3+ from searchKeywords
-      const effects = (c.searchKeywords || []).filter((kw: string, i: number) => {
-        if (i < 3) return false;
-        const gameTerms = ['給予', '抽', '傷害', '牌組', '手札', '成員', '中央', '藝能', 'HP', '生命', '階段', '回合', '特殊', '公開', '聯動', '擊倒', '剩餘', '持有', '超過', '以下', '以上', '最多', '技能', '備', '附於', '丟擲', '子', '奇數', '偶數', '回復', '存檔', '聲援', '舞台'];
-        return gameTerms.some(term => kw.includes(term)) && kw.trim().length > 5;
-      });
-
-      // Image URL - always use official URL (holotcgtw images are 404)
-      const imageUrl = `https://hololive-official-cardgame.com/wp-content/images/cardlist/${imgFolder}${id}${ver}`;
-
-      // Series handling
-      const series = isOfficial ? [c.expansion] : (c.series || []);
-      
       // Grade/rarity mapping
-      let grade = safe(c.grade);
-      let rarity = GRADE_RARITY[grade] || (grade && ['debut','1st','2nd','buzz'].includes(grade) ? 'C' : 'N');
-      
-      // Official data uses rarity codes like OSR, UR, SR, RR, R, U, C, N
-      if (isOfficial && c.rarity) {
-        const rarityCode = c.rarity.toUpperCase();
-        if (rarityCode.includes('OSR') || rarityCode.includes('OUR')) { grade = 'buzz'; rarity = 'SR'; }
-        else if (rarityCode === 'UR') { grade = '2nd'; rarity = 'R'; }
-        else if (rarityCode === 'SR') { grade = '1st'; rarity = 'U'; }
-        else if (rarityCode === 'RR') { grade = 'debut'; rarity = 'C'; }
-        else if (rarityCode === 'R') { grade = 'debut'; rarity = 'C'; }
-        else if (rarityCode === 'U') { grade = 'debut'; rarity = 'C'; }
-        else if (rarityCode === 'C') { grade = 'debut'; rarity = 'C'; }
-        else if (rarityCode === 'N') { grade = 'spot'; rarity = 'N'; }
-        else if (rarityCode === 'SY') { grade = 'spot'; rarity = 'N'; }
-      }
+      let grade = '';
+      let rarity = GRADE_RARITY[grade] || 'C';
+      const rarityCode = (c.rarity || '').toUpperCase();
+      if (rarityCode.includes('OSR') || rarityCode.includes('OUR')) { grade = 'buzz'; rarity = 'SR'; }
+      else if (rarityCode === 'UR') { grade = '2nd'; rarity = 'R'; }
+      else if (rarityCode === 'SR') { grade = '1st'; rarity = 'U'; }
+      else if (rarityCode === 'RR') { grade = 'debut'; rarity = 'C'; }
+      else if (rarityCode === 'R') { grade = 'debut'; rarity = 'C'; }
+      else if (rarityCode === 'U') { grade = 'debut'; rarity = 'C'; }
+      else if (rarityCode === 'C') { grade = 'debut'; rarity = 'C'; }
+      else if (rarityCode === 'N') { grade = 'spot'; rarity = 'N'; }
 
-      // Type mapping - support both holotcgtw and official formats
-      let type = safe(c.type);
-      // Try cardType field from official data
-      if (c.cardType) {
-        if (c.cardType.includes('推し')) type = 'Oshi';
-        else if (c.cardType.includes('メンバー') || c.cardType.includes('ホロメン') || c.cardType.includes(' member')) type = 'Member';
-        else if (c.cardType.includes('サポート')) type = 'Support';
-        else if (c.cardType.includes('エナジー')) type = 'Energy';
-        else if (c.cardType.includes('バズ')) type = 'Buzz';
-        else if (c.cardType.includes('エール') || c.cardType.includes('Yell')) type = 'Yell';
-      }
-
-      // Check yuyu-tei price
-      const yuyuPrice = yuyuPrices[id];
+      // Image URL: prefer local, fallback to official
+      const imageUrl = c.localImage || c.officialImage || '';
 
       return {
-        id, name,
-        type,
+        id,
+        name,
+        cardNumber: id,
+        type: c.type || '',
         grade,
         rarity,
         colors,
-        colorNames: colors.map((x: string) => COLOR_MAP[x] || x),
+        colorNames,
         series,
-        seriesNames: series.map((s: any) => SERIES_NAMES[safe(s)] || safe(s)),
-        tags: (c.tags || []).map(String),
-        cardNumber: id,
-        imageFolder: imgFolder,
-        versions: (c.versions || []).map(String),
-        searchKeywords: (c.searchKeywords || []).map(String),
-        effectType: safe(c.effectType),
-        effects,
+        seriesNames,
         imageUrl,
-        yuyuPrice: yuyuPrice?.sellPrice || null,
-        yuyuPriceName: yuyuPrice?.name || '',
+        yuyuPrice: c.sellPrice || null,
+        yuyuPriceName: c.yuyuName || '',
+        yuyuImage: c.yuyuImage || '',
+        officialImage: c.officialImage || '',
+        localImage: c.localImage || '',
+        effects: c.effects || [],
+        hp: c.hp || '',
+        life: c.life || '',
+        arts: c.arts || '',
+        searchKeywords: [c.name || '', '', ''],
+        tags: [],
         yuyuUrl: `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`,
-        carousellUrl: `https://www.carousell.com.tw/search/?q=${encodeURIComponent(id)}`,
         officialUrl: `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`,
       };
-    }));
+    });
 
-    return Response.json({ query: q, total: results.length, results }, {
-      headers: { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=3600' },
+    return Response.json({
+      query: q,
+      total: results.length,
+      results,
+      dbUpdated: database.lastUpdated,
+      dbTotalCards: database.totalCards,
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'public, max-age=300',
+      },
     });
   } catch (e: any) {
     return Response.json({ error: e.message || 'Search failed' }, {
-      status: 500, headers: { 'Access-Control-Allow-Origin': '*' },
+      status: 500,
+      headers: { 'Access-Control-Allow-Origin': '*' },
     });
   }
-}
-
-function safe(v: any, fallback = '') {
-  return v != null ? String(v) : fallback;
 }

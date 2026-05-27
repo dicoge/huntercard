@@ -1,4 +1,4 @@
-name: Scrape Yuyu Prices
+name: Scrape & Build Database
 
 on:
   schedule:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
-  scrape-prices:
+  build-database:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -28,20 +28,29 @@ jobs:
 
       - name: Install Chrome for Puppeteer
         run: |
-          # Add Google Chrome repo and install Chrome
           wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
           echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
-      - name: Run yuyu-tei price scraper
+      - name: Run database builder
         working-directory: scripts
-        run: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true node scrape-yuyu-prices.js
+        run: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true node build-database.js
+
+      - name: Validate database
+        run: |
+          CARD_COUNT=$(python3 -c "import json; d=json.load(open('data/database.json')); print(d.get('totalCards',0))")
+          echo "Database has $CARD_COUNT cards"
+          if [ "$CARD_COUNT" -lt 50 ]; then
+            echo "❌ SAFETY CHECK FAILED: totalCards=$CARD_COUNT < 50"
+            exit 1
+          fi
+          echo "✅ Validation passed"
 
       - name: Check data changes
         id: check
         run: |
-          if git diff --stat -- 'data/yuyu-prices/*.json' | grep -q .; then
+          if git diff --stat -- 'data/database.json' 'data/images/' | grep -q .; then
             echo "changed=true" >> $GITHUB_OUTPUT
             echo "Data has changed"
           else
@@ -54,15 +63,10 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add data/yuyu-prices/
-          git diff --staged --quiet || git commit -m "chore: update yuyu-tei prices $(date +%Y-%m-%d)"
+          git add data/database.json data/images/
+          git diff --staged --quiet || git commit -m "chore: update database $(date +%Y-%m-%d)"
           git push origin main
 
-      - name: Deploy to Vercel
+      - name: Deploy to Vercel via Deploy Hook
         if: steps.check.outputs.changed == 'true'
-        uses: amondnet/vercel-action@v20
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+        run: curl -X POST ${{ secrets.VERCEL_DEPLOY_HOOK }}

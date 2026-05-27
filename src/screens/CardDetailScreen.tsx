@@ -3,7 +3,6 @@ import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Image
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants';
 import { openUrl } from '../utils/openUrl';
-import yuyuPrices from '../../data/yuyu-prices/yuyu-prices.json';
 
 const { width } = Dimensions.get('window');
 
@@ -99,10 +98,9 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const officialUrl = `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`;
   const yuyuUrl = `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`;
 
-  // Use actual yuyu-tei price if available, otherwise estimate
-  const priceData = (yuyuPrices.prices as Record<string, { sellPrice: number; name: string; timestamp: string }>)?.[id];
-  const actualPrice = priceData?.sellPrice ?? card.yuyuPrice;
-  const priceName = priceData?.name || card.yuyuPriceName || '';
+  // Use actual yuyu-tei price from API response
+  const actualPrice = card.yuyuPrice;
+  const priceName = card.yuyuPriceName || '';
   const displayPrice = actualPrice ?? 0;
   const hasActualPrice = actualPrice != null && actualPrice > 0;
   const priceInfo = !hasActualPrice ? priceEstimate[rarityKey] : null;
