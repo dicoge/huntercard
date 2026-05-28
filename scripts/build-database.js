@@ -115,8 +115,21 @@ async function scrapeSeriesPage(browser, url) {
   try {
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
-    // Wait for card-product elements to appear
-    await page.waitForSelector('.card-product', { timeout: 15000 });
+    // 4. Diagnostic: check page structure (helps debug CI failures)
+    const diag = await page.evaluate(() => ({
+      title: (document.title || '').slice(0, 80),
+      cardProduct: document.querySelectorAll('.card-product').length,
+    }));
+    if (diag.cardProduct === 0) {
+      console.log(`  [diag] Page title: "${diag.title}"`);
+      console.log(`  [diag] No .card-product found — will retry with short wait`);
+      // Give it one more chance with a short wait
+      try {
+        await page.waitForSelector('.card-product', { timeout: 5000 });
+      } catch {
+        console.log(`  [diag] Still no .card-product — proceeding with fallback`);
+      }
+    }
 
     // Extract card data directly from the DOM using page.evaluate
     const cards = await page.evaluate(() => {
