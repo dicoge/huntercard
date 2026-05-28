@@ -9,15 +9,11 @@
  * 5. 安全檢查：totalCards < 50 就拋錯
  */
 
-import puppeteer from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
 import https from 'https';
 import { fileURLToPath } from 'url';
-
-// Apply stealth plugin to avoid headless Chrome detection
-puppeteer.use(StealthPlugin());
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -227,7 +223,7 @@ async function scrapeYuyuPrices() {
   console.log('[database] Starting yuyu-tei scrape (Puppeteer)...');
 
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: 'new',
     args: [
       '--no-sandbox',
       '--disable-blink-features=AutomationControlled',
