@@ -28,7 +28,21 @@ jobs:
 
       - name: Run database builder
         working-directory: scripts
+        id: build
         run: node build-database.js
+        continue-on-error: true
+
+      - name: Show scrape log if failed
+        if: steps.build.outcome == 'failure'
+        run: |
+          echo "=== SCRAPE LOG ==="
+          if [ -f data/scrape-log.txt ]; then
+            cat data/scrape-log.txt
+          else
+            echo "(no scrape log found)"
+          fi
+          echo "=== END SCRAPE LOG ==="
+          exit 1  # Reject the step
 
       - name: Validate database
         run: |

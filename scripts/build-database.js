@@ -3,21 +3,44 @@
  *
  * 流程：
  * 1. 用 Puppeteer 爬 yuyu-tei 價格 + 圖片 URL（含反偵測頭部）
- * 2. 下載新卡片圖片到 data/images/
- * 3. 讀取 data/official/*.json 合併基本資料
- * 4. 產出 data/database.json
- * 5. 安全檢查：totalCards < 50 就拋錯
+ * 2. 若 Puppeteer 失敗，自動降級到 HTTP fetch（Node 內建，不需瀏覽器）
+ * 3. 下載新卡片圖片到 data/images/
+ * 4. 讀取 data/official/*.json 合併基本資料
+ * 5. 產出 data/database.json
+ * 6. 安全檢查：totalCards < 50 就拋錯
  */
 
-import puppeteer from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+// ─── Output Tee: 所有 console 輸出也寫入 data/scrape-log.txt ───
 import fs from 'fs';
 import path from 'path';
 import https from 'https';
 import { fileURLToPath } from 'url';
 
-// Register stealth plugin — evades Cloudflare headless detection in CI
-puppeteer.use(StealthPlugin());
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PROJECT_DIR = path.resolve(__dirname, '..');
+const DATA_DIR = path.join(PROJECT_DIR, 'data');
+const LOG_PATH = path.join(DATA_DIR, 'scrape-log.txt');
+
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+
+// Write initial log
+fs.writeFileSync(LOG_PATH, `=== Scrape Log ${new Date().toISOString()} ===\n`, 'utf-8');
+
+// Tee: capture console.log AND console.error to log file
+const origLog = console.log;
+const origError = console.error;
+console.log = function(...args) {
+  const msg = args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
+  fs.appendFileSync(LOG_PATH, msg + '\n', 'utf-8');
+  origLog.apply(console, args);
+};
+console.error = function(...args) {
+  const msg = args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
+  fs.appendFileSync(LOG_PATH, '[ERROR] ' + msg + '\n', 'utf-8');
+  origError.apply(console, args);
+};
+// ─── End Tee ───
 
 // Catch unhandled promise rejections for better diagnostics
 process.on('unhandledRejection', (reason) => {
@@ -25,13 +48,8 @@ process.on('unhandledRejection', (reason) => {
   process.exit(1);
 });
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const BASE_URL = 'https://yuyu-tei.jp';
 const SCRIPT_DIR = __dirname;
-const PROJECT_DIR = path.resolve(SCRIPT_DIR, '..');
-const DATA_DIR = path.join(PROJECT_DIR, 'data');
 const IMAGES_DIR = path.join(DATA_DIR, 'images');
 const OFFICIAL_DIR = path.join(DATA_DIR, 'official');
 const OUTPUT_PATH = path.join(DATA_DIR, 'database.json');
@@ -42,6 +60,9 @@ const EXTRA_HEADERS = {
   'Accept-Language': 'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
 };
+
+// User-Agent for fetch-based requests
+const UA_STRING = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
 // Series URLs - same as scrape-yuyu-prices.js
 const SERIES_PAGES = [
@@ -63,6 +84,98 @@ const SERIES_PAGES = [
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/** 從 HTML 字串中解出卡片資料（使用純文字分析，與 page.evaluate 相同邏輯） */
+function parseCardHtml(html) {
+  const results = [];
+
+  // Strip HTML tags to get text content
+  const text = html.replace(/<script[\s\S]*?<\/script>/gi, ' ')
+                   .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+                   .replace(/<[^>]+>/g, ' ')
+                   .replace(/&nbsp;/g, ' ')
+                   .replace(/&amp;/g, '&')
+                   .replace(/\s+/g, ' ')
+                   .trim();
+
+  // Find all card-product sections by looking for card number patterns
+  const cardNumRegex = /(h[A-Z]{1,3}\d+-\d{2,3})/gi;
+  let match;
+  while ((match = cardNumRegex.exec(text)) !== null) {
+    const cardNum = match[1];
+    const matchStart = match.index;
+    const contextStart = Math.max(0, matchStart - 100);
+    const contextEnd = Math.min(text.length, matchStart + 300);
+    const context = text.slice(contextStart, contextEnd);
+
+    // Find price within this card's context
+    const priceMatch = context.match(/([\d,]+)\s*円/);
+    if (!priceMatch) continue;
+    const price = parseInt(priceMatch[1].replace(/,/g, ''));
+    if (isNaN(price) || price <= 0) continue;
+
+    // Try to find card name between card number and price
+    let name = '';
+    const afterNum = text.slice(matchStart + cardNum.length, matchStart + 200);
+    // Name is usually the text line right after the card number
+    const lines = afterNum.split(/\s+/).filter(s => s.length > 0);
+    for (let i = 0; i < Math.min(lines.length, 10); i++) {
+      if (!lines[i].match(/[\d,]+\s*円/) && !lines[i].includes('在庫') && !lines[i].includes('カート') && !lines[i].match(/^\d+$/) && lines[i].length > 1) {
+        name = lines[i];
+        break;
+      }
+    }
+
+    // Find image URL near this card number
+    const imgMatch = html.slice(contextStart, contextEnd + 100).match(/<img[^>]*src="([^"]*card\.yuyu-tei\.jp[^"]*)"[^>]*>/i);
+    const imageUrl = imgMatch ? imgMatch[1] : '';
+
+    results.push({
+      cardNum,
+      sellPrice: price,
+      name,
+      yuyuImage: imageUrl,
+      imageVersion: '',
+      imageCid: '',
+    });
+  }
+
+  return results;
+}
+
+/**
+ * 降級方案：用 Node.js 內建 fetch + regex 解析 HTML
+ * 不需要 Puppeteer/Chrome，減少 CI 環境依賴
+ */
+async function scrapeSeriesPageWithFetch(url) {
+  console.log(`  [fetch] GET ${url}`);
+
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': UA_STRING,
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
+      'Referer': 'https://yuyu-tei.jp/',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} for ${url}`);
+  }
+
+  const html = await response.text();
+  console.log(`  [fetch] Downloaded ${html.length} bytes`);
+
+  const cards = parseCardHtml(html);
+  console.log(`  [fetch] Parsed ${cards.length} cards from HTML`);
+
+  if (cards.length === 0) {
+    // Diagnostic: what does the HTML look like?
+    console.log(`  [fetch] WARN: No cards found. HTML snippet: ${html.slice(0, 300).replace(/\n/g, ' ')}`);
+  }
+
+  return cards;
 }
 
 /**
@@ -139,7 +252,7 @@ async function scrapeSeriesPage(browser, url) {
   await page.setViewport({ width, height });
 
   // 4. Set realistic User-Agent to avoid Cloudflare headless detection
-  await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
+  await page.setUserAgent(UA_STRING);
 
   try {
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
@@ -227,40 +340,119 @@ async function scrapeSeriesPage(browser, url) {
 
 /**
  * 從 yuyu-tei 爬價格和圖片
- * 使用 Puppeteer 搭配反偵測措施避免 403
+ * 先試 Puppeteer，若失敗或結果不足則降級到 HTTP fetch
  */
 async function scrapeYuyuPrices() {
-  console.log('[database] Starting yuyu-tei scrape (Puppeteer)...');
+  let usePuppeteer = true;
+  let puppeteer;
 
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: [
-      '--no-sandbox',
-      '--disable-blink-features=AutomationControlled',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-    ],
-  });
+  // Try to load puppeteer-extra; if unavailable, skip to fetch
+  try {
+    puppeteer = (await import('puppeteer-extra')).default;
+    const StealthPlugin = (await import('puppeteer-extra-plugin-stealth')).default;
+    puppeteer.use(StealthPlugin());
+  } catch (e) {
+    console.log(`[database] Puppeteer-extra not available (${e.message}), will use HTTP fetch fallback`);
+    usePuppeteer = false;
+  }
 
   const allPrices = {};
   let totalCards = 0;
   let seriesWithPrices = 0;
 
-  try {
-    for (const seriesInfo of SERIES_PAGES) {
-      console.log(`[database] Scraping ${seriesInfo.name}: ${seriesInfo.url}`);
+  if (usePuppeteer) {
+    console.log('[database] Starting yuyu-tei scrape (Puppeteer)...');
+    let browser;
+    try {
+      browser = await puppeteer.launch({
+        headless: 'new',
+        args: [
+          '--no-sandbox',
+          '--disable-blink-features=AutomationControlled',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+        ],
+      });
+    } catch (e) {
+      console.log(`[database] Puppeteer launch failed: ${e.message}. Falling back to HTTP fetch.`);
+      usePuppeteer = false;
+    }
 
-      const url = BASE_URL + seriesInfo.url;
-
+    if (browser) {
       try {
-        // Random delay between series requests (3-5s)
-        await sleep(3000 + Math.random() * 2000);
+        for (const seriesInfo of SERIES_PAGES) {
+          console.log(`[database] Scraping ${seriesInfo.name}: ${seriesInfo.url}`);
 
-        const cards = await scrapeSeriesPage(browser, url);
+          const url = BASE_URL + seriesInfo.url;
 
-        const seriesPrices = {};
-        for (const card of cards) {
-          seriesPrices[card.cardNum] = {
+          try {
+            // Random delay between series requests (3-5s)
+            await sleep(3000 + Math.random() * 2000);
+
+            const cards = await scrapeSeriesPage(browser, url);
+
+            const seriesPrices = {};
+            for (const card of cards) {
+              seriesPrices[card.cardNum] = {
+                sellPrice: card.sellPrice,
+                name: card.name,
+                yuyuImage: card.yuyuImage,
+                imageVersion: card.imageVersion,
+                imageCid: card.imageCid,
+                timestamp: new Date().toISOString(),
+              };
+            }
+
+            const count = Object.keys(seriesPrices).length;
+            console.log(`  → Found ${count} cards with prices`);
+            if (count > 0) seriesWithPrices++;
+            totalCards += count;
+            Object.assign(allPrices, seriesPrices);
+
+          } catch (err) {
+            console.error(`  → Error: ${err.message}`);
+          }
+        }
+      } finally {
+        await browser.close();
+      }
+    }
+  }
+
+  // If puppeteer got too few cards, fall back to HTTP fetch
+  if (totalCards < 50) {
+    // Reset and try with fetch
+    console.log(`\n[database] Puppeteer scrape only got ${totalCards} cards (< 50). Switching to HTTP fetch...`);
+    const fetchResult = await scrapeAllWithFetch();
+    Object.assign(allPrices, fetchResult.prices);
+    totalCards += fetchResult.fetchedCards;
+  }
+
+  return { prices: allPrices, totalCards, seriesWithPrices };
+}
+
+/**
+ * 使用 HTTP fetch + HTML regex 爬取所有系列價格
+ */
+async function scrapeAllWithFetch() {
+  console.log('[fetch] Starting HTTP fetch-based scrape...');
+  const allPrices = {};
+  let fetchedCards = 0;
+  let seriesFetched = 0;
+
+  for (const seriesInfo of SERIES_PAGES) {
+    console.log(`[fetch] Fetching ${seriesInfo.name}: ${seriesInfo.url}`);
+
+    const url = BASE_URL + seriesInfo.url;
+
+    try {
+      await sleep(3000 + Math.random() * 2000);
+
+      const cards = await scrapeSeriesPageWithFetch(url);
+
+      for (const card of cards) {
+        if (!allPrices[card.cardNum]) {
+          allPrices[card.cardNum] = {
             sellPrice: card.sellPrice,
             name: card.name,
             yuyuImage: card.yuyuImage,
@@ -269,22 +461,20 @@ async function scrapeYuyuPrices() {
             timestamp: new Date().toISOString(),
           };
         }
-
-        const count = Object.keys(seriesPrices).length;
-        console.log(`  → Found ${count} cards with prices`);
-        if (count > 0) seriesWithPrices++;
-        totalCards += count;
-        Object.assign(allPrices, seriesPrices);
-
-      } catch (err) {
-        console.error(`  → Error: ${err.message}`);
       }
+
+      const count = cards.length;
+      console.log(`  → Found ${count} cards`);
+      if (count > 0) seriesFetched++;
+      fetchedCards += count;
+
+    } catch (err) {
+      console.error(`  → Error: ${err.message}`);
     }
-  } finally {
-    await browser.close();
   }
 
-  return { prices: allPrices, totalCards, seriesWithPrices };
+  console.log(`\n[fetch] Done. Total: ${fetchedCards} cards from ${seriesFetched} series`);
+  return { prices: allPrices, fetchedCards };
 }
 
 /**
@@ -392,7 +582,7 @@ async function buildDatabase() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(IMAGES_DIR)) fs.mkdirSync(IMAGES_DIR, { recursive: true });
 
-  // Step 1: Scrape yuyu-tei with Puppeteer + anti-detection
+  // Step 1: Scrape yuyu-tei with Puppeteer + anti-detection (fallback to HTTP fetch)
   console.log('── Step 1: Scrape yuyu-tei ──');
   const yuyuResult = await scrapeYuyuPrices();
 
