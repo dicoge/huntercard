@@ -106,9 +106,25 @@ async function scrapeSeriesPage(browser, url) {
   // 1. Set extra HTTP headers
   await page.setExtraHTTPHeaders(EXTRA_HEADERS);
 
-  // 2. Override navigator.webdriver to avoid detection
+  // Additional anti-detection: override navigator properties
   await page.evaluateOnNewDocument(() => {
     Object.defineProperty(navigator, 'webdriver', { get: () => false });
+    // Override plugins array to match real browser
+    Object.defineProperty(navigator, 'plugins', {
+      get: () => [1, 2, 3, 4, 5],
+    });
+    // Override languages
+    Object.defineProperty(navigator, 'languages', {
+      get: () => ['ja-JP', 'ja', 'en-US', 'en'],
+    });
+    // Remove chrome.runtime (headless Chrome has this, real Chrome doesn't in some cases)
+    // Override chrome object
+    window.chrome = {
+      runtime: {},
+      loadTimes: function() {},
+      csi: function() {},
+      app: {},
+    };
   });
 
   // 3. Random viewport size (1280-1366 width, 768-900 height)
@@ -211,7 +227,7 @@ async function scrapeYuyuPrices() {
   console.log('[database] Starting yuyu-tei scrape (Puppeteer)...');
 
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: false,
     args: [
       '--no-sandbox',
       '--disable-blink-features=AutomationControlled',
