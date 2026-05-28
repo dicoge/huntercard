@@ -19,6 +19,12 @@ import { fileURLToPath } from 'url';
 // Register stealth plugin — evades Cloudflare headless detection in CI
 puppeteer.use(StealthPlugin());
 
+// Catch unhandled promise rejections for better diagnostics
+process.on('unhandledRejection', (reason) => {
+  console.error('\n❌ Unhandled Rejection:', reason);
+  process.exit(1);
+});
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -494,6 +500,7 @@ if (process.argv[1]?.includes('build-database')) {
     })
     .catch(err => {
       console.error('\n❌ Build failed:', err.message);
+      console.error(err.stack);
       process.exit(1);
     });
 }
