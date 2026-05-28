@@ -112,6 +112,9 @@ async function scrapeSeriesPage(browser, url) {
   const height = Math.floor(Math.random() * (900 - 768 + 1)) + 768;
   await page.setViewport({ width, height });
 
+  // 4. Set realistic User-Agent to avoid Cloudflare headless detection
+  await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
+
   try {
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
