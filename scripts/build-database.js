@@ -214,9 +214,11 @@ async function scrapeYuyuPrices() {
     headless: true,
     args: [
       '--no-sandbox',
+      '--headless=new',
       '--disable-blink-features=AutomationControlled',
       '--disable-dev-shm-usage',
       '--disable-gpu',
+      '--window-size=1366,768',
     ],
   });
 
