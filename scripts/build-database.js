@@ -211,10 +211,9 @@ async function scrapeYuyuPrices() {
   console.log('[database] Starting yuyu-tei scrape (Puppeteer)...');
 
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: false,
     args: [
       '--no-sandbox',
-      '--headless=new',
       '--disable-blink-features=AutomationControlled',
       '--disable-dev-shm-usage',
       '--disable-gpu',
