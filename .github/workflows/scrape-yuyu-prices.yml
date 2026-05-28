@@ -4,12 +4,12 @@ on:
   schedule:
     # Run daily at 5:00 AM JST (20:00 UTC)
     - cron: '0 20 * * *'
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
   build-database:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     permissions:
       contents: write
 
@@ -17,25 +17,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        working-directory: scripts
-        run: npm ci
-
-      - name: Install xvfb (virtual display for headed Chrome)
-        run: sudo apt-get update && sudo apt-get install -y xvfb
-
-      - name: Run database builder (with virtual display)
-        working-directory: scripts
-        run: xvfb-run --auto-servernum node build-database.js
-
       - name: Validate database
         run: |
-          CARD_COUNT=$(python3 -c "import json; d=json.load(open('data/database.json')); print(d.get('totalCards',0))")
+          CARD_COUNT=$(python3 -c "import json; d=json.load(open('data/database.json')); print(d.get('totalCards',0))" 2>/dev/null || echo "0")
           echo "Database has $CARD_COUNT cards"
           if [ "$CARD_COUNT" -lt 50 ]; then
             echo "❌ SAFETY CHECK FAILED: totalCards=$CARD_COUNT < 50"
@@ -43,25 +27,14 @@ jobs:
           fi
           echo "✅ Validation passed"
 
-      - name: Check data changes
+      - name: Check data changes against previous commit
         id: check
         run: |
-          if git diff --stat -- 'data/database.json' 'data/images/' | grep -q .; then
+          if git diff --stat HEAD~1 -- 'data/database.json' 'data/images/' | grep -q .; then
             echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Data has changed"
           else
             echo "changed=false" >> $GITHUB_OUTPUT
-            echo "No data changes"
           fi
-
-      - name: Commit and push if changed
-        if: steps.check.outputs.changed == 'true'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add data/database.json data/images/
-          git diff --staged --quiet || git commit -m "chore: update database $(date +%Y-%m-%d)"
-          git push origin main
 
       - name: Deploy to Vercel via Deploy Hook
         if: steps.check.outputs.changed == 'true'
