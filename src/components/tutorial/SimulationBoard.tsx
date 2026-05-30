@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, useWindowDimensions } from 'react-native';
 import { COLORS } from '../../constants';
 import { SimulationCardRef } from '../../data/tutorialSimulationData';
 
@@ -7,7 +7,7 @@ interface ZoneConfig {
   id: string;
   label: string;
   shortLabel: string;
-  gridArea: string; // CSS-like grid placement hint
+  gridArea: string;
 }
 
 const ZONES: ZoneConfig[] = [
@@ -25,16 +25,16 @@ const ZONES: ZoneConfig[] = [
 interface SimulationBoardProps {
   highlightZone?: string;
   cardRef?: SimulationCardRef;
+  isMobile?: boolean;
 }
 
-export default function SimulationBoard({ highlightZone, cardRef }: SimulationBoardProps) {
-  const screenWidth = Dimensions.get('window').width;
-  const boardWidth = screenWidth - 32; // 16px padding each side
+export default function SimulationBoard({ highlightZone, cardRef, isMobile = false }: SimulationBoardProps) {
+  const { width: screenWidth } = useWindowDimensions();
+  const boardPadding = isMobile ? 14 : 16;
+  const boardWidth = screenWidth - boardPadding * 2;
 
-  // Determine which zone the cardRef belongs to
   const getCardZone = (): string | null => {
     if (!cardRef) return null;
-    // Map card names to zones
     if (cardRef.name.includes('推し')) return 'oshi';
     if (cardRef.name.includes('ホロメン')) return 'backstage';
     return null;
@@ -44,64 +44,74 @@ export default function SimulationBoard({ highlightZone, cardRef }: SimulationBo
 
   return (
     <View style={styles.container}>
-      <Text style={styles.boardTitle}>🎮 遊戲盤面</Text>
+      <Text style={[styles.boardTitle, isMobile && styles.boardTitleMobile]}>
+        🎮 遊戲盤面
+      </Text>
 
-      {/* 2x5 grid layout for the game board */}
       <View style={[styles.grid, { width: boardWidth }]}>
         {/* Row 1: Oshi | Center | Collab */}
-        <View style={styles.row}>
+        <View style={[styles.row, isMobile && styles.rowMobile]}>
           <ZoneBox
             zone={ZONES[0]}
             isHighlighted={highlightZone === 'oshi' || cardZone === 'oshi'}
             cardRef={cardZone === 'oshi' ? cardRef : undefined}
+            isMobile={isMobile}
           />
           <ZoneBox
             zone={ZONES[1]}
             isHighlighted={highlightZone === 'center' || cardZone === 'center'}
             cardRef={cardZone === 'center' ? cardRef : undefined}
+            isMobile={isMobile}
           />
           <ZoneBox
             zone={ZONES[2]}
             isHighlighted={highlightZone === 'collab' || cardZone === 'collab'}
             cardRef={cardZone === 'collab' ? cardRef : undefined}
+            isMobile={isMobile}
           />
         </View>
 
         {/* Row 2: Backstage | Deck | Energy */}
-        <View style={styles.row}>
+        <View style={[styles.row, isMobile && styles.rowMobile]}>
           <ZoneBox
             zone={ZONES[3]}
             isHighlighted={highlightZone === 'backstage' || cardZone === 'backstage'}
             cardRef={cardZone === 'backstage' ? cardRef : undefined}
+            isMobile={isMobile}
           />
           <ZoneBox
             zone={ZONES[4]}
             isHighlighted={highlightZone === 'deck' || cardZone === 'deck'}
             cardRef={cardZone === 'deck' ? cardRef : undefined}
+            isMobile={isMobile}
           />
           <ZoneBox
             zone={ZONES[5]}
             isHighlighted={highlightZone === 'energy' || cardZone === 'energy'}
             cardRef={cardZone === 'energy' ? cardRef : undefined}
+            isMobile={isMobile}
           />
         </View>
 
         {/* Row 3: Life | CheerDeck | Archive */}
-        <View style={styles.row}>
+        <View style={[styles.row, isMobile && styles.rowMobile]}>
           <ZoneBox
             zone={ZONES[6]}
             isHighlighted={highlightZone === 'life' || cardZone === 'life'}
             cardRef={cardZone === 'life' ? cardRef : undefined}
+            isMobile={isMobile}
           />
           <ZoneBox
             zone={ZONES[7]}
             isHighlighted={highlightZone === 'cheerDeck' || cardZone === 'cheerDeck'}
             cardRef={cardZone === 'cheerDeck' ? cardRef : undefined}
+            isMobile={isMobile}
           />
           <ZoneBox
             zone={ZONES[8]}
             isHighlighted={highlightZone === 'archive' || cardZone === 'archive'}
             cardRef={cardZone === 'archive' ? cardRef : undefined}
+            isMobile={isMobile}
           />
         </View>
       </View>
@@ -113,17 +123,18 @@ interface ZoneBoxProps {
   zone: ZoneConfig;
   isHighlighted: boolean;
   cardRef?: SimulationCardRef;
+  isMobile?: boolean;
 }
 
-function ZoneBox({ zone, isHighlighted, cardRef }: ZoneBoxProps) {
+function ZoneBox({ zone, isHighlighted, cardRef, isMobile = false }: ZoneBoxProps) {
   return (
     <View
       style={[
         styles.zone,
+        isMobile && styles.zoneMobile,
         isHighlighted && styles.zoneHighlighted,
       ]}
     >
-      {/* Card thumbnail if available */}
       {cardRef && cardRef.imageUrl ? (
         <Image
           source={{ uri: cardRef.imageUrl }}
@@ -132,7 +143,7 @@ function ZoneBox({ zone, isHighlighted, cardRef }: ZoneBoxProps) {
         />
       ) : (
         <View style={styles.zoneInner}>
-          <Text style={styles.zoneEmoji}>
+          <Text style={[styles.zoneEmoji, isMobile && styles.zoneEmojiMobile]}>
             {zone.id === 'oshi' ? '⭐' :
              zone.id === 'center' ? '🎯' :
              zone.id === 'collab' ? '🔗' :
@@ -145,7 +156,7 @@ function ZoneBox({ zone, isHighlighted, cardRef }: ZoneBoxProps) {
           </Text>
         </View>
       )}
-      <Text style={[styles.zoneLabel, isHighlighted && styles.zoneLabelHighlighted]}>
+      <Text style={[styles.zoneLabel, isMobile && styles.zoneLabelMobile, isHighlighted && styles.zoneLabelHighlighted]}>
         {zone.shortLabel}
       </Text>
     </View>
@@ -155,22 +166,30 @@ function ZoneBox({ zone, isHighlighted, cardRef }: ZoneBoxProps) {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 4,
   },
   boardTitle: {
     color: COLORS.text,
     fontSize: 13,
     fontWeight: '600',
-    marginBottom: 10,
+    marginBottom: 8,
     letterSpacing: 1,
   },
+  boardTitleMobile: {
+    fontSize: 11,
+    marginBottom: 6,
+  },
   grid: {
-    gap: 6,
+    gap: 5,
   },
   row: {
     flexDirection: 'row',
-    gap: 6,
-    marginBottom: 6,
+    gap: 5,
+    marginBottom: 5,
+  },
+  rowMobile: {
+    gap: 4,
+    marginBottom: 4,
   },
   zone: {
     flex: 1,
@@ -184,6 +203,10 @@ const styles = StyleSheet.create({
     padding: 4,
     position: 'relative',
     overflow: 'hidden',
+  },
+  zoneMobile: {
+    borderRadius: 8,
+    borderWidth: 1,
   },
   zoneHighlighted: {
     borderColor: COLORS.primary,
@@ -202,6 +225,9 @@ const styles = StyleSheet.create({
   zoneEmoji: {
     fontSize: 22,
   },
+  zoneEmojiMobile: {
+    fontSize: 18,
+  },
   cardThumb: {
     width: '80%',
     height: '80%',
@@ -212,8 +238,12 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '600',
     position: 'absolute',
-    bottom: 4,
+    bottom: 3,
     textAlign: 'center',
+  },
+  zoneLabelMobile: {
+    fontSize: 8,
+    bottom: 2,
   },
   zoneLabelHighlighted: {
     color: COLORS.primary,

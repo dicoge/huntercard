@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../constants';
 import { TutorialSection } from '../data/tutorialData';
 import TutorialCard from '../components/tutorial/TutorialCard';
 import TutorialPhaseCard from '../components/tutorial/TutorialPhaseCard';
 import TutorialImageView from '../components/tutorial/TutorialImageView';
+
+const MOBILE_BREAKPOINT = 480;
 
 interface TutorialDetailScreenProps {
   route: { params: { section: TutorialSection } };
@@ -14,24 +16,28 @@ interface TutorialDetailScreenProps {
 
 export default function TutorialDetailScreen({ route, navigation }: TutorialDetailScreenProps) {
   const { section } = route.params;
+  const { width: screenWidth } = useWindowDimensions();
+  const isMobile = screenWidth < MOBILE_BREAKPOINT;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView 
         style={styles.container}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[styles.contentContainer, isMobile && styles.contentContainerMobile]}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerIcon}>{section.icon}</Text>
-          <Text style={styles.headerTitle}>{section.title}</Text>
+        <View style={[styles.header, isMobile && styles.headerMobile]}>
+          <Text style={[styles.headerIcon, isMobile && styles.headerIconMobile]}>{section.icon}</Text>
+          <Text style={[styles.headerTitle, isMobile && styles.headerTitleMobile]}>{section.title}</Text>
         </View>
 
         {/* Description */}
         {section.description && (
           <TutorialCard>
-            <Text style={styles.description}>{section.description}</Text>
+            <Text style={[styles.description, isMobile && styles.descriptionMobile]}>
+              {section.description}
+            </Text>
           </TutorialCard>
         )}
 
@@ -39,7 +45,12 @@ export default function TutorialDetailScreen({ route, navigation }: TutorialDeta
         {section.images && section.images.length > 0 && (
           <TutorialCard>
             {section.images.map((img, index) => (
-              <TutorialImageView key={`img-${index}`} uri={img.url} alt={img.alt} />
+              <TutorialImageView 
+                key={`img-${index}`} 
+                uri={img.url} 
+                alt={img.alt}
+                screenWidth={screenWidth}
+              />
             ))}
           </TutorialCard>
         )}
@@ -49,8 +60,12 @@ export default function TutorialDetailScreen({ route, navigation }: TutorialDeta
           <TutorialCard>
             {section.items.map((item, index) => (
               <View key={`item-${index}`} style={styles.itemRow}>
-                <Text style={styles.itemLabel}>{item.label}</Text>
-                <Text style={styles.itemDesc}>{item.description}</Text>
+                <Text style={[styles.itemLabel, isMobile && styles.itemLabelMobile]}>
+                  {item.label}
+                </Text>
+                <Text style={[styles.itemDesc, isMobile && styles.itemDescMobile]}>
+                  {item.description}
+                </Text>
               </View>
             ))}
           </TutorialCard>
@@ -61,7 +76,9 @@ export default function TutorialDetailScreen({ route, navigation }: TutorialDeta
           <TutorialCard>
             {section.content.map((text, index) => (
               <View key={`content-${index}`} style={styles.contentRow}>
-                <Text style={styles.contentText}>{text}</Text>
+                <Text style={[styles.contentText, isMobile && styles.contentTextMobile]}>
+                  {text}
+                </Text>
               </View>
             ))}
           </TutorialCard>
@@ -76,7 +93,12 @@ export default function TutorialDetailScreen({ route, navigation }: TutorialDeta
                 {phase.images && phase.images.length > 0 && (
                   <View style={styles.phaseImages}>
                     {phase.images.map((img, idx) => (
-                      <TutorialImageView key={`phase-img-${idx}`} uri={img.url} alt={img.alt} />
+                      <TutorialImageView 
+                        key={`phase-img-${idx}`} 
+                        uri={img.url} 
+                        alt={img.alt}
+                        screenWidth={screenWidth}
+                      />
                     ))}
                   </View>
                 )}
@@ -92,7 +114,9 @@ export default function TutorialDetailScreen({ route, navigation }: TutorialDeta
         {/* Links */}
         {section.links && section.links.length > 0 && (
           <TutorialCard>
-            <Text style={styles.linksTitle}>🔗 參考連結</Text>
+            <Text style={[styles.linksTitle, isMobile && styles.linksTitleMobile]}>
+              🔗 參考連結
+            </Text>
             {section.links.map((link, index) => (
               <TouchableOpacity
                 key={`link-${index}`}
@@ -101,7 +125,9 @@ export default function TutorialDetailScreen({ route, navigation }: TutorialDeta
                 activeOpacity={0.7}
               >
                 <Text style={styles.linkIcon}>🌐</Text>
-                <Text style={styles.linkText}>{link.label}</Text>
+                <Text style={[styles.linkText, isMobile && styles.linkTextMobile]}>
+                  {link.label}
+                </Text>
               </TouchableOpacity>
             ))}
           </TutorialCard>
@@ -109,10 +135,12 @@ export default function TutorialDetailScreen({ route, navigation }: TutorialDeta
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
+          <Text style={[styles.footerText, isMobile && styles.footerTextMobile]}>
             資料來源：巴哈姆特論壇 — 桜雪 (h503323)
           </Text>
-          <Text style={styles.footerDate}>更新：2026 年 4 月 24 日</Text>
+          <Text style={[styles.footerDate, isMobile && styles.footerDateMobile]}>
+            更新：2026 年 4 月 24 日
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -131,25 +159,44 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
   },
+  contentContainerMobile: {
+    padding: 10,
+    paddingBottom: 32,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
     marginTop: 8,
   },
+  headerMobile: {
+    marginBottom: 14,
+    marginTop: 4,
+  },
   headerIcon: {
     fontSize: 32,
     marginRight: 12,
+  },
+  headerIconMobile: {
+    fontSize: 26,
+    marginRight: 8,
   },
   headerTitle: {
     color: COLORS.text,
     fontSize: 24,
     fontWeight: 'bold',
   },
+  headerTitleMobile: {
+    fontSize: 19,
+  },
   description: {
     color: COLORS.textSecondary,
     fontSize: 15,
     lineHeight: 24,
+  },
+  descriptionMobile: {
+    fontSize: 13,
+    lineHeight: 21,
   },
   itemRow: {
     flexDirection: 'row',
@@ -165,11 +212,19 @@ const styles = StyleSheet.create({
     width: 80,
     marginRight: 8,
   },
+  itemLabelMobile: {
+    fontSize: 13,
+    width: 65,
+  },
   itemDesc: {
     color: COLORS.textSecondary,
     fontSize: 14,
     lineHeight: 21,
     flex: 1,
+  },
+  itemDescMobile: {
+    fontSize: 12,
+    lineHeight: 18,
   },
   contentRow: {
     marginBottom: 10,
@@ -180,6 +235,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 24,
   },
+  contentTextMobile: {
+    fontSize: 13,
+    lineHeight: 21,
+  },
   phaseImages: {
     marginBottom: 8,
   },
@@ -188,6 +247,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     marginBottom: 16,
+  },
+  linksTitleMobile: {
+    fontSize: 14,
+    marginBottom: 12,
   },
   linkButton: {
     flexDirection: 'row',
@@ -208,6 +271,9 @@ const styles = StyleSheet.create({
     flex: 1,
     textDecorationLine: 'underline',
   },
+  linkTextMobile: {
+    fontSize: 12,
+  },
   footer: {
     marginTop: 24,
     paddingTop: 16,
@@ -220,9 +286,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 4,
   },
+  footerTextMobile: {
+    fontSize: 11,
+  },
   footerDate: {
     color: COLORS.textSecondary,
     fontSize: 11,
     opacity: 0.7,
+  },
+  footerDateMobile: {
+    fontSize: 10,
   },
 });

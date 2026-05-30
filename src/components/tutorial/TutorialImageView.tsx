@@ -5,11 +5,13 @@ import { COLORS } from '../../constants';
 interface TutorialImageViewProps {
   uri: string;
   alt: string;
+  screenWidth?: number;
 }
 
-export default function TutorialImageView({ uri, alt }: TutorialImageViewProps) {
+export default function TutorialImageView({ uri, alt, screenWidth }: TutorialImageViewProps) {
   const [loadFailed, setLoadFailed] = useState(false);
-  // Image category icons
+  const isMobile = screenWidth !== undefined && screenWidth < 480;
+
   const getEmoji = () => {
     if (alt.includes('主推')) return '⭐';
     if (alt.includes('成員')) return '👤';
@@ -22,8 +24,7 @@ export default function TutorialImageView({ uri, alt }: TutorialImageViewProps) 
 
   return (
     <View style={styles.container}>
-      <View style={styles.imageFrame}>
-        {/* Remote image */}
+      <View style={[styles.imageFrame, isMobile && styles.imageFrameMobile]}>
         {!loadFailed && (
           <Image
             source={{ uri }}
@@ -32,15 +33,18 @@ export default function TutorialImageView({ uri, alt }: TutorialImageViewProps) 
             onError={() => setLoadFailed(true)}
           />
         )}
-        {/* Fallback overlay */}
         {loadFailed && (
           <View style={styles.fallback}>
-            <Text style={styles.fallbackEmoji}>{getEmoji()}</Text>
-            <Text style={styles.fallbackText}>{alt}</Text>
+            <Text style={[styles.fallbackEmoji, isMobile && styles.fallbackEmojiMobile]}>
+              {getEmoji()}
+            </Text>
+            <Text style={[styles.fallbackText, isMobile && styles.fallbackTextMobile]}>
+              {alt}
+            </Text>
           </View>
         )}
       </View>
-      <Text style={styles.caption}>{alt}</Text>
+      <Text style={[styles.caption, isMobile && styles.captionMobile]}>{alt}</Text>
     </View>
   );
 }
@@ -50,6 +54,8 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     alignItems: 'center',
     width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
   },
   imageFrame: {
     width: '100%',
@@ -60,6 +66,10 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     backgroundColor: '#1a1a30',
     position: 'relative',
+  },
+  imageFrameMobile: {
+    borderRadius: 8,
+    maxHeight: 200,
   },
   image: {
     width: '100%',
@@ -79,10 +89,17 @@ const styles = StyleSheet.create({
     fontSize: 42,
     marginBottom: 8,
   },
+  fallbackEmojiMobile: {
+    fontSize: 32,
+    marginBottom: 6,
+  },
   fallbackText: {
     color: COLORS.textSecondary,
     fontSize: 14,
     fontWeight: '500',
+  },
+  fallbackTextMobile: {
+    fontSize: 12,
   },
   caption: {
     color: COLORS.textSecondary,
@@ -90,5 +107,9 @@ const styles = StyleSheet.create({
     marginTop: 6,
     textAlign: 'center',
     opacity: 0.7,
+  },
+  captionMobile: {
+    fontSize: 10,
+    marginTop: 4,
   },
 });

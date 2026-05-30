@@ -1,12 +1,17 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../constants';
 import simulationPhases from '../data/tutorialSimulationData';
 import SimulationBoard from '../components/tutorial/SimulationBoard';
 import SimulationStepCard from '../components/tutorial/SimulationStepCard';
 
+const MOBILE_BREAKPOINT = 480;
+
 export default function TutorialSimulationScreen({ navigation }: any) {
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const isMobile = screenWidth < MOBILE_BREAKPOINT;
+
   const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
@@ -19,24 +24,19 @@ export default function TutorialSimulationScreen({ navigation }: any) {
 
   const handleNext = useCallback(() => {
     if (!isLastStep) {
-      // Move to next step in same phase
       setCurrentStepIndex((prev) => prev + 1);
     } else if (!isLastPhase) {
-      // Move to next phase, first step
       setCurrentPhaseIndex((prev) => prev + 1);
       setCurrentStepIndex(0);
     } else {
-      // Last step of last phase — finish simulation
       navigation.goBack();
     }
   }, [isLastStep, isLastPhase, navigation]);
 
   const handlePrev = useCallback(() => {
     if (!isFirstStep) {
-      // Go back to previous step in same phase
       setCurrentStepIndex((prev) => prev - 1);
     } else if (!isFirstPhase) {
-      // Go back to previous phase, last step
       setCurrentPhaseIndex((prev) => prev - 1);
       const prevPhase = simulationPhases[currentPhaseIndex - 1];
       setCurrentStepIndex(prevPhase.steps.length - 1);
@@ -44,25 +44,36 @@ export default function TutorialSimulationScreen({ navigation }: any) {
   }, [isFirstStep, isFirstPhase, currentPhaseIndex]);
 
   // Calculate overall progress
-  const totalSteps = simulationPhases.reduce(
-    (sum, phase) => sum + phase.steps.length,
-    0
+  const totalSteps = useMemo(
+    () => simulationPhases.reduce((sum, phase) => sum + phase.steps.length, 0),
+    []
   );
-  const stepsDone = simulationPhases
-    .slice(0, currentPhaseIndex)
-    .reduce((sum, phase) => sum + phase.steps.length, 0) + currentStepIndex;
+  const stepsDone = useMemo(
+    () => simulationPhases
+      .slice(0, currentPhaseIndex)
+      .reduce((sum, phase) => sum + phase.steps.length, 0) + currentStepIndex,
+    [currentPhaseIndex, currentStepIndex]
+  );
   const progressPercent = ((stepsDone) / (totalSteps - 1)) * 100;
+
+  const boardMaxHeight = isMobile
+    ? Math.min(screenHeight * 0.3, 200)
+    : Math.min(screenHeight * 0.4, 320);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       {/* Top bar */}
-      <View style={styles.topBar}>
-        <Text style={styles.topBarTitle}>🎮 模擬實戰</Text>
-        <Text style={styles.topBarSub}>跟著步驟體驗一場對局</Text>
+      <View style={[styles.topBar, isMobile && styles.topBarMobile]}>
+        <Text style={[styles.topBarTitle, isMobile && styles.topBarTitleMobile]}>
+          🎮 模擬實戰
+        </Text>
+        <Text style={[styles.topBarSub, isMobile && styles.topBarSubMobile]}>
+          跟著步驟體驗一場對局
+        </Text>
       </View>
 
       {/* Progress bar */}
-      <View style={styles.progressContainer}>
+      <View style={[styles.progressContainer, isMobile && styles.progressContainerMobile]}>
         <View style={styles.progressTrack}>
           <View
             style={[
@@ -71,34 +82,44 @@ export default function TutorialSimulationScreen({ navigation }: any) {
             ]}
           />
         </View>
-        <Text style={styles.progressText}>
+        <Text style={[styles.progressText, isMobile && styles.progressTextMobile]}>
           階段 {currentPhaseIndex + 1}/{simulationPhases.length}
         </Text>
       </View>
 
-      {/* Game Board — top portion */}
-      <View style={styles.boardContainer}>
-        <SimulationBoard
-          highlightZone={currentStep.highlightZone}
-          cardRef={currentStep.cardRef}
-        />
-      </View>
+      {/* Scrollable content area */}
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
+        {/* Game Board — compact at top */}
+        <View style={[styles.boardContainer, { maxHeight: boardMaxHeight }]}>
+          <SimulationBoard
+            highlightZone={currentStep.highlightZone}
+            cardRef={currentStep.cardRef}
+            isMobile={isMobile}
+          />
+        </View>
 
-      {/* Step Card — bottom portion */}
-      <View style={styles.cardContainer}>
-        <SimulationStepCard
-          step={currentStep}
-          phaseTitle={currentPhase.title}
-          phaseIcon={currentPhase.icon}
-          totalStepsInPhase={currentPhase.steps.length}
-          onNext={handleNext}
-          onPrev={handlePrev}
-          isFirst={isFirstStep}
-          isLast={isLastStep}
-          isFirstPhase={isFirstPhase}
-          isLastPhase={isLastPhase}
-        />
-      </View>
+        {/* Step Card */}
+        <View style={styles.cardContainer}>
+          <SimulationStepCard
+            step={currentStep}
+            phaseTitle={currentPhase.title}
+            phaseIcon={currentPhase.icon}
+            totalStepsInPhase={currentPhase.steps.length}
+            onNext={handleNext}
+            onPrev={handlePrev}
+            isFirst={isFirstStep}
+            isLast={isLastStep}
+            isFirstPhase={isFirstPhase}
+            isLastPhase={isLastPhase}
+            isMobile={isMobile}
+          />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -110,6 +131,11 @@ const styles = StyleSheet.create({
   },
   topBar: {
     paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 6,
+  },
+  topBarMobile: {
+    paddingHorizontal: 14,
     paddingTop: 8,
     paddingBottom: 4,
   },
@@ -118,17 +144,27 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+  topBarTitleMobile: {
+    fontSize: 17,
+  },
   topBarSub: {
     color: COLORS.textSecondary,
     fontSize: 12,
     marginTop: 2,
   },
+  topBarSubMobile: {
+    fontSize: 11,
+  },
   progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 8,
     gap: 10,
+  },
+  progressContainerMobile: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
   },
   progressTrack: {
     flex: 1,
@@ -149,14 +185,22 @@ const styles = StyleSheet.create({
     minWidth: 80,
     textAlign: 'right',
   },
+  progressTextMobile: {
+    fontSize: 11,
+    minWidth: 70,
+  },
+  scrollArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 24,
+  },
   boardContainer: {
-    flex: 4.5,
     justifyContent: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 4,
   },
   cardContainer: {
-    flex: 5.5,
-    justifyContent: 'flex-start',
+    paddingTop: 2,
   },
 });

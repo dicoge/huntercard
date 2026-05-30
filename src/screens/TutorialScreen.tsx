@@ -1,31 +1,36 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../constants';
 import tutorialData from '../data/tutorialData';
 
+const MOBILE_BREAKPOINT = 480;
+
 export default function TutorialScreen({ navigation }: any) {
+  const { width: screenWidth } = useWindowDimensions();
+  const isMobile = screenWidth < MOBILE_BREAKPOINT;
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView 
         style={styles.container}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[styles.contentContainer, isMobile && styles.contentContainerMobile]}
         showsVerticalScrollIndicator={false}
       >
         {/* Hero */}
-        <View style={styles.hero}>
-          <Text style={styles.heroEmoji}>📚</Text>
-          <Text style={styles.heroTitle}>規則教學</Text>
-          <Text style={styles.heroSub}>hOCG 完全攻略</Text>
+        <View style={[styles.hero, isMobile && styles.heroMobile]}>
+          <Text style={[styles.heroEmoji, isMobile && styles.heroEmojiMobile]}>📚</Text>
+          <Text style={[styles.heroTitle, isMobile && styles.heroTitleMobile]}>規則教學</Text>
+          <Text style={[styles.heroSub, isMobile && styles.heroSubMobile]}>hOCG 完全攻略</Text>
         </View>
 
         {/* Description */}
         <View style={styles.introCard}>
-          <Text style={styles.introText}>
+          <Text style={[styles.introText, isMobile && styles.introTextMobile]}>
             這是一款以「共同創造、共同競爭」為概念的集換式卡牌遊戲。
             玩家們將化身粉絲，與主推以及其他 holo 成員一同打造屬於自己的舞台。
           </Text>
-          <Text style={styles.introText}>
+          <Text style={[styles.introText, isMobile && styles.introTextMobile]}>
             一起為 holo 成員加油，並以「hololive 極限大賽」的頂點為目標！
           </Text>
           <View style={styles.sourceRow}>
@@ -35,19 +40,26 @@ export default function TutorialScreen({ navigation }: any) {
         </View>
 
         {/* Category Grid */}
-        <View style={styles.grid}>
+        <View style={[styles.grid, isMobile && styles.gridMobile]}>
           {tutorialData.map((section) => (
             <TouchableOpacity
               key={section.id}
-              style={styles.categoryCard}
+              style={[styles.categoryCard, isMobile && styles.categoryCardMobile]}
               onPress={() => navigation.navigate('TutorialDetail', { section })}
               activeOpacity={0.7}
             >
-              <View style={styles.categoryIconWrap}>
-                <Text style={styles.categoryIcon}>{section.icon}</Text>
+              <View style={[styles.categoryIconWrap, isMobile && styles.categoryIconWrapMobile]}>
+                <Text style={[styles.categoryIcon, isMobile && styles.categoryIconMobile]}>
+                  {section.icon}
+                </Text>
               </View>
-              <Text style={styles.categoryTitle}>{section.title}</Text>
-              <Text style={styles.categoryDesc} numberOfLines={2}>
+              <Text style={[styles.categoryTitle, isMobile && styles.categoryTitleMobile]}>
+                {section.title}
+              </Text>
+              <Text 
+                style={[styles.categoryDesc, isMobile && styles.categoryDescMobile]} 
+                numberOfLines={2}
+              >
                 {section.description || (
                   section.phases ? `共 ${section.phases.length} 個章節` : 
                   section.items ? `${section.items.length} 個區域說明` : 
@@ -55,8 +67,10 @@ export default function TutorialScreen({ navigation }: any) {
                 )}
               </Text>
               <View style={styles.arrowRow}>
-                <Text style={styles.arrowText}>開始學習</Text>
-                <Text style={styles.arrow}>→</Text>
+                <Text style={[styles.arrowText, isMobile && styles.arrowTextMobile]}>
+                  開始學習
+                </Text>
+                <Text style={[styles.arrow, isMobile && styles.arrowMobile]}>→</Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -64,26 +78,32 @@ export default function TutorialScreen({ navigation }: any) {
 
         {/* Simulation Entry Card */}
         <TouchableOpacity
-          style={styles.simulationCard}
+          style={[styles.simulationCard, isMobile && styles.simulationCardMobile]}
           onPress={() => navigation.navigate('TutorialSimulation')}
           activeOpacity={0.7}
         >
-          <View style={styles.simulationIconWrap}>
-            <Text style={styles.simulationEmoji}>🎮</Text>
+          <View style={[styles.simulationIconWrap, isMobile && styles.simulationIconWrapMobile]}>
+            <Text style={[styles.simulationEmoji, isMobile && styles.simulationEmojiMobile]}>🎮</Text>
           </View>
           <View style={styles.simulationContent}>
-            <Text style={styles.simulationTitle}>實戰模擬</Text>
-            <Text style={styles.simulationDesc}>
+            <Text style={[styles.simulationTitle, isMobile && styles.simulationTitleMobile]}>
+              實戰模擬
+            </Text>
+            <Text style={[styles.simulationDesc, isMobile && styles.simulationDescMobile]}>
               跟著 step-by-step 引導，體驗一場簡化的 hOCG 對局
             </Text>
           </View>
-          <Text style={styles.simulationArrow}>→</Text>
+          <Text style={[styles.simulationArrow, isMobile && styles.simulationArrowMobile]}>→</Text>
         </TouchableOpacity>
 
         {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerTitle}>hololive OFFICIAL CARD GAME</Text>
-          <Text style={styles.footerSub}>hOCG 規則教學</Text>
+        <View style={[styles.footer, isMobile && styles.footerMobile]}>
+          <Text style={[styles.footerTitle, isMobile && styles.footerTitleMobile]}>
+            hololive OFFICIAL CARD GAME
+          </Text>
+          <Text style={[styles.footerSub, isMobile && styles.footerSubMobile]}>
+            hOCG 規則教學
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -99,17 +119,29 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    padding: 16,
+    padding: 20,
     paddingBottom: 40,
+  },
+  contentContainerMobile: {
+    padding: 12,
+    paddingBottom: 32,
   },
   hero: {
     alignItems: 'center',
     paddingVertical: 28,
     marginBottom: 8,
   },
+  heroMobile: {
+    paddingVertical: 18,
+    marginBottom: 4,
+  },
   heroEmoji: {
     fontSize: 48,
     marginBottom: 12,
+  },
+  heroEmojiMobile: {
+    fontSize: 36,
+    marginBottom: 8,
   },
   heroTitle: {
     color: COLORS.text,
@@ -117,12 +149,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     letterSpacing: 2,
   },
+  heroTitleMobile: {
+    fontSize: 22,
+    letterSpacing: 1,
+  },
   heroSub: {
     color: COLORS.primary,
     fontSize: 14,
     fontWeight: '600',
     letterSpacing: 3,
     marginTop: 6,
+  },
+  heroSubMobile: {
+    fontSize: 12,
+    letterSpacing: 2,
+    marginTop: 4,
   },
   introCard: {
     backgroundColor: COLORS.surface,
@@ -139,6 +180,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     marginBottom: 8,
+  },
+  introTextMobile: {
+    fontSize: 13,
+    lineHeight: 20,
+    marginBottom: 6,
   },
   sourceRow: {
     flexDirection: 'row',
@@ -160,6 +206,9 @@ const styles = StyleSheet.create({
   grid: {
     gap: 14,
   },
+  gridMobile: {
+    gap: 10,
+  },
   categoryCard: {
     backgroundColor: COLORS.surface,
     borderRadius: 16,
@@ -168,6 +217,10 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     position: 'relative',
     overflow: 'hidden',
+  },
+  categoryCardMobile: {
+    borderRadius: 12,
+    padding: 14,
   },
   categoryIconWrap: {
     width: 48,
@@ -178,8 +231,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  categoryIconWrapMobile: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
   categoryIcon: {
     fontSize: 26,
+  },
+  categoryIconMobile: {
+    fontSize: 22,
   },
   categoryTitle: {
     color: COLORS.text,
@@ -187,11 +249,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 6,
   },
+  categoryTitleMobile: {
+    fontSize: 15,
+    marginBottom: 4,
+  },
   categoryDesc: {
     color: COLORS.textSecondary,
     fontSize: 13,
     lineHeight: 19,
     marginBottom: 12,
+  },
+  categoryDescMobile: {
+    fontSize: 12,
+    lineHeight: 17,
+    marginBottom: 8,
   },
   arrowRow: {
     flexDirection: 'row',
@@ -203,10 +274,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginRight: 6,
   },
+  arrowTextMobile: {
+    fontSize: 12,
+  },
   arrow: {
     color: COLORS.primary,
     fontSize: 16,
     fontWeight: '700',
+  },
+  arrowMobile: {
+    fontSize: 14,
   },
   footer: {
     marginTop: 32,
@@ -215,17 +292,27 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.border,
     alignItems: 'center',
   },
+  footerMobile: {
+    marginTop: 24,
+    paddingTop: 16,
+  },
   footerTitle: {
     color: COLORS.textSecondary,
     fontSize: 13,
     fontWeight: '600',
     letterSpacing: 1,
   },
+  footerTitleMobile: {
+    fontSize: 11,
+  },
   footerSub: {
     color: COLORS.textSecondary,
     fontSize: 11,
     marginTop: 4,
     opacity: 0.6,
+  },
+  footerSubMobile: {
+    fontSize: 10,
   },
   // Simulation entry card styles
   simulationCard: {
@@ -241,6 +328,12 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
   },
+  simulationCardMobile: {
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 4,
+    marginBottom: 12,
+  },
   simulationIconWrap: {
     width: 52,
     height: 52,
@@ -250,8 +343,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 14,
   },
+  simulationIconWrapMobile: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    marginRight: 10,
+  },
   simulationEmoji: {
     fontSize: 28,
+  },
+  simulationEmojiMobile: {
+    fontSize: 22,
   },
   simulationContent: {
     flex: 1,
@@ -262,15 +364,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 4,
   },
+  simulationTitleMobile: {
+    fontSize: 15,
+    marginBottom: 2,
+  },
   simulationDesc: {
     color: COLORS.textSecondary,
     fontSize: 13,
     lineHeight: 19,
+  },
+  simulationDescMobile: {
+    fontSize: 12,
+    lineHeight: 17,
   },
   simulationArrow: {
     color: COLORS.primary,
     fontSize: 20,
     fontWeight: '700',
     marginLeft: 8,
+  },
+  simulationArrowMobile: {
+    fontSize: 16,
   },
 });
