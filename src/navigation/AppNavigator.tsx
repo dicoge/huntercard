@@ -16,6 +16,7 @@ import SearchResultsScreen from '../screens/SearchResultsScreen';
 
 import TutorialScreen from '../screens/TutorialScreen';
 import TutorialDetailScreen from '../screens/TutorialDetailScreen';
+import TutorialSimulationScreen from '../screens/TutorialSimulationScreen';
 
 // Types
 import { RootStackParamList, MainDrawerParamList } from '../types';
@@ -161,6 +162,11 @@ function StackNavigator() {
         name="TutorialDetail"
         component={TutorialDetailScreen}
         options={{ title: '規則詳解' }}
+      />
+      <Stack.Screen
+        name="TutorialSimulation"
+        component={TutorialSimulationScreen}
+        options={{ title: '模擬實戰' }}
       />
     </Stack.Navigator>
   );

@@ -1,4 +1,5 @@
 import { TutorialSection } from '../data/tutorialData';
+import { SimulationStep, SimulationPhase, SimulationCardRef } from '../data/tutorialSimulationData';
 
 // Card types
 export interface Card {
@@ -48,6 +49,7 @@ export type RootStackParamList = {
   Scanner: undefined;
   SearchResults: { query: string; results: TCGSearchResult };
   TutorialDetail: { section: TutorialSection };
+  TutorialSimulation: undefined;
 };
 
 export type MainDrawerParamList = {
@@ -58,6 +60,11 @@ export type MainDrawerParamList = {
   Settings: undefined;
   Tutorial: undefined;
 };
+
+// Settings types
+export type SimPhase = 'setup' | 'reset' | 'draw' | 'cheer' | 'main' | 'performance' | 'end';
+
+export { SimulationStep, SimulationPhase, SimulationCardRef };
 
 // Settings types
 export interface AppSettings {

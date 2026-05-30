@@ -62,6 +62,24 @@ export default function TutorialScreen({ navigation }: any) {
           ))}
         </View>
 
+        {/* Simulation Entry Card */}
+        <TouchableOpacity
+          style={styles.simulationCard}
+          onPress={() => navigation.navigate('TutorialSimulation')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.simulationIconWrap}>
+            <Text style={styles.simulationEmoji}>🎮</Text>
+          </View>
+          <View style={styles.simulationContent}>
+            <Text style={styles.simulationTitle}>實戰模擬</Text>
+            <Text style={styles.simulationDesc}>
+              跟著 step-by-step 引導，體驗一場簡化的 hOCG 對局
+            </Text>
+          </View>
+          <Text style={styles.simulationArrow}>→</Text>
+        </TouchableOpacity>
+
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerTitle}>hololive OFFICIAL CARD GAME</Text>
@@ -208,5 +226,51 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 4,
     opacity: 0.6,
+  },
+  // Simulation entry card styles
+  simulationCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 16,
+    padding: 20,
+    marginTop: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.primary + '40',
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  simulationIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: COLORS.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  simulationEmoji: {
+    fontSize: 28,
+  },
+  simulationContent: {
+    flex: 1,
+  },
+  simulationTitle: {
+    color: COLORS.primary,
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  simulationDesc: {
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  simulationArrow: {
+    color: COLORS.primary,
+    fontSize: 20,
+    fontWeight: '700',
+    marginLeft: 8,
   },
 });

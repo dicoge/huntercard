@@ -45,37 +45,31 @@ const tutorialData: TutorialSection[] = [
     id: 'cards',
     title: '卡牌介紹',
     icon: '🃏',
-    description: 'hOCG 共有四種卡牌類型，每種卡牌在遊戲中扮演不同的角色。',
+    description: 'hOCG 共有四種卡牌類型，讓我們用 Laplus Darkness（ラプラス・ダークネス）的卡片來認識它們！',
     phases: [
       {
         title: '主推卡【推しホロメンカード】',
-        description: '每副牌組只能搭配 1 張。選擇的主推將決定比賽開始時的生命值，以及牌組構築的方向。每一張主推卡都有各自的「主推技能」，以及每場比賽只能使用一次的「SP 主推技能」。',
+        description: '每副牌組只能搭配 1 張。Laplus Darkness 作為主推時，生命值為 5，屬於紫色屬性。每一張主推卡都有各自的「主推技能」，以及每場比賽只能使用一次的「SP 主推技能」。',
         images: [
-          { url: 'https://truth.bahamut.com.tw/s01/202504/forum/60608/1b80fecaa5cb93a802186892ba4a9102.PNG', alt: '主推卡範例' },
+          { url: 'https://card.yuyu-tei.jp/hocg/100_140/hbp04/10011.jpg', alt: '【Laplus Darkness】推しホロメン卡 hBP04-005 SEC' },
         ],
       },
       {
         title: 'holo 成員卡【ホロメンカード】',
-        description: '收到玩家的吶喊可以展現各種表演，每一位 holo 成員都有不同的能力。與主推一起讓舞台變得更熱鬧吧。',
+        description: '收到玩家的吶喊可以展現各種表演。Laplus Darkness 有多種不同稀有度的成員卡，體力和能力各不相同。',
         images: [
-          { url: 'https://truth.bahamut.com.tw/s01/202504/forum/60608/7b1fff9f94b4bf684e562f731e384634.PNG', alt: '成員卡範例1' },
-          { url: 'https://truth.bahamut.com.tw/s01/202503/forum/60608/7836d272dd67e883008d866c5d214afc.PNG', alt: '成員卡範例2' },
+          { url: 'https://card.yuyu-tei.jp/hocg/100_140/hbp04/10112.jpg', alt: '【Laplus Darkness】ホロメン卡 hBP04-055 HP100' },
+          { url: 'https://card.yuyu-tei.jp/hocg/100_140/hbp04/10113.jpg', alt: '【Laplus Darkness】ホロメン卡 hBP04-056 HP160' },
+          { url: 'https://card.yuyu-tei.jp/hocg/100_140/hbp04/10116.jpg', alt: '【Laplus Darkness】ホロメン卡 hBP04-057 HP130' },
         ],
       },
       {
         title: '支援卡【サポートカード】',
-        description: '在各種情況下為 holo 成員提供幫助。部分的卡牌有限制每個回合只能使用一張。',
-        images: [
-          { url: 'https://truth.bahamut.com.tw/s01/202503/forum/60608/74a32a9532c8ffd955b6289cf90b663e.PNG', alt: '支援卡範例1' },
-          { url: 'https://truth.bahamut.com.tw/s01/202503/forum/60608/9b7d34d204af7ccd6e9b97465fff1b84.PNG', alt: '支援卡範例2' },
-        ],
+        description: '在各種情況下為 holo 成員提供幫助。可以使用支援卡來強化 Laplus Darkness 或干擾對手！部分的卡牌有限制每個回合只能使用一張。',
       },
       {
         title: '吶喊卡【エールカード】',
-        description: '發送給舞台上的 holo 成員。越熱情地吶喊，就可以使用越強力的藝能。',
-        images: [
-          { url: 'https://truth.bahamut.com.tw/s01/202504/forum/60608/85f05c040814dba437e2980e47e7fcee.PNG', alt: '吶喊卡範例' },
-        ],
+        description: '發送給舞台上的 holo 成員。越熱情地吶喊，就可以使用越強力的藝能。為 Laplus Darkness 加油吧！',
       },
     ],
   },
