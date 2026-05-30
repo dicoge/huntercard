@@ -1,3 +1,5 @@
+import { TutorialSection } from '../data/tutorialData';
+
 // Card types
 export interface Card {
   id: string;
@@ -45,6 +47,7 @@ export type RootStackParamList = {
   CardDetail: { card: Card };
   Scanner: undefined;
   SearchResults: { query: string; results: TCGSearchResult };
+  TutorialDetail: { section: TutorialSection };
 };
 
 export type MainDrawerParamList = {
@@ -53,6 +56,7 @@ export type MainDrawerParamList = {
   Search: undefined;
   Favorites: undefined;
   Settings: undefined;
+  Tutorial: undefined;
 };
 
 // Settings types

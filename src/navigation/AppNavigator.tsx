@@ -14,6 +14,9 @@ import SettingsScreen from '../screens/SettingsScreen';
 import CardDetailScreen from '../screens/CardDetailScreen';
 import SearchResultsScreen from '../screens/SearchResultsScreen';
 
+import TutorialScreen from '../screens/TutorialScreen';
+import TutorialDetailScreen from '../screens/TutorialDetailScreen';
+
 // Types
 import { RootStackParamList, MainDrawerParamList } from '../types';
 
@@ -99,6 +102,16 @@ function MainDrawer() {
         }}
       />
       <Drawer.Screen 
+        name="Tutorial" 
+        component={TutorialScreen}
+        options={{ 
+          title: '規則教學',
+          drawerIcon: ({ focused }) => (
+            <Text style={[styles.drawerIcon, focused && styles.drawerIconFocused]}>📚</Text>
+          ),
+        }}
+      />
+      <Drawer.Screen 
         name="Settings" 
         component={SettingsScreen}
         options={{ 
@@ -143,6 +156,11 @@ function StackNavigator() {
         name="SearchResults"
         component={SearchResultsScreen}
         options={{ title: '搜尋結果' }}
+      />
+      <Stack.Screen
+        name="TutorialDetail"
+        component={TutorialDetailScreen}
+        options={{ title: '規則詳解' }}
       />
     </Stack.Navigator>
   );
