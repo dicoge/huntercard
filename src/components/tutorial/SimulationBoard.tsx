@@ -207,6 +207,8 @@ const styles = StyleSheet.create({
   zoneMobile: {
     borderRadius: 8,
     borderWidth: 1,
+    aspectRatio: undefined,
+    height: 50,
   },
   zoneHighlighted: {
     borderColor: COLORS.primary,

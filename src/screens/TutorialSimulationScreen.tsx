@@ -57,7 +57,7 @@ export default function TutorialSimulationScreen({ navigation }: any) {
   const progressPercent = ((stepsDone) / (totalSteps - 1)) * 100;
 
   const boardMaxHeight = isMobile
-    ? Math.min(screenHeight * 0.3, 200)
+    ? Math.min(screenHeight * 0.28, 200)
     : Math.min(screenHeight * 0.4, 320);
 
   return (

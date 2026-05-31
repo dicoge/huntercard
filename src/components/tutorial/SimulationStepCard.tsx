@@ -45,7 +45,7 @@ export default function SimulationStepCard({
 
       {/* Scrollable step content */}
       <ScrollView
-        style={styles.stepScroll}
+        style={[styles.stepScroll, isMobile && styles.stepScrollMobile]}
         contentContainerStyle={styles.stepScrollContent}
         showsVerticalScrollIndicator={false}
         nestedScrollEnabled
@@ -183,6 +183,9 @@ const styles = StyleSheet.create({
   },
   stepScroll: {
     maxHeight: 280,
+  },
+  stepScrollMobile: {
+    maxHeight: 180,
   },
   stepScrollContent: {},
   stepTitle: {
