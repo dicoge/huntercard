@@ -15,18 +15,28 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { CameraView, useCameraPermissions, CameraType } from 'expo-camera';
+import WebCamera, { WebCameraHandle } from '../components/WebCamera';
 import * as ImagePicker from 'expo-image-picker';
 import { recognizeText } from 'expo-ocr-kit';
 import { COLORS } from '../constants';
 import { recognizeCard, searchCards, CardInfo } from '../services/cardRecognition';
 
+// iOS Safari: getUserMedia 需直接從使用者手勢觸發
+// 所以 web 版跳過 expo-camera 的 useCameraPermissions，改用 WebCamera 直接管
+const isWeb = Platform.OS === 'web';
+
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SCAN_AREA_SIZE = SCREEN_WIDTH * 0.75;
 
 export default function ScanScreen() {
-  const [permission, requestPermission] = useCameraPermissions();
+  // iOS web 不用 expo-camera 權限系統（避免 getUserMedia 手勢鏈中斷）
+  const [permission, requestPermission] = isWeb ? [null, null] as any : useCameraPermissions();
+  const [webCameraStarted, setWebCameraStarted] = useState(false);
   const [facing, setFacing] = useState<CameraType>('back');
   const cameraRef = useRef<CameraView>(null);
+  const webCameraRef = useRef<WebCameraHandle>(null);
+  // 在手勢鏈中取得的 stream，避免 iOS Safari 阻擋 getUserMedia
+  const webStreamRef = useRef<MediaStream | null>(null);
   
   // 相機狀態
   const [isCameraReady, setIsCameraReady] = useState<boolean>(false);
@@ -55,8 +65,9 @@ export default function ScanScreen() {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const borderAnim = useRef(new Animated.Value(0)).current;
 
-  // 显式请求相机权限 - 修复 Android 权限问题
+  // 显式请求相机权限 - 修复 Android/iOS 权限问题（web 版跳過，由 WebCamera 直接處理）
   useEffect(() => {
+    if (isWeb) return;
     const requestPermissionExplicitly = async () => {
       if (!permission?.granted) {
         try {
@@ -140,7 +151,12 @@ export default function ScanScreen() {
 
   // OCR 識別功能
   const captureAndRecognize = async () => {
-    if (!cameraRef.current) {
+    if (isWeb) {
+      if (!webCameraRef.current) {
+        Alert.alert('錯誤', '相機未準備好');
+        return;
+      }
+    } else if (!cameraRef.current) {
       Alert.alert('錯誤', '相機未準備好');
       return;
     }
@@ -150,9 +166,16 @@ export default function ScanScreen() {
       setIsScanning(true);
       
       // 拍攝照片
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.8,
-      });
+      let photo;
+      if (isWeb) {
+        photo = await webCameraRef.current!.takePictureAsync({
+          quality: 0.8,
+        });
+      } else {
+        photo = await cameraRef.current!.takePictureAsync({
+          quality: 0.8,
+        });
+      }
       
       if (!photo?.uri) {
         throw new Error('無法拍攝照片');
@@ -394,30 +417,33 @@ export default function ScanScreen() {
     }
   };
 
-  // 权限请求中
-  if (!permission) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>載入相機中...</Text>
-        </View>
-      </View>
-    );
-  }
-
-  // 权限被拒绝
-  if (!permission.granted) {
+  // === Web 版：不用 expo-camera 權限，直接讓 WebCamera 處理 getUserMedia ===
+  if (isWeb && !webCameraStarted) {
     return (
       <View style={styles.container}>
         <View style={styles.permissionContainer}>
           <Text style={styles.permissionIcon}>📷</Text>
           <Text style={styles.permissionTitle}>需要相機權限</Text>
           <Text style={styles.permissionText}>
-            掃描卡牌需要使用相機功能，請允許存取相機以使用此功能。
+            掃描卡牌需要使用相機功能，請點擊下方按鈕以允許存取相機。
           </Text>
           <TouchableOpacity 
             style={styles.permissionButton}
-            onPress={requestPermission}
+            onPress={async () => {
+              // iOS Safari 的 getUserMedia 必須在點擊事件手勢鏈中直接呼叫
+              // 不能在 useEffect（macrotask）中呼叫，否則會被拒絕
+              try {
+                setWebCameraStarted(true);
+                const stream = await navigator.mediaDevices.getUserMedia({
+                  video: { facingMode: 'environment' },
+                  audio: false,
+                });
+                webStreamRef.current = stream;
+              } catch (e: any) {
+                setCameraError(e?.message || '無法開啟相機');
+                setIsCameraReady(false);
+              }
+            }}
             activeOpacity={0.7}
           >
             <Text style={styles.permissionButtonText}>允許相機權限</Text>
@@ -434,71 +460,109 @@ export default function ScanScreen() {
     );
   }
 
-  // 權限已授予但相機尚未準備好
-  if (!isCameraReady) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>相機初始化中...</Text>
-          {cameraError && (
-            <View style={resultStyles.errorContainer}>
-              <Text style={resultStyles.errorText}>❌ {cameraError}</Text>
-              <TouchableOpacity 
-                style={resultStyles.retryButton}
-                onPress={() => {
-                  setCameraError(null);
-                  setIsCameraReady(false);
-                }}
-              >
-                <Text style={resultStyles.retryText}>重試</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+  // === Native 版：用 expo-camera 權限系統 ===
+  if (!isWeb) {
+    // 权限请求中
+    if (!permission) {
+      return (
+        <View style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>載入相機中...</Text>
+          </View>
         </View>
-      </View>
-    );
+      );
+    }
+
+    // 权限被拒绝
+    if (!permission.granted) {
+      return (
+        <View style={styles.container}>
+          <View style={styles.permissionContainer}>
+            <Text style={styles.permissionIcon}>📷</Text>
+            <Text style={styles.permissionTitle}>需要相機權限</Text>
+            <Text style={styles.permissionText}>
+              掃描卡牌需要使用相機功能，請允許存取相機以使用此功能。
+            </Text>
+            <TouchableOpacity 
+              style={styles.permissionButton}
+              onPress={requestPermission}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.permissionButtonText}>允許相機權限</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.settingsButton}
+              onPress={openSettings}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.settingsButtonText}>打開設定</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
   }
 
   return (
     <View style={styles.container}>
-      {/* 相机预览 */}
-      <CameraView
-        ref={cameraRef}
-        style={styles.camera}
-        facing={facing}
-        flash={flash ? 'on' : 'off'}
-        onCameraReady={handleCameraReady}
-        onMountError={handleMountError}
-      >
-        {/* 遮罩层 */}
-        <View style={styles.overlay}>
-          {/* 顶部遮罩 */}
-          <View style={styles.overlayTop} />
-          
-          {/* 中间扫描区域 */}
-          <View style={styles.scanAreaContainer}>
-            {/* 左侧遮罩 */}
-            <View style={styles.overlaySide} />
-            
-            {/* 扫描框 */}
-            <Animated.View 
-              style={[
-                styles.scanArea,
-                { 
-                  transform: [{ scale: pulseAnim }],
-                  borderColor: borderAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [COLORS.primary, COLORS.primaryLight],
-                  }),
-                }
-              ]}
-            >
-              {/* 扫描线 */}
+      {/* 初始化中遮罩 — 相機在下面照常 mount，讓 getUserMedia 有機會啟動 */}
+      {!isCameraReady && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>相機初始化中...</Text>
+            {cameraError && (
+              <View style={resultStyles.errorContainer}>
+                <Text style={resultStyles.errorText}>❌ {cameraError}</Text>
+                <TouchableOpacity 
+                  style={resultStyles.retryButton}
+                  onPress={() => {
+                    setCameraError(null);
+                    if (isWeb && webCameraRef.current) {
+                      webCameraRef.current.retry();
+                    } else {
+                      setIsCameraReady(false);
+                    }
+                  }}
+                >
+                  <Text style={resultStyles.retryText}>重試</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
+      )}
+      {/* 相机预览 — 一定會 mount，不會被初始化中判斷擋住 */}
+{isWeb ? (
+        <WebCamera
+          ref={webCameraRef}
+          style={styles.camera}
+          facing={facing}
+          initialStream={webStreamRef.current}
+          onCameraReady={handleCameraReady}
+          onMountError={handleMountError}
+        >
+          {/* 遮罩层 — same content for both */}
+          <View style={styles.overlay}>
+            <View style={styles.overlayTop} />
+            <View style={styles.scanAreaContainer}>
+              <View style={styles.overlaySide} />
               <Animated.View 
                 style={[
-                  styles.scanLine,
-                  {
-                    transform: [{
+                  styles.scanArea,
+                  { 
+                    transform: [{ scale: pulseAnim }],
+                    borderColor: borderAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [COLORS.primary, COLORS.primaryLight],
+                    }),
+                  }
+                ]}
+              >
+                <Animated.View 
+                  style={[
+                    styles.scanLine,
+                    {
+                      transform: [{
                       translateY: scanLineAnim.interpolate({
                         inputRange: [0, 1],
                         outputRange: [0, SCAN_AREA_SIZE - 4],
@@ -511,35 +575,21 @@ export default function ScanScreen() {
                   }
                 ]}
               />
-              
-              {/* 角落标记 */}
               <View style={[styles.corner, styles.topLeft]} />
               <View style={[styles.corner, styles.topRight]} />
               <View style={[styles.corner, styles.bottomLeft]} />
               <View style={[styles.corner, styles.bottomRight]} />
-              
-              {/* 扫描状态指示 */}
               {isScanning && (
                 <View style={styles.scanningIndicator}>
                   <Text style={styles.scanningText}>識別中...</Text>
                 </View>
               )}
             </Animated.View>
-            
-            {/* 右侧遮罩 */}
             <View style={styles.overlaySide} />
           </View>
-          
-          {/* 底部遮罩 */}
           <View style={styles.overlayBottom}>
-            {/* 提示文字 */}
-            <Text style={styles.hintText}>
-              將卡牌置於掃描框內
-            </Text>
-            
-            {/* 控制按钮 */}
+            <Text style={styles.hintText}>將卡牌置於掃描框內</Text>
             <View style={styles.controls}>
-              {/* 手电筒 */}
               <TouchableOpacity 
                 style={[styles.controlBtn, flash && styles.controlBtnActive]}
                 onPress={toggleFlash}
@@ -548,8 +598,6 @@ export default function ScanScreen() {
                 <Text style={styles.controlIcon}>{flash ? '🔦' : '💡'}</Text>
                 <Text style={styles.controlLabel}>{flash ? '閃光燈開' : '閃光燈'}</Text>
               </TouchableOpacity>
-              
-              {/* 扫描按钮 */}
               <TouchableOpacity 
                 style={[styles.scanButton, isScanning && styles.scanButtonDisabled]}
                 onPress={handleScan}
@@ -557,16 +605,10 @@ export default function ScanScreen() {
                 activeOpacity={0.7}
               >
                 <View style={styles.scanButtonInner}>
-                  <Text style={styles.scanButtonIcon}>
-                    {isScanning ? '⏳' : '📷'}
-                  </Text>
+                  <Text style={styles.scanButtonIcon}>{isScanning ? '⏳' : '📷'}</Text>
                 </View>
-                <Text style={styles.scanButtonLabel}>
-                  {isScanning ? '識別中...' : '掃描'}
-                </Text>
+                <Text style={styles.scanButtonLabel}>{isScanning ? '識別中...' : '掃描'}</Text>
               </TouchableOpacity>
-              
-              {/* 切换摄像头 */}
               <TouchableOpacity 
                 style={styles.controlBtn}
                 onPress={toggleCameraFacing}
@@ -577,8 +619,97 @@ export default function ScanScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </CameraView>
+          </View>
+        </WebCamera>
+      ) : (
+        <CameraView
+          ref={cameraRef}
+          style={styles.camera}
+          facing={facing}
+          flash={flash ? 'on' : 'off'}
+          onCameraReady={handleCameraReady}
+          onMountError={handleMountError}
+        >
+          <View style={styles.overlay}>
+            <View style={styles.overlayTop} />
+            <View style={styles.scanAreaContainer}>
+              <View style={styles.overlaySide} />
+              <Animated.View 
+                style={[
+                  styles.scanArea,
+                  { 
+                    transform: [{ scale: pulseAnim }],
+                    borderColor: borderAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [COLORS.primary, COLORS.primaryLight],
+                    }),
+                  }
+                ]}
+              >
+                <Animated.View 
+                  style={[
+                    styles.scanLine,
+                    {
+                      transform: [{
+                      translateY: scanLineAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, SCAN_AREA_SIZE - 4],
+                      }),
+                    }],
+                    opacity: scanLineAnim.interpolate({
+                      inputRange: [0, 0.5, 1],
+                      outputRange: [0, 1, 0],
+                    }),
+                  }
+                ]}
+              />
+              <View style={[styles.corner, styles.topLeft]} />
+              <View style={[styles.corner, styles.topRight]} />
+              <View style={[styles.corner, styles.bottomLeft]} />
+              <View style={[styles.corner, styles.bottomRight]} />
+              {isScanning && (
+                <View style={styles.scanningIndicator}>
+                  <Text style={styles.scanningText}>識別中...</Text>
+                </View>
+              )}
+            </Animated.View>
+            <View style={styles.overlaySide} />
+          </View>
+          <View style={styles.overlayBottom}>
+            <Text style={styles.hintText}>將卡牌置於掃描框內</Text>
+            <View style={styles.controls}>
+              <TouchableOpacity 
+                style={[styles.controlBtn, flash && styles.controlBtnActive]}
+                onPress={toggleFlash}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.controlIcon}>{flash ? '🔦' : '💡'}</Text>
+                <Text style={styles.controlLabel}>{flash ? '閃光燈開' : '閃光燈'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.scanButton, isScanning && styles.scanButtonDisabled]}
+                onPress={handleScan}
+                disabled={isScanning}
+                activeOpacity={0.7}
+              >
+                <View style={styles.scanButtonInner}>
+                  <Text style={styles.scanButtonIcon}>{isScanning ? '⏳' : '📷'}</Text>
+                </View>
+                <Text style={styles.scanButtonLabel}>{isScanning ? '識別中...' : '掃描'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.controlBtn}
+                onPress={toggleCameraFacing}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.controlIcon}>🔄</Text>
+                <Text style={styles.controlLabel}>翻轉</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          </View>
+        </CameraView>
+      )}
       
       {/* 辨識結果顯示 */}
       {recognizedCard && (
@@ -729,6 +860,11 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 10,
+    backgroundColor: COLORS.background,
   },
   loadingContainer: {
     flex: 1,
