@@ -1,0 +1,102 @@
+=== Scrape Log 2026-06-06T12:00:42.089Z ===
+═══════════════════════════════════════
+  hunterCard Database Builder
+═══════════════════════════════════════
+
+── Step 1: Scrape yuyu-tei ──
+[database] Starting yuyu-tei scrape (Puppeteer)...
+[database] Scraping hBP04: /sell/hocg/s/hbp04
+  → Found 108 cards with prices
+[database] Scraping hBP01: /sell/hocg/s/search?search_word=&vers[]=hbp01
+  → Found 126 cards with prices
+[database] Scraping hBP02: /sell/hocg/s/search?search_word=&vers[]=hbp02
+  → Found 105 cards with prices
+[database] Scraping hBP03: /sell/hocg/s/search?search_word=&vers[]=hbp03
+  → Found 116 cards with prices
+[database] Scraping hBP05: /sell/hocg/s/search?search_word=&vers[]=hbp05
+  → Found 99 cards with prices
+[database] Scraping hBP06: /sell/hocg/s/search?search_word=&vers[]=hbp06
+  → Found 120 cards with prices
+[database] Scraping hBP07: /sell/hocg/s/search?search_word=&vers[]=hbp07
+  → Found 122 cards with prices
+[database] Scraping hSD01: /sell/hocg/s/search?search_word=&vers[]=hsd01
+  → Found 21 cards with prices
+[database] Scraping hSD02: /sell/hocg/s/search?search_word=&vers[]=hsd02
+  → Found 14 cards with prices
+[database] Scraping hSD03: /sell/hocg/s/search?search_word=&vers[]=hsd03
+  → Found 14 cards with prices
+[database] Scraping hSD04: /sell/hocg/s/search?search_word=&vers[]=hsd04
+  → Found 14 cards with prices
+[database] Scraping hSD05: /sell/hocg/s/search?search_word=&vers[]=hsd05
+  → Found 14 cards with prices
+[database] Scraping hSD06: /sell/hocg/s/search?search_word=&vers[]=hsd06
+  → Found 14 cards with prices
+[database] Scraping hSD07: /sell/hocg/s/search?search_word=&vers[]=hsd07
+  → Found 15 cards with prices
+[database] Scraping hSD08: /sell/hocg/s/search?search_word=&vers[]=hsd08
+  → Found 9 cards with prices
+[database] Scraping hSD09: /sell/hocg/s/search?search_word=&vers[]=hsd09
+  → Found 8 cards with prices
+[database] Scraping hSD10: /sell/hocg/s/search?search_word=&vers[]=hsd10
+  → Found 13 cards with prices
+[database] Scraping hSD11: /sell/hocg/s/search?search_word=&vers[]=hsd11
+  → Found 9 cards with prices
+[database] Scraping hSD12: /sell/hocg/s/search?search_word=&vers[]=hsd12
+  → Found 19 cards with prices
+[database] Scraping hSD13: /sell/hocg/s/search?search_word=&vers[]=hsd13
+  → Found 18 cards with prices
+[database] Scraping hSD14: /sell/hocg/s/search?search_word=&vers[]=hsd14
+  → Found 12 cards with prices
+[database] Scraping hSD15: /sell/hocg/s/search?search_word=&vers[]=hsd15
+  → Found 11 cards with prices
+[database] Scraping hSD16: /sell/hocg/s/search?search_word=&vers[]=hsd16
+  → Found 10 cards with prices
+[database] Scraping hSD17: /sell/hocg/s/search?search_word=&vers[]=hsd17
+  → Found 11 cards with prices
+[database] Scraping hSD18: /sell/hocg/s/search?search_word=&vers[]=hsd18
+  → Found 10 cards with prices
+[database] Scraping hSD19: /sell/hocg/s/search?search_word=&vers[]=hsd19
+  → Found 11 cards with prices
+[database] Scraping hPR: /sell/hocg/s/special/1
+  → Found 68 cards with prices
+[database] Scraping hY: /sell/hocg/s/special/2
+  → Found 80 cards with prices
+[database] Scraping ent07: /sell/hocg/s/special/4
+  → Found 158 cards with prices
+[database] Scraping hCS01: /sell/hocg/s/special/5
+  → Found 100 cards with prices
+[database] Scraping hPC01: /sell/hocg/s/special/7
+  → Found 126 cards with prices
+[database] Scraping hSD2025summer: /sell/hocg/s/special/8
+  → Found 128 cards with prices
+
+  Total cards from yuyu-tei: 1703
+
+── Step 2: Download images ──
+
+[database] Downloading images...
+  [images] Downloaded: 0, Skipped: 1055, Errors: 0
+
+── Step 3: Merge official data ──
+
+[database] Loading official card data...
+  [official] Loaded 1113 cards from 40 files
+
+── Step 4: Build unified database ──
+
+═══════════════════════════════════════
+  ✅ Build complete!
+  Total cards: 1113
+  Cards with prices: 1055
+  Images downloaded: 0
+  Duration: 232.3s
+  Output: /Users/dicoge/hunterCard/data/database.json
+═══════════════════════════════════════
+
+Build result: {
+  "totalCards": 1113,
+  "yuyuCount": 1055,
+  "officialCount": 1113,
+  "imagesDownloaded": 0,
+  "duration": 232.3
+}

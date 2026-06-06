@@ -431,14 +431,14 @@ export default function ScanScreen() {
             style={styles.permissionButton}
             onPress={async () => {
               // iOS Safari 的 getUserMedia 必須在點擊事件手勢鏈中直接呼叫
-              // 不能在 useEffect（macrotask）中呼叫，否則會被拒絕
+              // 先等 stream 拿到再 mount WebCamera，避免 timing 競爭
               try {
-                setWebCameraStarted(true);
                 const stream = await navigator.mediaDevices.getUserMedia({
                   video: { facingMode: 'environment' },
                   audio: false,
                 });
                 webStreamRef.current = stream;
+                setWebCameraStarted(true);
               } catch (e: any) {
                 setCameraError(e?.message || '無法開啟相機');
                 setIsCameraReady(false);
