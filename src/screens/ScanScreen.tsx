@@ -16,6 +16,8 @@ import {
 } from 'react-native';
 import { CameraView, useCameraPermissions, CameraType } from 'expo-camera';
 import WebCamera, { WebCameraHandle } from '../components/WebCamera';
+import ScanSessionPanel from '../components/ScanSessionPanel';
+import { useScanSessionStore } from '../stores/scanSessionStore';
 import * as ImagePicker from 'expo-image-picker';
 import { recognizeText } from 'expo-ocr-kit';
 import { COLORS } from '../constants';
@@ -37,6 +39,8 @@ export default function ScanScreen() {
   const webCameraRef = useRef<WebCameraHandle>(null);
   // 在手勢鏈中取得的 stream，避免 iOS Safari 阻擋 getUserMedia
   const webStreamRef = useRef<MediaStream | null>(null);
+  const addCard = useScanSessionStore(s => s.addCard);
+  const [lastScannedCard, setLastScannedCard] = useState<CardInfo | null>(null);
   
   // 相機狀態
   const [isCameraReady, setIsCameraReady] = useState<boolean>(false);
@@ -195,10 +199,11 @@ export default function ScanScreen() {
         const result = recognizeCard(recognizedText);
         
         if (result.success && result.card) {
+          addCard(result.card);
+          setLastScannedCard(result.card);
           setSearchResults([]);
           setSearchError(null);
-          setRecognizedCard(result.card);
-          setSuggestions(result.suggestions || []);
+          setSuggestions([]);
         } else {
           // 沒有精確匹配，顯示文字讓用戶確認
           Alert.alert(
@@ -210,10 +215,11 @@ export default function ScanScreen() {
                 onPress: () => {
                   const result = recognizeCard(recognizedText);
                   if (result.success && result.card) {
+                    addCard(result.card);
+                    setLastScannedCard(result.card);
                     setSearchResults([]);
                     setSearchError(null);
-                    setRecognizedCard(result.card);
-                    setSuggestions(result.suggestions || []);
+                    setSuggestions([]);
                   } else {
                     setSearchError(result.error || '找不到匹配的卡牌');
                     const searchResult = searchCards(recognizedText, 5);
@@ -277,10 +283,11 @@ export default function ScanScreen() {
         if (recognizedText.trim().length > 0) {
           const cardResult = recognizeCard(recognizedText);
           if (cardResult.success && cardResult.card) {
+            addCard(cardResult.card);
+            setLastScannedCard(cardResult.card);
             setSearchResults([]);
             setSearchError(null);
-            setRecognizedCard(cardResult.card);
-            setSuggestions(cardResult.suggestions || []);
+            setSuggestions([]);
           } else {
             setSearchError(cardResult.error || '找不到匹配的卡牌');
             const searchResult = searchCards(recognizedText, 5);
@@ -711,65 +718,26 @@ export default function ScanScreen() {
         </CameraView>
       )}
       
-      {/* 辨識結果顯示 */}
-      {recognizedCard && (
-        <View style={resultStyles.resultContainer}>
-          <View style={resultStyles.resultCard}>
-            <Text style={resultStyles.resultTitle}>🌟 辨識結果</Text>
-            
-            <View style={resultStyles.cardInfo}>
-              <Text style={resultStyles.cardName}>{recognizedCard.name}</Text>
-              <Text style={resultStyles.cardId}>編號: {recognizedCard.id}</Text>
-            </View>
-            
-            <View style={resultStyles.priceContainer}>
-              <Text style={resultStyles.priceLabel}>💰 售價</Text>
-              <Text style={resultStyles.priceValue}>
-                ¥{recognizedCard.sellPrice.toLocaleString()}
-              </Text>
-            </View>
-            
-            <Text style={resultStyles.timestamp}>
-              更新: {new Date(recognizedCard.timestamp).toLocaleDateString('ja-JP')}
-            </Text>
-            
-            {/* 相似卡片建議 */}
-            {suggestions.length > 0 && (
-              <View style={resultStyles.suggestions}>
-                <Text style={resultStyles.suggestionsTitle}>相似卡片:</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {suggestions.map((card, index) => (
-                    <TouchableOpacity 
-                      key={index}
-                      style={resultStyles.suggestionCard}
-                      onPress={() => handleSelectSuggestion(card)}
-                    >
-                      <Text style={resultStyles.suggestionName} numberOfLines={2}>
-                        {card.name}
-                      </Text>
-                      <Text style={resultStyles.suggestionPrice}>
-                        ¥{card.sellPrice.toLocaleString()}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+      {/* 最後掃描的卡牌確認提示 */}
+      {lastScannedCard && (
+        <View style={resultStyles.toastContainer}>
+          <View style={resultStyles.toast}>
+            <View style={resultStyles.toastContent}>
+              <Text style={resultStyles.toastIcon}>✅</Text>
+              <View style={resultStyles.toastTextContainer}>
+                <Text style={resultStyles.toastName} numberOfLines={1}>
+                  {lastScannedCard.name}
+                </Text>
+                <Text style={resultStyles.toastPrice}>
+                  ¥{lastScannedCard.sellPrice?.toLocaleString() || '—'}
+                </Text>
               </View>
-            )}
-            
-            <View style={resultStyles.resultActions}>
-              <TouchableOpacity style={resultStyles.actionButton}>
-                <Text style={resultStyles.actionText}>❤️ 收藏</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={resultStyles.actionButton}>
-                <Text style={resultStyles.actionText}>📤 分享</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[resultStyles.actionButton, resultStyles.closeButton]}
-                onPress={clearResult}
-              >
-                <Text style={resultStyles.closeText}>關閉</Text>
-              </TouchableOpacity>
             </View>
+            <TouchableOpacity
+              onPress={() => setLastScannedCard(null)}
+            >
+              <Text style={resultStyles.toastClose}>✕</Text>
+            </TouchableOpacity>
           </View>
         </View>
       )}
@@ -849,6 +817,12 @@ export default function ScanScreen() {
           </View>
         </View>
       </Modal>
+      
+      {/* 掃描估值面板 */}
+      <ScanSessionPanel onContinueScanning={() => {
+        setLastScannedCard(null);
+        setScanComplete(false);
+      }} />
     </View>
   );
 }
@@ -1177,6 +1151,51 @@ const resultStyles = StyleSheet.create({
   closeText: {
     color: '#fff',
     fontSize: 14,
+  },
+  // Toast notification for last scanned card
+  toastContainer: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    right: 20,
+    zIndex: 30,
+  },
+  toast: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  toastContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  toastIcon: {
+    fontSize: 20,
+  },
+  toastTextContainer: {
+    flex: 1,
+  },
+  toastName: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  toastPrice: {
+    color: '#00C853',
+    fontSize: 13,
+    fontWeight: 'bold',
+    marginTop: 2,
+  },
+  toastClose: {
+    color: COLORS.textSecondary,
+    fontSize: 16,
+    paddingLeft: 8,
   },
   errorContainer: {
     position: 'absolute',
