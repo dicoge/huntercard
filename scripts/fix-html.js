@@ -20,9 +20,31 @@ fs.copyFileSync(
   path.join(distDir, 'manifest.json')
 );
 
+// Add type="module" to all bundle script tags (fixes import.meta outside module error)
+html = html.replace(
+  /<script\s+src="(\/_expo\/static\/js\/web\/.*?)"\s+defer><\/script>/g,
+  '<script type="module" src="$1" defer></script>'
+);
+
 // If manifest link already exists (public/index.html has it), skip re-adding
 if (html.includes('manifest')) {
   console.log('PWA meta tags already present, skipping injection.');
+
+  // Save the HTML (type=module fix applied above)
+  fs.writeFileSync(htmlPath, html, 'utf-8');
+
+  // Also copy database.json (needed by frontend search)
+  const dbSource = path.join(__dirname, '..', 'data', 'database.json');
+  const dbDest = path.join(distDir, 'data', 'database.json');
+  if (fs.existsSync(dbSource)) {
+    fs.mkdirSync(path.dirname(dbDest), { recursive: true });
+    fs.copyFileSync(dbSource, dbDest);
+    console.log('  ✅ database.json → dist/data/database.json');
+  } else {
+    console.log('  ⚠️ database.json not found, skipping');
+  }
+
+  console.log('Script tags fixed (type=module added).');
   process.exit(0);
 }
 
@@ -38,12 +60,6 @@ const pwaTags = `
     <meta name="apple-mobile-web-app-title" content="HoloHunter" />
     <link rel="apple-touch-icon" href="/favicon.ico" />
   `;
-
-// Add type="module" to all bundle script tags (fixes import.meta outside module error)
-html = html.replace(
-  /<script\s+src="(\/_expo\/static\/js\/web\/.*?)"\s+defer><\/script>/g,
-  '<script type="module" src="$1" defer></script>'
-);
 
 html = html.replace('</head>', pwaTags + '\n  </head>');
 fs.writeFileSync(htmlPath, html, 'utf-8');
