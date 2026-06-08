@@ -32,6 +32,8 @@ export default function SearchResultsScreen({ route, navigation }: any) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+    
     if (!query.trim()) {
       setError('無搜尋關鍵字');
       setLoading(false);
@@ -41,8 +43,10 @@ export default function SearchResultsScreen({ route, navigation }: any) {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
       try {
-        const res = await fetch(`https://card-hunter-mu.vercel.app/api/search?q=${encodeURIComponent(query.trim())}`);
+        const res = await fetch(`https://card-hunter-mu.vercel.app/api/search?q=${encodeURIComponent(query.trim())}`, { signal: controller.signal });
+        clearTimeout(timeoutId);
         if (!res.ok) {
           const body = await res.json().catch(() => null);
           setError(body?.error || `HTTP ${res.status}`);
@@ -51,12 +55,19 @@ export default function SearchResultsScreen({ route, navigation }: any) {
         const json = await res.json();
         setData(json);
       } catch (err) {
-        setError(err instanceof Error ? err.message : '查詢失敗');
+        if ((err as any)?.name === 'AbortError') {
+          setError('查詢逾時，請稍後再試');
+        } else {
+          setError(err instanceof Error ? err.message : '查詢失敗');
+        }
       } finally {
+        clearTimeout(timeoutId);
         setLoading(false);
       }
     };
     fetchData();
+
+    return () => controller.abort();
   }, [query]);
 
   if (loading) return (

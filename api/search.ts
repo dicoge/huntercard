@@ -22,20 +22,33 @@ const COLOR_MAP: Record<string, string> = {
 };
 const GRADE_RARITY: Record<string, string> = { debut: 'C', '1st': 'U', '2nd': 'R', buzz: 'SR', spot: 'N' };
 
-// Read database.json at module load time
-// Use path relative to project root
+// Lazy async init — load database.json on first request, not at module load time
+let databaseInitPromise: Promise<void> | null = null;
 let database: any = { cards: {}, totalCards: 0, lastUpdated: '' };
-try {
-  const dbPath = path.resolve(process.cwd(), 'data/database.json');
-  if (fs.existsSync(dbPath)) {
-    const raw = fs.readFileSync(dbPath, 'utf-8');
-    database = JSON.parse(raw);
-    console.log(`[search-api] Loaded database: ${database.totalCards} cards, updated ${database.lastUpdated}`);
-  } else {
-    console.warn(`[search-api] database.json not found at ${dbPath}`);
-  }
-} catch (e: any) {
-  console.error('[search-api] Failed to load database:', e.message);
+
+async function initDatabase(): Promise<void> {
+  if (databaseInitPromise) return databaseInitPromise;
+  databaseInitPromise = (async () => {
+    try {
+      // Try resolving relative to api/ dir first (Vercel bundle), fall back to process.cwd()
+      const candidates = [
+        path.resolve(__dirname, '..', 'data', 'database.json'),
+        path.resolve(process.cwd(), 'data', 'database.json'),
+      ];
+      for (const dbPath of candidates) {
+        if (fs.existsSync(dbPath)) {
+          const raw = await fs.promises.readFile(dbPath, 'utf-8');
+          database = JSON.parse(raw);
+          console.log(`[search-api] Loaded database: ${database.totalCards} cards, updated ${database.lastUpdated}`);
+          return;
+        }
+      }
+      console.warn(`[search-api] database.json not found (tried: ${candidates.join(', ')})`);
+    } catch (e: any) {
+      console.error('[search-api] Failed to load database:', e.message);
+    }
+  })();
+  return databaseInitPromise;
 }
 
 export const config = { runtime: 'nodejs' };
@@ -49,6 +62,9 @@ export default async function handler(req: Request) {
   }
 
   try {
+    // Ensure database is loaded before handling the request
+    await initDatabase();
+
     const url = new URL(req.url);
     const q = url.searchParams.get('q');
     if (!q) {
