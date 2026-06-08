@@ -1,6 +1,8 @@
 // hunterCard Search API
-// 從統一的 database.json 提供卡片查詢服務
-// 不再依賴外部來源（GitHub raw / 官方網站）
+// @deprecated — Vercel Serverless Functions (Node runtime) timeout on this project.
+// Search is now handled client-side in SearchResultsScreen.tsx which fetches
+// /data/database.json directly and runs the same matching/mapping logic in JS.
+// This file is kept for reference but no longer called by the frontend.
 
 import fs from 'fs';
 import path from 'path';

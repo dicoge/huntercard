@@ -2,12 +2,50 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Linking, ActivityIndicator, Image } from 'react-native';
 import { COLORS } from '../constants';
 
+// ── Server-side search constants (ported from api/search.ts) ──
+
+const SERIES_NAMES: Record<string, string> = {
+  hBP01: 'ブルーミングレディアンス', hBP02: 'クインテットスペクトラム',
+  hBP03: 'サバイバル・オブ・ザ・フェイビアス',
+  hBP04: 'キュリアスユニバース', hBP05: 'エンチャントレガリア',
+  hBP06: 'アヤカシヴァーミリオン', hBP07: 'ディーヴァフィーバー',
+  hSD01: 'スターターデッキ ときのそら', hSD02: 'スターターデッキ 白上フブキ',
+  hSD03: 'スターターデッキ 湊あくあ', hSD04: 'スターターデッキ 天音かなた',
+  hSD05: 'スターターデッキ ReGLOSS', hSD06: 'スターターデッキ 風真いろは',
+  hSD07: 'スターターデッキ 癒月ちょこ',
+  hPR: 'Promo', hBD24: 'Bandai Distribution 2024', hY: 'Yokohama Promo',
+};
+const COLOR_MAP: Record<string, string> = {
+  white: '白色', blue: '藍色', green: '綠色', red: '紅色',
+  purple: '紫色', yellow: '黃色', colorless: '無色',
+};
+const GRADE_RARITY: Record<string, string> = { debut: 'C', '1st': 'U', '2nd': 'R', buzz: 'SR', spot: 'N' };
+
+const COLOR_TO_CN: Record<string, string[]> = {
+  'white': ['白色'],
+  'blue': ['藍色', '青色'],
+  'green': ['綠色'],
+  'red': ['紅色'],
+  'purple': ['紫色'],
+  'yellow': ['黃色'],
+  'colorless': ['無色'],
+};
+
 const rarityColors: Record<string, string> = {
   N: '#8B4513', C: '#6b7280', U: '#10b981', R: '#3b82f6', SR: '#f59e0b',
 };
 const gradeLabels: Record<string, string> = {
   debut: 'Debut', '1st': '1st', '2nd': '2nd', buzz: 'Buzz', spot: 'Spot',
 };
+
+// ── Types ──
+
+interface CardRecord {
+  id: string; name: string; series: string; type: string; rarity: string;
+  color: string; localImage?: string; officialImage?: string;
+  sellPrice?: number | null; yuyuName?: string; yuyuImage?: string;
+  effects?: string[]; hp?: string; life?: string; arts?: string;
+}
 
 interface CardResult {
   id: string; name: string; type: string; grade: string; rarity: string;
@@ -17,7 +55,115 @@ interface CardResult {
   searchKeywords?: string[];
 }
 
-interface ApiResponse { query: string; total: number; results: CardResult[]; error?: string; }
+interface DatabaseSchema {
+  cards: Record<string, CardRecord>;
+  totalCards: number;
+  lastUpdated: string;
+}
+
+// ── Module-level database cache (persists across re-renders and navigation) ──
+
+let cachedDatabase: DatabaseSchema | null = null;
+let databaseFetchPromise: Promise<DatabaseSchema> | null = null;
+
+async function fetchDatabase(): Promise<DatabaseSchema> {
+  if (cachedDatabase) return cachedDatabase;
+  if (databaseFetchPromise) return databaseFetchPromise;
+
+  databaseFetchPromise = (async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    try {
+      const res = await fetch('/data/database.json', { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const db: DatabaseSchema = await res.json();
+      cachedDatabase = db;
+      return db;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  })();
+
+  return databaseFetchPromise;
+}
+
+// ── Search & mapping logic (ported from api/search.ts) ──
+
+function searchCards(database: DatabaseSchema, query: string): CardResult[] {
+  const searchQ = query.toLowerCase().trim();
+  const cards = database.cards || {};
+
+  const matched = Object.values(cards).filter((c: CardRecord) => {
+    const id = (c.id || '').toLowerCase();
+    const name = (c.name || '').toLowerCase();
+    const series = (c.series || '').toLowerCase();
+    const type = (c.type || '').toLowerCase();
+    const rarity = (c.rarity || '').toLowerCase();
+    const color = (c.color || '').toLowerCase();
+    const colorCnList = COLOR_TO_CN[color] || [];
+    const colorSearch = (color + ' ' + colorCnList.join(' ')).toLowerCase();
+
+    return id.includes(searchQ) ||
+           name.includes(searchQ) ||
+           series.includes(searchQ) ||
+           type.includes(searchQ) ||
+           rarity.includes(searchQ) ||
+           colorSearch.includes(searchQ);
+  });
+
+  return matched.map((c: CardRecord) => {
+    const id = c.id || '';
+    const name = c.name || '';
+    const rawColor = (c.color || '').toLowerCase();
+    const colors = rawColor ? [rawColor] : [];
+    const colorNames = colors.map((x: string) => COLOR_MAP[x] || x);
+    const series = c.series ? [c.series] : [];
+    const seriesNames = series.map((s: string) => SERIES_NAMES[s] || s);
+
+    // Grade/rarity mapping (same as original api/search.ts logic)
+    const rarityCode = (c.rarity || '').toUpperCase();
+    let grade = '';
+    let rarity = 'C';
+    if (rarityCode.includes('OSR') || rarityCode.includes('OUR')) { grade = 'buzz'; rarity = 'SR'; }
+    else if (rarityCode === 'UR') { grade = '2nd'; rarity = 'R'; }
+    else if (rarityCode === 'SR') { grade = '1st'; rarity = 'U'; }
+    else if (rarityCode === 'RR') { grade = 'debut'; rarity = 'C'; }
+    else if (rarityCode === 'R') { grade = 'debut'; rarity = 'C'; }
+    else if (rarityCode === 'U') { grade = 'debut'; rarity = 'C'; }
+    else if (rarityCode === 'C') { grade = 'debut'; rarity = 'C'; }
+    else if (rarityCode === 'N') { grade = 'spot'; rarity = 'N'; }
+
+    const imageUrl = c.localImage || c.officialImage || '';
+
+    return {
+      id,
+      name,
+      cardNumber: id,
+      type: c.type || '',
+      grade,
+      rarity,
+      colors,
+      colorNames,
+      series,
+      seriesNames,
+      imageUrl,
+      yuyuPrice: c.sellPrice || null,
+      yuyuPriceName: c.yuyuName || '',
+      yuyuImage: c.yuyuImage || '',
+      officialImage: c.officialImage || '',
+      localImage: c.localImage || '',
+      effects: c.effects || [],
+      hp: c.hp || '',
+      life: c.life || '',
+      arts: c.arts || '',
+      searchKeywords: [c.name || '', '', ''],
+      tags: [],
+      yuyuUrl: `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`,
+      officialUrl: `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`,
+    };
+  });
+}
 
 // Extract effect text from searchKeywords (index 3+)
 function getEffectPreview(kw: string[] = []): string {
@@ -25,56 +171,45 @@ function getEffectPreview(kw: string[] = []): string {
   return kw.slice(3).filter((t: string) => t.trim().length > 8 && gameTerms.some(g => t.includes(g))).join('\n');
 }
 
+// ── Screen component ──
+
 export default function SearchResultsScreen({ route, navigation }: any) {
   const query = route?.params?.query || '';
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<ApiResponse | null>(null);
+  const [results, setResults] = useState<CardResult[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const controller = new AbortController();
-    
     if (!query.trim()) {
       setError('無搜尋關鍵字');
       setLoading(false);
       return;
     }
-    
-    const fetchData = async () => {
+
+    const run = async () => {
       setLoading(true);
       setError(null);
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
       try {
-        const res = await fetch(`https://card-hunter-mu.vercel.app/api/search?q=${encodeURIComponent(query.trim())}`, { signal: controller.signal });
-        clearTimeout(timeoutId);
-        if (!res.ok) {
-          const body = await res.json().catch(() => null);
-          setError(body?.error || `HTTP ${res.status}`);
-          return;
-        }
-        const json = await res.json();
-        setData(json);
+        const db = await fetchDatabase();
+        const matched = searchCards(db, query);
+        setResults(matched);
       } catch (err) {
         if ((err as any)?.name === 'AbortError') {
           setError('查詢逾時，請稍後再試');
         } else {
-          setError(err instanceof Error ? err.message : '查詢失敗');
+          setError(err instanceof Error ? err.message : '資料庫載入失敗');
         }
       } finally {
-        clearTimeout(timeoutId);
         setLoading(false);
       }
     };
-    fetchData();
-
-    return () => controller.abort();
+    run();
   }, [query]);
 
   if (loading) return (
     <View style={styles.centerContainer}>
       <ActivityIndicator size="large" color={COLORS.primary} />
-      <Text style={styles.loadingText}>正在搜尋卡牌...</Text>
-
+      <Text style={styles.loadingText}>正在載入卡牌資料庫...</Text>
     </View>
   );
 
@@ -85,7 +220,7 @@ export default function SearchResultsScreen({ route, navigation }: any) {
     </View>
   );
 
-  if (!data || data.results.length === 0) return (
+  if (!results || results.length === 0) return (
     <View style={styles.centerContainer}>
       <Text style={styles.emptyIcon}>🔍</Text>
       <Text style={styles.emptyText}>找不到「{query}」的結果</Text>
@@ -99,10 +234,10 @@ export default function SearchResultsScreen({ route, navigation }: any) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={{ ...styles.queryText, color: COLORS.text }}>搜尋結果：{query}</Text>
-        <Text style={{ ...styles.resultCount, color: COLORS.textSecondary }}>找到 {data.total} 張卡牌</Text>
+        <Text style={{ ...styles.resultCount, color: COLORS.textSecondary }}>找到 {results.length} 張卡牌</Text>
       </View>
       <FlatList
-        data={data.results}
+        data={results}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <CardListItem card={item} onPress={() => navigation.navigate('CardDetail', { card: item })} />
