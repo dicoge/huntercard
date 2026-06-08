@@ -160,6 +160,7 @@ function searchCards(database: DatabaseSchema, query: string): CardResult[] {
       searchKeywords: [c.name || '', '', ''],
       tags: [],
       yuyuUrl: `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`,
+      carousellUrl: '',
       officialUrl: `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`,
     };
   });
