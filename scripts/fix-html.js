@@ -39,6 +39,12 @@ const pwaTags = `
     <link rel="apple-touch-icon" href="/favicon.ico" />
   `;
 
+// Add type="module" to all bundle script tags (fixes import.meta outside module error)
+html = html.replace(
+  /<script\s+src="(\/_expo\/static\/js\/web\/.*?)"\s+defer><\/script>/g,
+  '<script type="module" src="$1" defer></script>'
+);
+
 html = html.replace('</head>', pwaTags + '\n  </head>');
 fs.writeFileSync(htmlPath, html, 'utf-8');
 console.log('PWA meta tags injected into dist/index.html');
