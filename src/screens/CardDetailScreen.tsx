@@ -101,9 +101,9 @@ export default function CardDetailScreen({ route, navigation }: any) {
   // Use actual yuyu-tei price from API response
   const actualPrice = card.yuyuPrice;
   const priceName = card.yuyuPriceName || '';
-  const displayPrice = actualPrice ?? 0;
   const hasActualPrice = actualPrice != null && actualPrice > 0;
   const priceInfo = !hasActualPrice ? priceEstimate[rarityKey] : null;
+  const displayPrice = hasActualPrice ? actualPrice : (priceInfo?.est ?? 0);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background, paddingBottom: insets.bottom }}>
