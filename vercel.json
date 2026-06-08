@@ -1,17 +1,6 @@
 {
   "buildCommand": "expo export --platform web && node scripts/fix-html.js && node scripts/copy-assets.js",
   "outputDirectory": "dist",
-  "functions": {
-    "api/search.ts": {
-      "includeFiles": "data/**"
-    },
-    "api/get-image.ts": {
-      "includeFiles": "data/images/**"
-    },
-    "api/image.ts": {
-      "includeFiles": "data/images/**"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
