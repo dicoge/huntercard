@@ -25,7 +25,7 @@ export default function ScanSessionPanel({ onContinueScanning, onViewCard }: Sca
 
   if (cardCount === 0 && !expanded) return null;
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number | null) => {
     if (!price || price === 0) return '—';
     return `¥${price.toLocaleString()}`;
   };

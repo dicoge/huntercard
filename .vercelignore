@@ -1,0 +1,4 @@
+node_modules
+scripts/chrome
+scripts/node_modules
+.git

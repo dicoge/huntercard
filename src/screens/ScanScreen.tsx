@@ -196,7 +196,7 @@ export default function ScanScreen() {
 
       if (recognizedText.trim().length > 0) {
         // 使用識別的文字進行卡牌匹配
-        const result = recognizeCard(recognizedText);
+        const result = await recognizeCard(recognizedText);
         
         if (result.success && result.card) {
           addCard(result.card);
@@ -212,8 +212,8 @@ export default function ScanScreen() {
             [
               { 
                 text: '使用此文字搜尋', 
-                onPress: () => {
-                  const result = recognizeCard(recognizedText);
+                onPress: async () => {
+                  const result = await recognizeCard(recognizedText);
                   if (result.success && result.card) {
                     addCard(result.card);
                     setLastScannedCard(result.card);
@@ -222,7 +222,7 @@ export default function ScanScreen() {
                     setSuggestions([]);
                   } else {
                     setSearchError(result.error || '找不到匹配的卡牌');
-                    const searchResult = searchCards(recognizedText, 5);
+                    const searchResult = await searchCards(recognizedText, 5);
                     setSearchResults(searchResult);
                   }
                 }
@@ -281,7 +281,7 @@ export default function ScanScreen() {
         setIsScanning(false);
 
         if (recognizedText.trim().length > 0) {
-          const cardResult = recognizeCard(recognizedText);
+          const cardResult = await recognizeCard(recognizedText);
           if (cardResult.success && cardResult.card) {
             addCard(cardResult.card);
             setLastScannedCard(cardResult.card);
@@ -290,7 +290,7 @@ export default function ScanScreen() {
             setSuggestions([]);
           } else {
             setSearchError(cardResult.error || '找不到匹配的卡牌');
-            const searchResult = searchCards(recognizedText, 5);
+            const searchResult = await searchCards(recognizedText, 5);
             setSearchResults(searchResult);
           }
         } else {
@@ -366,11 +366,11 @@ export default function ScanScreen() {
   };
   
   // 演示識別功能
-  const demoRecognition = () => {
+  const demoRecognition = async () => {
     const demoNames = ['博衣こより', '雪花ラミィ', 'ラプラス・ダークネス', '大空スバル'];
     const randomName = demoNames[Math.floor(Math.random() * demoNames.length)];
     
-    const result = recognizeCard(randomName);
+    const result = await recognizeCard(randomName);
     if (result.success && result.card) {
       setSearchResults([]);
       setSearchError(null);
@@ -382,13 +382,13 @@ export default function ScanScreen() {
   };
   
   // 執行搜尋
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!searchQuery.trim()) {
       Alert.alert('請輸入搜尋內容');
       return;
     }
     
-    const result = recognizeCard(searchQuery);
+    const result = await recognizeCard(searchQuery);
     if (result.success && result.card) {
       setSearchResults([]);
       setSearchError(null);
@@ -399,7 +399,7 @@ export default function ScanScreen() {
     } else {
       setSearchError(result.error || '找不到匹配的卡牌');
       // 顯示搜尋結果作為建議
-      const searchResult = searchCards(searchQuery, 5);
+      const searchResult = await searchCards(searchQuery, 5);
       setSearchResults(searchResult);
     }
   };
@@ -771,7 +771,7 @@ export default function ScanScreen() {
               >
                 <Text style={resultStyles.listItemName}>{card.name}</Text>
                 <Text style={resultStyles.listItemPrice}>
-                  ¥{card.sellPrice.toLocaleString()}
+                  ¥{card.sellPrice?.toLocaleString() || '尚無交易'}
                 </Text>
               </TouchableOpacity>
             ))}
