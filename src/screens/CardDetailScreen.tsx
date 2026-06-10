@@ -103,6 +103,7 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const priceName = card.yuyuPriceName || '';
   const hasActualPrice = actualPrice != null && actualPrice > 0;
   const priceInfo = !hasActualPrice ? priceEstimate[rarityKey] : null;
+  const hasNoPrice = !hasActualPrice && !priceInfo;
   const displayPrice = hasActualPrice ? actualPrice : (priceInfo?.est ?? 0);
 
   return (
@@ -137,10 +138,13 @@ export default function CardDetailScreen({ route, navigation }: any) {
         <View style={styles.priceHeader}>
           <Text style={styles.priceSourceName}>🏪 遊々亭</Text>
           <Text style={styles.priceBadge}>
-            {hasActualPrice ? '實際售價' : '預估價格'}
+            {hasActualPrice ? '實際售價' : hasNoPrice ? '尚無交易' : '預估價格'}
           </Text>
         </View>
-        <View style={styles.priceRow}>
+        {hasNoPrice ? (
+          <Text style={styles.noPriceText}>尚無交易記錄</Text>
+        ) : (
+          <><View style={styles.priceRow}>
           <Text style={styles.priceValue}>¥{displayPrice.toLocaleString()}</Text>
           {!hasActualPrice && priceInfo && (
             <Text style={styles.priceRange}> (¥{priceInfo.min} ~ ¥{priceInfo.max})</Text>
@@ -152,6 +156,7 @@ export default function CardDetailScreen({ route, navigation }: any) {
           ) : null
         ) : (
           <Text style={styles.priceNote}>⚠️ 非即時價格，僅供參考</Text>
+        )}</>
         )}
         <TouchableOpacity style={styles.checkPriceBtn} onPress={() => openUrl(yuyuUrl)}>
           <Text style={styles.checkPriceBtnText}>🔍 查看遊々亭即時價格 →</Text>
@@ -281,6 +286,7 @@ const styles = StyleSheet.create({
   priceNote: { fontSize: 11, color: COLORS.textSecondary + 'bb', marginBottom: 12 },
   checkPriceBtn: { backgroundColor: COLORS.primary, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
   checkPriceBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  noPriceText: { fontSize: 20, fontWeight: '600', color: COLORS.textSecondary + '99', paddingVertical: 8 },
 
   // Info section
   section: { paddingHorizontal: 20, paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: COLORS.border + '44' },

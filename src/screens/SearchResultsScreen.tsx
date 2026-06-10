@@ -52,6 +52,7 @@ interface CardResult {
   colors: string[]; colorNames: string[]; series: string[]; seriesNames: string[];
   tags: string[]; cardNumber: string; imageUrl: string;
   yuyuUrl: string; carousellUrl: string; officialUrl: string;
+  yuyuPrice?: number | null;
   searchKeywords?: string[];
 }
 
@@ -286,6 +287,12 @@ function CardListItem({ card, onPress }: { card: CardResult; onPress: () => void
           {card.colorNames.length > 0 && <Text style={styles.colorText}>{card.colorNames.join(' / ')}</Text>}
         </View>
 
+        {card.yuyuPrice != null && card.yuyuPrice > 0 ? (
+          <Text style={styles.priceBadgeList}>¥{card.yuyuPrice.toLocaleString()}</Text>
+        ) : (
+          <Text style={styles.noPriceBadgeList}>尚無交易</Text>
+        )}
+
 
       </View>
     </TouchableOpacity>
@@ -322,4 +329,18 @@ const styles = StyleSheet.create({
   quickLinks: { flexDirection: 'row', gap: 8, marginTop: 'auto' },
   quickLink: { backgroundColor: COLORS.surfaceLight, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
   quickLinkText: { color: COLORS.primary, fontSize: 12, fontWeight: '600' },
+  priceBadgeList: {
+    color: COLORS.success,
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 'auto',
+    alignSelf: 'flex-end',
+  },
+  noPriceBadgeList: {
+    color: COLORS.textSecondary + '99',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 'auto',
+    alignSelf: 'flex-end',
+  },
 });

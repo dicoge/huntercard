@@ -97,6 +97,11 @@ export default function CardItem({ card, onPress, showPrices = true }: CardItemP
             </View>
           </View>
         )}
+        {showPrices && (!card.prices || card.prices.length === 0) && (
+          <View style={styles.priceSection}>
+            <Text style={styles.noPriceLabel}>尚無交易</Text>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -235,5 +240,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     width: 30,
     textAlign: 'right',
+  },
+  noPriceLabel: {
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
+    paddingVertical: 4,
   },
 });
