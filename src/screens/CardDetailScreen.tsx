@@ -113,11 +113,11 @@ export default function CardDetailScreen({ route, navigation }: any) {
       <View style={[styles.imageArea, { backgroundColor: rarityColors[rarityKey] + '0a' }]}>
         {!imageError ? (
           <View style={styles.imgContainer}>
-            {/* HTML <img> tag — works directly, no CORS issues for display */}
+            {/* Image: official source is 400×559, cap at 400px wide for sharpness on desktop */}
             {/* @ts-ignore */}
             <Image
               source={{ uri: imageUrl }}
-              style={{ width: width * 0.7, height: width * 0.85, borderRadius: 12, margin: 12 }}
+              style={{ width: Math.min(width * 0.7, 400), height: Math.min(width * 0.85, 559), borderRadius: 12, margin: 12 }}
               resizeMode="contain"
               onError={() => setImageError(true)}
             />

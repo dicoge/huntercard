@@ -135,7 +135,8 @@ function searchCards(database: DatabaseSchema, query: string): CardResult[] {
     else if (rarityCode === 'C') { grade = 'debut'; rarity = 'C'; }
     else if (rarityCode === 'N') { grade = 'spot'; rarity = 'N'; }
 
-    const imageUrl = c.localImage || c.officialImage || '';
+    // Use official image (400×559) first for sharp display, local image (100×140) as fallback
+    const imageUrl = c.officialImage || c.localImage || '';
 
     return {
       id,
