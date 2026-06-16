@@ -17,6 +17,12 @@ trap 'rm -rf "$LOCK_FILE"' EXIT
 
 echo "[$(date)] Starting hunterCard local scrape..." >> "$LOG_FILE"
 
+# 0. Check for new official series (fast, ~30s)
+echo "[$(date)] Running official site scraper..." >> "$LOG_FILE"
+cd scripts
+node scrape-official-cards.js >> "$LOG_FILE" 2>&1
+cd ..
+
 # 1. Pull latest from main
 git pull origin main >> "$LOG_FILE" 2>&1
 
@@ -32,9 +38,9 @@ if [ $SCRAPE_EXIT -ne 0 ]; then
 fi
 
 # 3. Check if data changed
-if git diff --stat -- 'data/database.json' 'data/images/' | grep -q .; then
+if git diff --stat -- 'data/database.json' 'data/images/' 'data/official/' | grep -q .; then
   echo "[$(date)] Data changed, committing and pushing..." >> "$LOG_FILE"
-  git add data/database.json data/images/
+  git add data/database.json data/images/ data/official/cardList_*.json
   git -c user.name="hunterCard Scraper" -c user.email="bot@huntercard.app" \
     commit -m "chore: update database $(date +%Y-%m-%d)" >> "$LOG_FILE" 2>&1
   git push origin main >> "$LOG_FILE" 2>&1
