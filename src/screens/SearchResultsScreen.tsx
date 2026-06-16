@@ -111,8 +111,10 @@ function searchCards(database: DatabaseSchema, query: string, nameMap: Record<st
   const searchQ = query.toLowerCase().trim();
   const cards = database.cards || {};
 
+  // Use cardNumber (base, no series suffix) and series for matching,
+  // not the compound id (cardNumber_series) to avoid false positives.
   const matched = Object.values(cards).filter((c: CardRecord) => {
-    const id = (c.id || '').toLowerCase();
+    const cardNum = ((c as any).cardNumber || c.id || '').toLowerCase();
     const name = (c.name || '').toLowerCase();
     const series = (c.series || '').toLowerCase();
     const type = (c.type || '').toLowerCase();
@@ -121,7 +123,7 @@ function searchCards(database: DatabaseSchema, query: string, nameMap: Record<st
     const colorCnList = COLOR_TO_CN[color] || [];
     const colorSearch = (color + ' ' + colorCnList.join(' ')).toLowerCase();
 
-    return id.includes(searchQ) ||
+    return cardNum.includes(searchQ) ||
            name.includes(searchQ) ||
            series.includes(searchQ) ||
            type.includes(searchQ) ||
@@ -129,10 +131,13 @@ function searchCards(database: DatabaseSchema, query: string, nameMap: Record<st
            colorSearch.includes(searchQ);
   });
 
-  // Sort by card number ascending
+  // Sort by series first, then by card number within each series
   matched.sort((a, b) => {
-    const aNum = (a as any).cardNumber || a.id || '';
-    const bNum = (b as any).cardNumber || b.id || '';
+    const aSeries = (a.series || '').toLowerCase();
+    const bSeries = (b.series || '').toLowerCase();
+    if (aSeries !== bSeries) return aSeries.localeCompare(bSeries);
+    const aNum = ((a as any).cardNumber || a.id || '').toLowerCase();
+    const bNum = ((b as any).cardNumber || b.id || '').toLowerCase();
     return aNum.localeCompare(bNum);
   });
 
