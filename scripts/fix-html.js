@@ -44,6 +44,17 @@ if (html.includes('manifest')) {
     console.log('  ⚠️ database.json not found, skipping');
   }
 
+  // Also copy series-names.json (needed by series search)
+  const seriesDbSource = path.join(__dirname, '..', 'data', 'series-names.json');
+  const seriesDbDest = path.join(distDir, 'data', 'series-names.json');
+  if (fs.existsSync(seriesDbSource)) {
+    fs.mkdirSync(path.dirname(seriesDbDest), { recursive: true });
+    fs.copyFileSync(seriesDbSource, seriesDbDest);
+    console.log('  ✅ series-names.json → dist/data/series-names.json');
+  } else {
+    console.log('  ⚠️ series-names.json not found, skipping');
+  }
+
   console.log('Script tags fixed (type=module added).');
   process.exit(0);
 }

@@ -28,6 +28,18 @@ if (fs.existsSync(dbSource)) {
   console.log(`  ⚠️  database.json not found, skipping`);
 }
 
+// Copy series-names.json
+const seriesDbSource = path.join(PROJECT_DIR, 'data', 'series-names.json');
+const seriesDbDest = path.join(DIST_DIR, 'data', 'series-names.json');
+
+if (fs.existsSync(seriesDbSource)) {
+  fs.mkdirSync(path.dirname(seriesDbDest), { recursive: true });
+  fs.copyFileSync(seriesDbSource, seriesDbDest);
+  console.log(`  ✅ series-names.json → dist/data/series-names.json`);
+} else {
+  console.log(`  ⚠️  series-names.json not found, skipping`);
+}
+
 // Copy images
 const imagesSource = path.join(PROJECT_DIR, 'data', 'images');
 const imagesDest = path.join(DIST_DIR, 'images');
