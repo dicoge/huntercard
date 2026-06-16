@@ -2,21 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Linking, ActivityIndicator, Image } from 'react-native';
 import { COLORS } from '../constants';
 
-// ── Server-side search constants (ported from api/search.ts) ──
+// ── Server-side search constants ──
 
-const SERIES_NAMES: Record<string, string> = {
-  hBP01: 'ブルーミングレディアンス', hBP02: 'クインテットスペクトラム',
-  hBP03: 'サバイバル・オブ・ザ・フェイビアス',
-  hBP04: 'キュリアスユニバース', hBP05: 'エンチャントレガリア',
-  hBP06: 'アヤカシヴァーミリオン', hBP07: 'ディーヴァフィーバー',
-  hBP08: 'バウンサーバウンド',
-  hSD01: 'スターターデッキ ときのそら', hSD02: 'スターターデッキ 白上フブキ',
-  hSD03: 'スターターデッキ 湊あくあ', hSD04: 'スターターデッキ 天音かなた',
-  hSD05: 'スターターデッキ ReGLOSS', hSD06: 'スターターデッキ 風真いろは',
-  hSD07: 'スターターデッキ 癒月ちょこ',
-  hPR: 'Promo', hBD24: 'Bandai Distribution 2024', hY: 'Yokohama Promo',
-  hWF01: 'ツインウエハース', hCO01: '2025ライブセット',
-};
+// Module-level cache for series names (fetched from JSON)
+let cachedSeriesNames: Record<string, string> | null = null;
+let seriesNamesFetchPromise: Promise<Record<string, string>> | null = null;
+
+async function fetchSeriesNames(): Promise<Record<string, string>> {
+  if (cachedSeriesNames) return cachedSeriesNames;
+  if (seriesNamesFetchPromise) return seriesNamesFetchPromise;
+
+  seriesNamesFetchPromise = (async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    try {
+      const res = await fetch('/data/series-names.json', { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const names: Record<string, string> = await res.json();
+      cachedSeriesNames = names;
+      return names;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  })();
+
+  return seriesNamesFetchPromise;
+}
 const COLOR_MAP: Record<string, string> = {
   white: '白色', blue: '藍色', green: '綠色', red: '紅色',
   purple: '紫色', yellow: '黃色', colorless: '無色',
@@ -93,7 +105,7 @@ async function fetchDatabase(): Promise<DatabaseSchema> {
 
 // ── Search & mapping logic (ported from api/search.ts) ──
 
-function searchCards(database: DatabaseSchema, query: string): CardResult[] {
+function searchCards(database: DatabaseSchema, query: string, nameMap: Record<string, string>): CardResult[] {
   const searchQ = query.toLowerCase().trim();
   const cards = database.cards || {};
 
@@ -122,7 +134,7 @@ function searchCards(database: DatabaseSchema, query: string): CardResult[] {
     const colors = rawColor ? [rawColor] : [];
     const colorNames = colors.map((x: string) => COLOR_MAP[x] || x);
     const series = c.series ? [c.series] : [];
-    const seriesNames = series.map((s: string) => SERIES_NAMES[s] || s);
+    const seriesNames = series.map((s: string) => nameMap[s] || s);
 
     // Grade/rarity mapping (same as original api/search.ts logic)
     const rarityCode = (c.rarity || '').toUpperCase();
@@ -195,8 +207,8 @@ export default function SearchResultsScreen({ route, navigation }: any) {
       setLoading(true);
       setError(null);
       try {
-        const db = await fetchDatabase();
-        const matched = searchCards(db, query);
+        const [db, names] = await Promise.all([fetchDatabase(), fetchSeriesNames()]);
+        const matched = searchCards(db, query, names);
         setResults(matched);
       } catch (err) {
         if ((err as any)?.name === 'AbortError') {
