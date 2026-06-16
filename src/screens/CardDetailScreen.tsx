@@ -93,6 +93,10 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const priceName = card.yuyuPriceName || '';
   const hasActualPrice = actualPrice != null && actualPrice > 0;
 
+  // Handle multiple price variants (signed vs unsigned)
+  const priceVariants = card.prices || [];
+  const hasMultipleVariants = priceVariants.length > 1;
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background, paddingBottom: insets.bottom }}>
       <ScrollView style={styles.container}>
@@ -128,7 +132,16 @@ export default function CardDetailScreen({ route, navigation }: any) {
             {hasActualPrice ? '實際售價' : '暫無資料'}
           </Text>
         </View>
-        {hasActualPrice ? (
+        {hasActualPrice && hasMultipleVariants ? (
+          <View style={styles.variantList}>
+            {priceVariants.filter((p: any) => p.sellPrice != null && p.sellPrice > 0).map((v: any, i: number) => (
+              <View key={i} style={styles.variantRow}>
+                <Text style={styles.variantName} numberOfLines={1}>{v.rarity ? `[${v.rarity}] ` : ''}{v.name}</Text>
+                <Text style={styles.variantPrice}>¥{v.sellPrice.toLocaleString()}</Text>
+              </View>
+            ))}
+          </View>
+        ) : hasActualPrice ? (
           <><View style={styles.priceRow}>
           <Text style={styles.priceValue}>¥{actualPrice.toLocaleString()}</Text>
         </View>
@@ -267,6 +280,10 @@ const styles = StyleSheet.create({
   checkPriceBtn: { backgroundColor: COLORS.primary, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
   checkPriceBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
   noPriceText: { fontSize: 20, fontWeight: '600', color: COLORS.textSecondary + '99', paddingVertical: 8 },
+  variantList: { marginBottom: 12 },
+  variantRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, backgroundColor: COLORS.surfaceLight, borderRadius: 8, marginBottom: 6 },
+  variantName: { color: COLORS.text, fontSize: 13, fontWeight: '600', flex: 1, marginRight: 8 },
+  variantPrice: { color: COLORS.success, fontSize: 15, fontWeight: 'bold' },
 
   // Info section
   section: { paddingHorizontal: 20, paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: COLORS.border + '44' },

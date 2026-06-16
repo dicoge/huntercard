@@ -294,14 +294,28 @@ async function scrapeSeriesPage(browser, url) {
         // Extract card name
         const lines = text.split('\n').map(l => l.trim()).filter(l => l);
         let name = '';
+        let rarity = '';
         const numIdx = lines.findIndex(l => l.match(/h[A-Z]{1,3}\d+-\d{2,3}/i));
         if (numIdx >= 0 && numIdx + 1 < lines.length) {
+          // Extract rarity code (e.g. "OUR", "OSR") from the line containing cardNum
+          const cardLine = lines[numIdx];
+          const rarityMatch = cardLine.match(/h[A-Z]{1,3}\d+-\d{2,3}\s+([A-Z]{2,4})\b/i);
+          if (rarityMatch) rarity = rarityMatch[1];
           for (let i = numIdx + 1; i < lines.length; i++) {
             if (!lines[i].match(/[\d,]+\s*円/) && !lines[i].includes('在庫') && !lines[i].includes('カート')) {
               name = lines[i];
               break;
             }
           }
+        }
+
+        // If name is still empty, try parsing differently
+        if (!name && lines.length > 0) {
+          // Try extracting from the line with cardNum
+          const cardLine = lines[numIdx >= 0 ? numIdx : 0];
+          // Format: "hBP01-001 OSR 天音かなた" → remove cardNum and rarity
+          const namePart = cardLine.replace(/h[A-Z]{1,3}\d+-\d{2,3}\s*[A-Z]{2,4}\s*/i, '').trim();
+          if (namePart && namePart.length > 1) name = namePart;
         }
 
         // Extract image URL
@@ -323,6 +337,7 @@ async function scrapeSeriesPage(browser, url) {
         results.push({
           cardNum,
           sellPrice: price,
+          rarity,
           name,
           yuyuImage: imageUrl || (version && cardId ? `https://card.yuyu-tei.jp/hocg/100_140/${version}/${cardId}.jpg` : ''),
           imageVersion: version,
@@ -393,14 +408,19 @@ async function scrapeYuyuPrices() {
 
             const seriesPrices = {};
             for (const card of cards) {
-              seriesPrices[card.cardNum] = {
+              const key = card.cardNum;
+              if (!seriesPrices[key]) {
+                seriesPrices[key] = [];
+              }
+              seriesPrices[key].push({
                 sellPrice: card.sellPrice,
+                rarity: card.rarity || '',
                 name: card.name,
                 yuyuImage: card.yuyuImage,
                 imageVersion: card.imageVersion,
                 imageCid: card.imageCid,
                 timestamp: new Date().toISOString(),
-              };
+              });
             }
 
             const count = Object.keys(seriesPrices).length;
@@ -451,22 +471,25 @@ async function scrapeAllWithFetch() {
       const cards = await scrapeSeriesPageWithFetch(url);
 
       for (const card of cards) {
-        if (!allPrices[card.cardNum]) {
-          allPrices[card.cardNum] = {
-            sellPrice: card.sellPrice,
-            name: card.name,
-            yuyuImage: card.yuyuImage,
-            imageVersion: card.imageVersion,
-            imageCid: card.imageCid,
-            timestamp: new Date().toISOString(),
-          };
+        const key = card.cardNum;
+        if (!allPrices[key]) {
+          allPrices[key] = [];
         }
+        allPrices[key].push({
+          sellPrice: card.sellPrice,
+          rarity: card.rarity || '',
+          name: card.name,
+          yuyuImage: card.yuyuImage,
+          imageVersion: card.imageVersion,
+          imageCid: card.imageCid,
+          timestamp: new Date().toISOString(),
+        });
       }
 
-      const count = cards.length;
-      console.log(`  → Found ${count} cards`);
+      const count = Object.keys(allPrices).length;
+      console.log(`  → Found ${count} total unique cards (${cards.length} total listings)`);
       if (count > 0) seriesFetched++;
-      fetchedCards += count;
+      fetchedCards = Object.keys(allPrices).length;
 
     } catch (err) {
       console.error(`  → Error: ${err.message}`);
@@ -613,22 +636,43 @@ async function buildDatabase() {
 
   for (const [cardNum, priceData] of Object.entries(prices)) {
     const official = officialCards[cardNum] || {};
+
+    // priceData is now an array of price variants. Find lowest price for backward compat.
+    const priceEntries = Array.isArray(priceData) ? priceData : [priceData];
+    let lowestPrice = null;
+    let lowestName = '';
+    let firstImage = '';
+    let firstTimestamp = new Date().toISOString();
+    for (const entry of priceEntries) {
+      if (!firstImage && entry.yuyuImage) firstImage = entry.yuyuImage;
+      if (entry.timestamp) firstTimestamp = entry.timestamp;
+      if (entry.sellPrice && (lowestPrice === null || entry.sellPrice < lowestPrice)) {
+        lowestPrice = entry.sellPrice;
+        lowestName = entry.name || '';
+      }
+    }
+
     database.cards[cardNum] = {
       id: cardNum,
-      name: official.name || priceData.name || '',
+      name: official.name || lowestName || '',
       type: official.type || '',
       color: official.color || '',
       rarity: official.rarity || '',
       series: official.series || '',
-      sellPrice: priceData.sellPrice || null,
-      yuyuName: priceData.name || '',
-      yuyuImage: priceData.yuyuImage || '',
+      sellPrice: lowestPrice,
+      yuyuName: lowestName,
+      yuyuImage: firstImage,
+      prices: priceEntries.map(e => ({
+        name: e.name || '',
+        sellPrice: e.sellPrice || null,
+        rarity: e.rarity || '',
+      })),
       officialImage: official.officialImage || '',
       localImage: fs.existsSync(path.join(IMAGES_DIR, `${cardNum}.jpg`)) ? `/images/${cardNum}.jpg` : '',
       hp: official.hp || '',
       life: official.life || '',
       arts: official.arts || '',
-      timestamp: priceData.timestamp || new Date().toISOString(),
+      timestamp: firstTimestamp,
     };
   }
 

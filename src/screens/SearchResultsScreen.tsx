@@ -58,6 +58,7 @@ interface CardRecord {
   id: string; name: string; series: string; type: string; rarity: string;
   color: string; localImage?: string; officialImage?: string;
   sellPrice?: number | null; yuyuName?: string; yuyuImage?: string;
+  prices?: { name: string; sellPrice: number | null; rarity: string }[];
   effects?: string[]; hp?: string; life?: string; arts?: string;
 }
 
@@ -67,6 +68,7 @@ interface CardResult {
   tags: string[]; cardNumber: string; imageUrl: string;
   yuyuUrl: string; carousellUrl: string; officialUrl: string;
   yuyuPrice?: number | null;
+  prices?: { name: string; sellPrice: number | null; rarity: string }[];
   searchKeywords?: string[];
 }
 
@@ -166,6 +168,7 @@ function searchCards(database: DatabaseSchema, query: string, nameMap: Record<st
       imageUrl,
       yuyuPrice: c.sellPrice || null,
       yuyuPriceName: c.yuyuName || '',
+      prices: c.prices || [],
       yuyuImage: c.yuyuImage || '',
       officialImage: c.officialImage || '',
       localImage: c.localImage || '',
@@ -303,7 +306,12 @@ function CardListItem({ card, onPress }: { card: CardResult; onPress: () => void
         </View>
 
         {card.yuyuPrice != null && card.yuyuPrice > 0 ? (
-          <Text style={styles.priceBadgeList}>¥{card.yuyuPrice.toLocaleString()}</Text>
+          <View style={styles.priceRowList}>
+            <Text style={styles.priceBadgeList}>¥{card.yuyuPrice.toLocaleString()}</Text>
+            {card.prices && card.prices.length > 1 && (
+              <Text style={styles.variantBadge}>+{card.prices.length - 1}</Text>
+            )}
+          </View>
         ) : (
           <Text style={styles.noPriceBadgeList}>尚無交易</Text>
         )}
@@ -344,12 +352,23 @@ const styles = StyleSheet.create({
   quickLinks: { flexDirection: 'row', gap: 8, marginTop: 'auto' },
   quickLink: { backgroundColor: COLORS.surfaceLight, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
   quickLinkText: { color: COLORS.primary, fontSize: 12, fontWeight: '600' },
+  priceRowList: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 'auto', alignSelf: 'flex-end' },
   priceBadgeList: {
     color: COLORS.success,
     fontSize: 13,
     fontWeight: '700',
     marginTop: 'auto',
     alignSelf: 'flex-end',
+  },
+  variantBadge: {
+    color: COLORS.primary,
+    fontSize: 10,
+    fontWeight: '700',
+    backgroundColor: COLORS.primary + '1a',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginTop: 'auto',
   },
   noPriceBadgeList: {
     color: COLORS.textSecondary + '99',
