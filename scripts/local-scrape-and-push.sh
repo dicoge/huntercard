@@ -38,9 +38,9 @@ if [ $SCRAPE_EXIT -ne 0 ]; then
 fi
 
 # 3. Check if data changed
-if git diff --stat -- 'data/database.json' 'data/images/' 'data/official/' | grep -q .; then
+if git diff --stat -- 'data/database.json' 'data/images/' 'data/official/' 'data/series-names.json' | grep -q .; then
   echo "[$(date)] Data changed, committing and pushing..." >> "$LOG_FILE"
-  git add data/database.json data/images/ data/official/cardList_*.json
+  git add data/database.json data/images/ data/official/cardList_*.json data/series-names.json
   git -c user.name="hunterCard Scraper" -c user.email="bot@huntercard.app" \
     commit -m "chore: update database $(date +%Y-%m-%d)" >> "$LOG_FILE" 2>&1
   git -c credential.helper="" push origin main >> "$LOG_FILE" 2>&1
