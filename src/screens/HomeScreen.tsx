@@ -11,6 +11,7 @@ const BOOSTER_PACKS = [
   { label: 'hBP05', query: 'hBP05', name: 'エンチャントレガリア' },
   { label: 'hBP06', query: 'hBP06', name: 'アヤカシヴァーミリオン' },
   { label: 'hBP07', query: 'hBP07', name: 'ディーヴァフィーバー' },
+  { label: 'hBP08', query: 'hBP08', name: 'バウンサーバウンド' },
 ];
 
 // Starter Decks (スタートデッキ)
@@ -44,6 +45,8 @@ const SPECIAL = [
   { label: 'hCS01', query: 'hCS01', name: '1st Anniversary' },
   { label: 'hPC01', query: 'hPC01', name: 'オフィシャルコレクション' },
   { label: 'hSD2025summer', query: 'hSD2025summer', name: 'ホロナツパラダイス' },
+  { label: 'hWF01', query: 'hWF01', name: 'ツインウエハース' },
+  { label: 'hCO01', query: 'hCO01', name: '2025ライブセット' },
 ];
 
 // Color quick access buttons

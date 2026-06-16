@@ -9,11 +9,13 @@ const SERIES_NAMES: Record<string, string> = {
   hBP03: 'サバイバル・オブ・ザ・フェイビアス',
   hBP04: 'キュリアスユニバース', hBP05: 'エンチャントレガリア',
   hBP06: 'アヤカシヴァーミリオン', hBP07: 'ディーヴァフィーバー',
+  hBP08: 'バウンサーバウンド',
   hSD01: 'スターターデッキ ときのそら', hSD02: 'スターターデッキ 白上フブキ',
   hSD03: 'スターターデッキ 湊あくあ', hSD04: 'スターターデッキ 天音かなた',
   hSD05: 'スターターデッキ ReGLOSS', hSD06: 'スターターデッキ 風真いろは',
   hSD07: 'スターターデッキ 癒月ちょこ',
   hPR: 'Promo', hBD24: 'Bandai Distribution 2024', hY: 'Yokohama Promo',
+  hWF01: 'ツインウエハース', hCO01: '2025ライブセット',
 };
 const COLOR_MAP: Record<string, string> = {
   white: '白色', blue: '藍色', green: '綠色', red: '紅色',
