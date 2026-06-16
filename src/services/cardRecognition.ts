@@ -68,16 +68,16 @@ export async function loadAllCards(): Promise<CardInfo[]> {
       const cards = db.cards || {};
       
       const result: CardInfo[] = Object.values(cards).map(c => ({
-        id: c.id || '',
+        id: (c as any).cardNumber || c.id || '',
         name: c.name || '',
-        cardNumber: c.id || '',
+        cardNumber: (c as any).cardNumber || c.id || '',
         type: c.type || '',
         rarity: c.rarity || '',
         series: c.series || '',
         sellPrice: c.sellPrice != null && c.sellPrice > 0 ? c.sellPrice : null,
         yuyuName: c.yuyuName || '',
         color: c.color || '',
-        imageUrl: c.localImage || c.officialImage || '',
+        imageUrl: c.officialImage || c.localImage || '',
       }));
 
       cachedDb = result;

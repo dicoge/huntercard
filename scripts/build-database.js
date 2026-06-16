@@ -273,6 +273,25 @@ async function scrapeSeriesPage(browser, url) {
       }
     }
 
+    // Scroll to bottom to trigger lazy loading of all content
+    await page.evaluate(async () => {
+      await new Promise((resolve) => {
+        let totalHeight = 0;
+        const distance = 300;
+        const timer = setInterval(() => {
+          const scrollHeight = document.body.scrollHeight;
+          window.scrollBy(0, distance);
+          totalHeight += distance;
+          if (totalHeight >= scrollHeight) {
+            clearInterval(timer);
+            resolve(true);
+          }
+        }, 50);
+      });
+    });
+    // Small wait for any remaining lazy-loaded content
+    await sleep(1000);
+
     // Extract card data directly from the DOM using page.evaluate
     const cards = await page.evaluate(() => {
       const results = [];
@@ -548,10 +567,12 @@ async function downloadAllImages(prices) {
 
 /**
  * 讀取官方資料統合
+ * 用 cardNumber_series 複合 key 避免復刻本被覆蓋
+ * 每個官方入口都保留，有 yuyu 價格的合併，沒有的顯示「暫無資料」
  */
 function loadOfficialData() {
   console.log('\n[database] Loading official card data...');
-  const officialCards = {};
+  const officialCards = {};  // { cardNumber_series: cardData }
 
   if (!fs.existsSync(OFFICIAL_DIR)) {
     console.log('  [official] No official data directory found');
@@ -567,20 +588,23 @@ function loadOfficialData() {
       const cards = JSON.parse(content);
       if (Array.isArray(cards)) {
         for (const card of cards) {
-          const id = card.cardNumber || card.id || '';
-          if (id) {
-            officialCards[id] = {
-              name: card.name || '',
-              type: card.cardType || card.type || '',
-              color: card.color || '',
-              rarity: card.rarity || '',
-              series: card.expansion || card.series || '',
-              officialImage: card.imageUrl || '',
-              hp: card.hp || '',
-              life: card.life || '',
-              arts: card.arts || '',
-            };
-          }
+          const cardNum = card.cardNumber || card.id || '';
+          if (!cardNum) continue;
+          const series = card.expansion || card.series || '';
+          // Use compound key to preserve all series, even reprints
+          const key = series ? `${cardNum}_${series}` : cardNum;
+          officialCards[key] = {
+            name: card.name || '',
+            type: card.cardType || card.type || '',
+            color: card.color || '',
+            rarity: card.rarity || '',
+            series: series,
+            officialImage: card.imageUrl || '',
+            hp: card.hp || '',
+            life: card.life || '',
+            arts: card.arts || '',
+            cardNumber: cardNum,
+          };
         }
       }
     } catch (err) {
@@ -634,10 +658,80 @@ async function buildDatabase() {
     cards: {},
   };
 
-  for (const [cardNum, priceData] of Object.entries(prices)) {
-    const official = officialCards[cardNum] || {};
+  // Build a reverse lookup: cardNum → array of official entries (for merging)
+  const officialByCardNum = {};
+  for (const [key, info] of Object.entries(officialCards)) {
+    const base = info.cardNumber || '';
+    if (base) {
+      if (!officialByCardNum[base]) officialByCardNum[base] = [];
+      officialByCardNum[base].push(info);
+    }
+  }
 
-    // priceData is now an array of price variants. Find lowest price for backward compat.
+  // Helper: resolve yuyu price data for a card number
+  function getYuyuForCard(cardNum) {
+    const priceData = prices[cardNum];
+    if (!priceData) return null;
+    const priceEntries = Array.isArray(priceData) ? priceData : [priceData];
+    let lowestPrice = null;
+    let lowestName = '';
+    let firstImage = '';
+    let firstTimestamp = new Date().toISOString();
+    for (const entry of priceEntries) {
+      if (!firstImage && entry.yuyuImage) firstImage = entry.yuyuImage;
+      if (entry.timestamp) firstTimestamp = entry.timestamp;
+      if (entry.sellPrice && (lowestPrice === null || entry.sellPrice < lowestPrice)) {
+        lowestPrice = entry.sellPrice;
+        lowestName = entry.name || '';
+      }
+    }
+    return {
+      lowestPrice,
+      lowestName,
+      firstImage,
+      firstTimestamp,
+      priceEntries,
+    };
+  }
+
+  // Process ALL official entries (compound keys preserve reprints across series)
+  for (const [key, official] of Object.entries(officialCards)) {
+    const baseCardNum = official.cardNumber || '';
+    const yuyu = getYuyuForCard(baseCardNum);
+
+    database.cards[key] = {
+      id: key,
+      cardNumber: baseCardNum,
+      name: official.name || (yuyu ? yuyu.lowestName : '') || '',
+      type: official.type || '',
+      color: official.color || '',
+      rarity: official.rarity || '',
+      series: official.series || '',
+      sellPrice: yuyu ? yuyu.lowestPrice : null,
+      yuyuName: yuyu ? yuyu.lowestName : '',
+      yuyuImage: yuyu ? yuyu.firstImage : '',
+      prices: yuyu ? yuyu.priceEntries.map(e => ({
+        name: e.name || '',
+        sellPrice: e.sellPrice || null,
+        rarity: e.rarity || '',
+      })) : [],
+      officialImage: official.officialImage || '',
+      localImage: fs.existsSync(path.join(IMAGES_DIR, `${baseCardNum}.jpg`)) ? `/images/${baseCardNum}.jpg` : '',
+      hp: official.hp || '',
+      life: official.life || '',
+      arts: official.arts || '',
+      timestamp: yuyu ? yuyu.firstTimestamp : '',
+    };
+  }
+
+  // Also add yuyu-only cards (prices without matching official entry)
+  for (const [cardNum, priceData] of Object.entries(prices)) {
+    const alreadyExists = Object.keys(database.cards).some(k => {
+      const info = database.cards[k];
+      return info.cardNumber === cardNum;
+    });
+    if (alreadyExists) continue;
+
     const priceEntries = Array.isArray(priceData) ? priceData : [priceData];
     let lowestPrice = null;
     let lowestName = '';
@@ -654,11 +748,12 @@ async function buildDatabase() {
 
     database.cards[cardNum] = {
       id: cardNum,
-      name: official.name || lowestName || '',
-      type: official.type || '',
-      color: official.color || '',
-      rarity: official.rarity || '',
-      series: official.series || '',
+      cardNumber: cardNum,
+      name: lowestName || '',
+      type: '',
+      color: '',
+      rarity: '',
+      series: '',
       sellPrice: lowestPrice,
       yuyuName: lowestName,
       yuyuImage: firstImage,
@@ -667,37 +762,13 @@ async function buildDatabase() {
         sellPrice: e.sellPrice || null,
         rarity: e.rarity || '',
       })),
-      officialImage: official.officialImage || '',
+      officialImage: '',
       localImage: fs.existsSync(path.join(IMAGES_DIR, `${cardNum}.jpg`)) ? `/images/${cardNum}.jpg` : '',
-      hp: official.hp || '',
-      life: official.life || '',
-      arts: official.arts || '',
+      hp: '',
+      life: '',
+      arts: '',
       timestamp: firstTimestamp,
     };
-  }
-
-  // Also add official cards that have no yuyu-tei price
-  for (const [cardNum, official] of Object.entries(officialCards)) {
-    if (!database.cards[cardNum]) {
-      database.cards[cardNum] = {
-        id: cardNum,
-        name: official.name || '',
-        type: official.type || '',
-        color: official.color || '',
-        rarity: official.rarity || '',
-        series: official.series || '',
-        sellPrice: null,
-        yuyuName: '',
-        yuyuImage: '',
-        officialImage: official.officialImage || '',
-        localImage: '',
-        hp: official.hp || '',
-        life: official.life || '',
-        arts: official.arts || '',
-        timestamp: '',
-      };
-      database.totalCards++;
-    }
   }
 
   // Fix totalCards to reflect actual unique cards

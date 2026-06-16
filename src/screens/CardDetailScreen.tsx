@@ -26,8 +26,7 @@ function parseEffects(keywords: string[]): string[] {
   });
 }
 
-function buildImageUrl(cardNumber: string, versions: string[], cardType: string): string {
-  const seriesCode = cardNumber.split('-')[0] || '';
+function buildImageUrl(cardNumber: string, seriesCode: string, versions: string[], cardType: string): string {
   let version = '_OSR.png';
 
   if (versions && versions.length > 0) {
@@ -84,7 +83,8 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const versions = card.versions || [];
 
   // Use card.images[0] when available, otherwise use API-provided imageUrl, or build from pattern
-  const imageUrl = (card.images && card.images[0]) || card.imageUrl || buildImageUrl(id, versions, card.type || '');
+  const cardSeries = (Array.isArray(card.series) ? card.series[0] : card.series) || (id?.split('-')[0] || '');
+  const imageUrl = (card.images && card.images[0]) || card.imageUrl || buildImageUrl(id, cardSeries, versions, card.type || '');
   const officialUrl = `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`;
   const yuyuUrl = `https://yuyu-tei.jp/sell/hocg/s/search?search_word=${encodeURIComponent(id)}`;
 

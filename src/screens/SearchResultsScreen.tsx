@@ -137,6 +137,7 @@ function searchCards(database: DatabaseSchema, query: string, nameMap: Record<st
     const colorNames = colors.map((x: string) => COLOR_MAP[x] || x);
     const series = c.series ? [c.series] : [];
     const seriesNames = series.map((s: string) => nameMap[s] || s);
+    const cardNumber = (c as any).cardNumber || id;
 
     // Grade/rarity mapping (same as original api/search.ts logic)
     const rarityCode = (c.rarity || '').toUpperCase();
@@ -157,7 +158,7 @@ function searchCards(database: DatabaseSchema, query: string, nameMap: Record<st
     return {
       id,
       name,
-      cardNumber: id,
+      cardNumber,
       type: c.type || '',
       grade,
       rarity,
@@ -178,9 +179,9 @@ function searchCards(database: DatabaseSchema, query: string, nameMap: Record<st
       arts: c.arts || '',
       searchKeywords: [c.name || '', '', ''],
       tags: [],
-      yuyuUrl: `https://yuyu-tei.jp/sell/hocg/s/search?search_word=${encodeURIComponent(id)}`,
+      yuyuUrl: `https://yuyu-tei.jp/sell/hocg/s/search?search_word=${encodeURIComponent(cardNumber)}`,
       carousellUrl: '',
-      officialUrl: `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`,
+      officialUrl: `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(cardNumber)}&view=image`,
     };
   });
 }

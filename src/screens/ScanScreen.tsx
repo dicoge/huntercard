@@ -19,9 +19,9 @@ import WebCamera, { WebCameraHandle } from '../components/WebCamera';
 import ScanSessionPanel from '../components/ScanSessionPanel';
 import { useScanSessionStore } from '../stores/scanSessionStore';
 import * as ImagePicker from 'expo-image-picker';
-import { recognizeText } from 'expo-ocr-kit';
 import { COLORS } from '../constants';
 import { recognizeCard, searchCards, CardInfo } from '../services/cardRecognition';
+import { recognizeTextWeb } from '../services/webOcr';
 
 // iOS Safari: getUserMedia 需直接從使用者手勢觸發
 // 所以 web 版跳過 expo-camera 的 useCameraPermissions，改用 WebCamera 直接管
@@ -153,6 +153,18 @@ export default function ScanScreen() {
     setFlash(current => !current);
   };
 
+  // Web 版無法使用 expo-ocr-kit，用 Tesseract.js 兜底
+  const performOcr = async (uri: string): Promise<string> => {
+    if (isWeb) {
+      const result = await recognizeTextWeb(uri);
+      return typeof result?.text === 'string' ? result.text : '';
+    } else {
+      const { recognizeText } = require('expo-ocr-kit');
+      const ocrResult = await recognizeText(uri);
+      return typeof ocrResult?.text === 'string' ? ocrResult.text : '';
+    }
+  };
+
   // OCR 識別功能
   const captureAndRecognize = async () => {
     if (isWeb) {
@@ -185,10 +197,8 @@ export default function ScanScreen() {
         throw new Error('無法拍攝照片');
       }
       
-      // 使用 expo-ocr-kit 識別文字
-      const ocrResult = await recognizeText(photo.uri);
-
-      const recognizedText = typeof ocrResult?.text === 'string' ? ocrResult.text : '';
+      // 使用 OCR 識別文字（web 版用 Tesseract.js，native 用 expo-ocr-kit）
+      const recognizedText = await performOcr(photo.uri);
       setRecognizedText(recognizedText);
 
       setIsProcessingOCR(false);
@@ -272,9 +282,8 @@ export default function ScanScreen() {
       if (!result.canceled && result.assets[0]?.uri) {
         setIsProcessingOCR(true);
         setIsScanning(true);
-        
-        const ocrResult = await recognizeText(result.assets[0].uri);
-        const recognizedText = typeof ocrResult?.text === 'string' ? ocrResult.text : '';
+
+        const recognizedText = await performOcr(result.assets[0].uri);
         setRecognizedText(recognizedText);
 
         setIsProcessingOCR(false);
