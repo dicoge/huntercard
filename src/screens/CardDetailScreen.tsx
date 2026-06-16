@@ -9,16 +9,6 @@ const { width } = Dimensions.get('window');
 const gradeLabels: Record<string, string> = { debut: 'Debut', '1st': '1st', '2nd': '2nd', buzz: 'Buzz', spot: 'Spot' };
 const typeLabels: Record<string, string> = { Oshi: '推し（主推卡）', Member: '成員', Support: '支援卡', Energy: '能量', Buzz: 'Buzz' };
 const rarityColors: Record<string, string> = { N: '#6b7280', C: '#6b7280', U: '#10b981', R: '#3b82f6', SR: '#f59e0b' };
-
-// Price estimate by rarity (approximate yuyu-tei prices in JPY)
-const priceEstimate: Record<string, { min: number; est: number; max: number }> = {
-  'C':   { min: 80,   est: 150,  max: 300 },
-  'U':   { min: 150,  est: 300,  max: 600 },
-  'R':   { min: 400,  est: 800,  max: 1500 },
-  'SR':  { min: 1000, est: 2000, max: 3500 },
-  'N':   { min: 50,   est: 100,  max: 200 },
-};
-
 function parseEffects(keywords: string[]): string[] {
   if (!keywords) return [];
   // Keywords: [0]=JP name, [1]=TW name, [2]=EN name, [3+]=effects
@@ -96,15 +86,12 @@ export default function CardDetailScreen({ route, navigation }: any) {
   // Use card.images[0] when available, otherwise use API-provided imageUrl, or build from pattern
   const imageUrl = (card.images && card.images[0]) || card.imageUrl || buildImageUrl(id, versions, card.type || '');
   const officialUrl = `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`;
-  const yuyuUrl = `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`;
+  const yuyuUrl = `https://yuyu-tei.jp/sell/hocg/s/search?search_word=${encodeURIComponent(id)}`;
 
   // Use actual yuyu-tei price from API response
   const actualPrice = card.yuyuPrice;
   const priceName = card.yuyuPriceName || '';
   const hasActualPrice = actualPrice != null && actualPrice > 0;
-  const priceInfo = !hasActualPrice ? priceEstimate[rarityKey] : null;
-  const hasNoPrice = !hasActualPrice && !priceInfo;
-  const displayPrice = hasActualPrice ? actualPrice : (priceInfo?.est ?? 0);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background, paddingBottom: insets.bottom }}>
@@ -138,25 +125,18 @@ export default function CardDetailScreen({ route, navigation }: any) {
         <View style={styles.priceHeader}>
           <Text style={styles.priceSourceName}>🏪 遊々亭</Text>
           <Text style={styles.priceBadge}>
-            {hasActualPrice ? '實際售價' : hasNoPrice ? '尚無交易' : '預估價格'}
+            {hasActualPrice ? '實際售價' : '暫無資料'}
           </Text>
         </View>
-        {hasNoPrice ? (
-          <Text style={styles.noPriceText}>尚無交易記錄</Text>
-        ) : (
-          <><View style={styles.priceRow}>
-          <Text style={styles.priceValue}>¥{displayPrice.toLocaleString()}</Text>
-          {!hasActualPrice && priceInfo && (
-            <Text style={styles.priceRange}> (¥{priceInfo.min} ~ ¥{priceInfo.max})</Text>
-          )}
-        </View>
         {hasActualPrice ? (
-          priceName ? (
-            <Text style={styles.priceNote}>💰 {priceName}</Text>
-          ) : null
+          <><View style={styles.priceRow}>
+          <Text style={styles.priceValue}>¥{actualPrice.toLocaleString()}</Text>
+        </View>
+        {priceName ? (
+          <Text style={styles.priceNote}>💰 {priceName}</Text>
+        ) : null}</>
         ) : (
-          <Text style={styles.priceNote}>⚠️ 非即時價格，僅供參考</Text>
-        )}</>
+          <Text style={styles.noPriceText}>暫無資料</Text>
         )}
         <TouchableOpacity style={styles.checkPriceBtn} onPress={() => openUrl(yuyuUrl)}>
           <Text style={styles.checkPriceBtnText}>🔍 查看遊々亭即時價格 →</Text>

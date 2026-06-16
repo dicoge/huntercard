@@ -175,7 +175,7 @@ function searchCards(database: DatabaseSchema, query: string, nameMap: Record<st
       arts: c.arts || '',
       searchKeywords: [c.name || '', '', ''],
       tags: [],
-      yuyuUrl: `https://yuyu-tei.jp/top/hocg/?s=${encodeURIComponent(id)}`,
+      yuyuUrl: `https://yuyu-tei.jp/sell/hocg/s/search?search_word=${encodeURIComponent(id)}`,
       carousellUrl: '',
       officialUrl: `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(id)}&view=image`,
     };
