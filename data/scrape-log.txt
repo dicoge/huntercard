@@ -1,4 +1,4 @@
-=== Scrape Log 2026-06-10T12:00:54.562Z ===
+=== Scrape Log 2026-06-16T02:28:44.016Z ===
 ═══════════════════════════════════════
   hunterCard Database Builder
 ═══════════════════════════════════════
@@ -58,9 +58,9 @@
 [database] Scraping hSD19: /sell/hocg/s/search?search_word=&vers[]=hsd19
   → Found 11 cards with prices
 [database] Scraping hPR: /sell/hocg/s/special/1
-  → Found 75 cards with prices
+  → Found 74 cards with prices
 [database] Scraping hY: /sell/hocg/s/special/2
-  → Found 84 cards with prices
+  → Found 86 cards with prices
 [database] Scraping ent07: /sell/hocg/s/special/4
   → Found 158 cards with prices
 [database] Scraping hCS01: /sell/hocg/s/special/5
@@ -70,7 +70,7 @@
 [database] Scraping hSD2025summer: /sell/hocg/s/special/8
   → Found 128 cards with prices
 
-  Total cards from yuyu-tei: 1723
+  Total cards from yuyu-tei: 1724
 
 ── Step 2: Download images ──
 
@@ -80,23 +80,23 @@
 ── Step 3: Merge official data ──
 
 [database] Loading official card data...
-  [official] Loaded 1113 cards from 40 files
+  [official] Loaded 1223 cards from 43 files
 
 ── Step 4: Build unified database ──
 
 ═══════════════════════════════════════
   ✅ Build complete!
-  Total cards: 1113
+  Total cards: 1223
   Cards with prices: 1055
   Images downloaded: 0
-  Duration: 226.1s
+  Duration: 221.2s
   Output: /Users/dicoge/hunterCard/data/database.json
 ═══════════════════════════════════════
 
 Build result: {
-  "totalCards": 1113,
+  "totalCards": 1223,
   "yuyuCount": 1055,
-  "officialCount": 1113,
+  "officialCount": 1223,
   "imagesDownloaded": 0,
-  "duration": 226.1
+  "duration": 221.2
 }

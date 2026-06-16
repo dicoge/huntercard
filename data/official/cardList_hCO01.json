@@ -1,0 +1,90 @@
+[
+  {
+    "cardNumber": "hBP02-026",
+    "name": "大神ミオ",
+    "cardType": "Holomen",
+    "color": "green",
+    "rarity": "SR",
+    "expansion": "hCO01",
+    "series": "hCO01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hCO01/hBP02-026_SR.png",
+    "hp": "100"
+  },
+  {
+    "cardNumber": "hBP03-044",
+    "name": "星街すいせい",
+    "cardType": "Holomen",
+    "color": "blue",
+    "rarity": "SR",
+    "expansion": "hCO01",
+    "series": "hCO01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hCO01/hBP03-044_SR.png",
+    "hp": "150"
+  },
+  {
+    "cardNumber": "hBP03-055",
+    "name": "常闇トワ",
+    "cardType": "Holomen",
+    "color": "purple",
+    "rarity": "SR",
+    "expansion": "hCO01",
+    "series": "hCO01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hCO01/hBP03-055_SR.png",
+    "hp": "130"
+  },
+  {
+    "cardNumber": "hBP05-043",
+    "name": "猫又おかゆ",
+    "cardType": "Holomen",
+    "color": "blue",
+    "rarity": "SR",
+    "expansion": "hCO01",
+    "series": "hCO01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hCO01/hBP05-043_SR.png",
+    "hp": "140"
+  },
+  {
+    "cardNumber": "hBP05-069",
+    "name": "白上フブキ",
+    "cardType": "Holomen",
+    "color": "yellow",
+    "rarity": "SR",
+    "expansion": "hCO01",
+    "series": "hCO01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hCO01/hBP05-069_SR.png",
+    "hp": "160"
+  },
+  {
+    "cardNumber": "hBP06-058",
+    "name": "森カリオペ",
+    "cardType": "Holomen",
+    "color": "blue",
+    "rarity": "SR",
+    "expansion": "hCO01",
+    "series": "hCO01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hCO01/hBP06-058_SR.png",
+    "hp": "160"
+  },
+  {
+    "cardNumber": "hBP06-090",
+    "name": "ブルームステージ",
+    "cardType": "サポート・イベント・LIMITED",
+    "color": "colorless",
+    "rarity": "SR",
+    "expansion": "hCO01",
+    "series": "hCO01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hCO01/hBP06-090_SR.png",
+    "hp": ""
+  },
+  {
+    "cardNumber": "hBP07-066",
+    "name": "AZKi",
+    "cardType": "Holomen",
+    "color": "purple",
+    "rarity": "SR",
+    "expansion": "hCO01",
+    "series": "hCO01",
+    "imageUrl": "https://hololive-official-cardgame.com/wp-content/images/cardlist/hCO01/hBP07-066_SR.png",
+    "hp": "170"
+  }
+]
