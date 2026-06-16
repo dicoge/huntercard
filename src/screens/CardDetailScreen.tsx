@@ -134,7 +134,7 @@ export default function CardDetailScreen({ route, navigation }: any) {
         </View>
         {hasActualPrice && hasMultipleVariants ? (
           <View style={styles.variantList}>
-            {priceVariants.filter((p: any) => p.sellPrice != null && p.sellPrice > 0).map((v: any, i: number) => (
+            {[...priceVariants].sort((a, b) => (a.sellPrice || 0) - (b.sellPrice || 0)).filter((p: any) => p.sellPrice != null && p.sellPrice > 0).map((v: any, i: number) => (
               <View key={i} style={styles.variantRow}>
                 <Text style={styles.variantName} numberOfLines={1}>{v.rarity ? `[${v.rarity}] ` : ''}{v.name}</Text>
                 <Text style={styles.variantPrice}>¥{v.sellPrice.toLocaleString()}</Text>

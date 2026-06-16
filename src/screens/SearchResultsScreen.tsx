@@ -129,6 +129,13 @@ function searchCards(database: DatabaseSchema, query: string, nameMap: Record<st
            colorSearch.includes(searchQ);
   });
 
+  // Sort by card number ascending
+  matched.sort((a, b) => {
+    const aNum = (a as any).cardNumber || a.id || '';
+    const bNum = (b as any).cardNumber || b.id || '';
+    return aNum.localeCompare(bNum);
+  });
+
   return matched.map((c: CardRecord) => {
     const id = c.id || '';
     const name = c.name || '';
