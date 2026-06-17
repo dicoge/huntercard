@@ -534,7 +534,16 @@ async function downloadAllImages(prices) {
   let errors = 0;
 
   for (const [cardNum, data] of Object.entries(prices)) {
-    if (!data.yuyuImage) {
+    // data is an array of price variants — find the first one with an image URL
+    const entries = Array.isArray(data) ? data : [data];
+    let imageUrl = '';
+    for (const entry of entries) {
+      if (entry.yuyuImage) {
+        imageUrl = entry.yuyuImage;
+        break;
+      }
+    }
+    if (!imageUrl) {
       errors++;
       continue;
     }
@@ -546,7 +555,7 @@ async function downloadAllImages(prices) {
         skipped++;
         continue;
       }
-      const result = await downloadImage(data.yuyuImage, destPath);
+      const result = await downloadImage(imageUrl, destPath);
       if (result) {
         downloaded++;
         if (downloaded % 50 === 0) {
