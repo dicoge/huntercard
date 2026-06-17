@@ -131,14 +131,17 @@ function searchCards(database: DatabaseSchema, query: string, nameMap: Record<st
            colorSearch.includes(searchQ);
   });
 
-  // Sort by series first, then by card number within each series
+  // Sort by series first, then by card number using numeric comparison of the trailing digits
   matched.sort((a, b) => {
     const aSeries = (a.series || '').toLowerCase();
     const bSeries = (b.series || '').toLowerCase();
     if (aSeries !== bSeries) return aSeries.localeCompare(bSeries);
     const aNum = ((a as any).cardNumber || a.id || '').toLowerCase();
     const bNum = ((b as any).cardNumber || b.id || '').toLowerCase();
-    return aNum.localeCompare(bNum);
+    const aParts = aNum.split('-');
+    const bParts = bNum.split('-');
+    if (aParts[0] !== bParts[0]) return aParts[0].localeCompare(bParts[0]);
+    return (parseInt(aParts[1], 10) || 0) - (parseInt(bParts[1], 10) || 0);
   });
 
   return matched.map((c: CardRecord) => {
