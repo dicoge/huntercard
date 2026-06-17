@@ -446,7 +446,10 @@ async function scrapeYuyuPrices() {
             console.log(`  → Found ${count} cards with prices`);
             if (count > 0) seriesWithPrices++;
             totalCards += count;
-            Object.assign(allPrices, seriesPrices);
+            for (const [key, entries] of Object.entries(seriesPrices)) {
+              if (!allPrices[key]) allPrices[key] = [];
+              allPrices[key].push(...entries);
+            }
 
           } catch (err) {
             console.error(`  → Error: ${err.message}`);
@@ -463,7 +466,10 @@ async function scrapeYuyuPrices() {
     // Reset and try with fetch
     console.log(`\n[database] Puppeteer scrape only got ${totalCards} cards (< 50). Switching to HTTP fetch...`);
     const fetchResult = await scrapeAllWithFetch();
-    Object.assign(allPrices, fetchResult.prices);
+    for (const [key, entries] of Object.entries(fetchResult.prices)) {
+            if (!allPrices[key]) allPrices[key] = [];
+            allPrices[key].push(...entries);
+          }
     totalCards += fetchResult.fetchedCards;
   }
 
