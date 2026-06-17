@@ -125,7 +125,6 @@ function searchCards(database: DatabaseSchema, query: string, nameMap: Record<st
 
     return cardNum.includes(searchQ) ||
            name.includes(searchQ) ||
-           series.includes(searchQ) ||
            type.includes(searchQ) ||
            rarity.includes(searchQ) ||
            colorSearch.includes(searchQ);
