@@ -131,8 +131,33 @@ function searchCards(database: DatabaseSchema, query: string, nameMap: Record<st
            colorSearch.includes(searchQ);
   });
 
+  // Deduplicate by cardNumber: keep the version whose series matches the search query,
+  // or the first occurrence if none matches more specifically.
+  const dedupMap = new Map<string, CardRecord>();
+  for (const c of matched) {
+    const key = ((c as any).cardNumber || c.id || '').toLowerCase();
+    if (!key) continue;
+    const existing = dedupMap.get(key);
+    if (!existing) {
+      dedupMap.set(key, c);
+    } else if (searchQ.length > 0) {
+      const existingSeries = (existing.series || '').toLowerCase();
+      const candidateSeries = (c.series || '').toLowerCase();
+      const existingMatch = existingSeries.includes(searchQ);
+      const candidateMatch = candidateSeries.includes(searchQ);
+      if (!existingMatch && candidateMatch) {
+        // Candidate's series matches the query, prefer it over the existing entry
+        dedupMap.set(key, c);
+      } else if (existingMatch && candidateMatch) {
+        // Both match — keep whichever appears first (already set)
+      }
+      // If neither matches, keep whichever was first (existing)
+    }
+  }
+  const deduped = Array.from(dedupMap.values());
+
   // Sort by series first, then by card number using numeric comparison of the trailing digits
-  matched.sort((a, b) => {
+  deduped.sort((a, b) => {
     const aSeries = (a.series || '').toLowerCase();
     const bSeries = (b.series || '').toLowerCase();
     if (aSeries !== bSeries) return aSeries.localeCompare(bSeries);
@@ -144,7 +169,7 @@ function searchCards(database: DatabaseSchema, query: string, nameMap: Record<st
     return (parseInt(aParts[1], 10) || 0) - (parseInt(bParts[1], 10) || 0);
   });
 
-  return matched.map((c: CardRecord) => {
+  return deduped.map((c: CardRecord) => {
     const id = c.id || '';
     const name = c.name || '';
     const rawColor = (c.color || '').toLowerCase();
