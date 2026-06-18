@@ -8,7 +8,7 @@
  * Style inspired by Rare Candy Scanner 3.0.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -119,9 +119,21 @@ export default function ScanResultCard({
       ? '#f59e0b'
       : '#ef4444';
 
-  const prices = card.prices && card.prices.length > 0 ? card.prices : null;
+  const prices = (card.prices && card.prices.length > 0 ? card.prices : null);
   const variants = card.variants && card.variants.length > 0 ? card.variants : null;
   const sellPriceNull = card.sellPrice == null;
+
+  // Deduplicate price entries by (name + sellPrice) to handle duplicate sellers
+  const uniquePrices = useMemo(() => {
+    if (!prices) return null;
+    const seen = new Set<string>();
+    return prices.filter(p => {
+      const key = `${p.name}|${p.sellPrice}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [prices]);
 
   return (
     <Animated.View
@@ -170,9 +182,9 @@ export default function ScanResultCard({
 
         {/* All price rows — always visible */}
         <View style={styles.pricesSection}>
-          {prices ? (
-            prices.map((p, i) => (
-              <View key={`p-${i}`} style={styles.priceRow}>
+          {uniquePrices ? (
+            uniquePrices.map((p, i) => (
+              <View key={`p-${p.name}-${p.sellPrice}-${i}`} style={styles.priceRow}>
                 <Text style={styles.priceLabel} numberOfLines={1}>{p.name}</Text>
                 <Text style={[
                   styles.priceValue,

@@ -683,11 +683,23 @@ async function buildDatabase() {
     }
   }
 
+  // Deduplicate price entries: same (name, sellPrice) = same version, keep first occurrence only
+  function deduplicatePrices(entries) {
+    const seen = new Set();
+    return entries.filter(e => {
+      const key = `${e.name || ''}|${e.sellPrice || 0}|${e.rarity || ''}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
   // Helper: resolve yuyu price data for a card number
   function getYuyuForCard(cardNum) {
     const priceData = prices[cardNum];
     if (!priceData) return null;
-    const priceEntries = Array.isArray(priceData) ? priceData : [priceData];
+    const rawEntries = Array.isArray(priceData) ? priceData : [priceData];
+    const priceEntries = deduplicatePrices(rawEntries);
     let lowestPrice = null;
     let lowestName = '';
     let firstImage = '';
@@ -747,7 +759,7 @@ async function buildDatabase() {
     });
     if (alreadyExists) continue;
 
-    const priceEntries = Array.isArray(priceData) ? priceData : [priceData];
+    const priceEntries = deduplicatePrices(Array.isArray(priceData) ? priceData : [priceData]);
     let lowestPrice = null;
     let lowestName = '';
     let firstImage = '';

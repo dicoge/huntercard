@@ -1,4 +1,4 @@
-=== Scrape Log 2026-06-16T11:41:05.450Z ===
+=== Scrape Log 2026-06-18T08:20:03.692Z ===
 ═══════════════════════════════════════
   hunterCard Database Builder
 ═══════════════════════════════════════
@@ -6,50 +6,8 @@
 ── Step 1: Scrape yuyu-tei ──
 [database] Starting yuyu-tei scrape (Puppeteer)...
 [database] Scraping hBP04: /sell/hocg/s/hbp04
-[ERROR]   → Error: Protocol error: Connection closed.
-[database] Scraping hY: /sell/hocg/s/special/2
-[ERROR]   → Error: Protocol error: Connection closed.
-[database] Scraping ent07: /sell/hocg/s/special/4
-[ERROR]   → Error: Protocol error: Connection closed.
-[database] Scraping hCS01: /sell/hocg/s/special/5
   → Found 108 cards with prices
 [database] Scraping hBP01: /sell/hocg/s/search?search_word=&vers[]=hbp01
-[ERROR]   → Error: Protocol error: Connection closed.
-[database] Scraping hPC01: /sell/hocg/s/special/7
-[ERROR]   → Error: Protocol error: Connection closed.
-[database] Scraping hSD2025summer: /sell/hocg/s/special/8
-[ERROR]   → Error: Protocol error: Connection closed.
-
-  Total cards from yuyu-tei: 902
-
-── Step 2: Download images ──
-
-[database] Downloading images...
-  [images] Downloaded: 0, Skipped: 0, Errors: 854
-
-── Step 3: Merge official data ──
-
-[database] Loading official card data...
-  [official] Loaded 2099 cards from 43 files
-
-── Step 4: Build unified database ──
-
-═══════════════════════════════════════
-  ✅ Build complete!
-  Total cards: 2099
-  Cards with prices: 854
-  Images downloaded: 0
-  Duration: 210.9s
-  Output: /Users/dicoge/hunterCard/data/database.json
-═══════════════════════════════════════
-
-Build result: {
-  "totalCards": 2099,
-  "yuyuCount": 854,
-  "officialCount": 2099,
-  "imagesDownloaded": 0,
-  "duration": 210.9
-}
   → Found 126 cards with prices
 [database] Scraping hBP02: /sell/hocg/s/search?search_word=&vers[]=hbp02
   → Found 105 cards with prices
@@ -100,3 +58,45 @@ Build result: {
 [database] Scraping hSD19: /sell/hocg/s/search?search_word=&vers[]=hsd19
   → Found 11 cards with prices
 [database] Scraping hPR: /sell/hocg/s/special/1
+  → Found 89 cards with prices
+[database] Scraping hY: /sell/hocg/s/special/2
+  → Found 90 cards with prices
+[database] Scraping ent07: /sell/hocg/s/special/4
+  → Found 159 cards with prices
+[database] Scraping hCS01: /sell/hocg/s/special/5
+  → Found 113 cards with prices
+[database] Scraping hPC01: /sell/hocg/s/special/7
+  → Found 126 cards with prices
+[database] Scraping hSD2025summer: /sell/hocg/s/special/8
+  → Found 128 cards with prices
+
+  Total cards from yuyu-tei: 1748
+
+── Step 2: Download images ──
+
+[database] Downloading images...
+  [images] Downloaded: 0, Skipped: 1056, Errors: 0
+
+── Step 3: Merge official data ──
+
+[database] Loading official card data...
+  [official] Loaded 2099 cards from 43 files
+
+── Step 4: Build unified database ──
+
+═══════════════════════════════════════
+  ✅ Build complete!
+  Total cards: 2099
+  Cards with prices: 1056
+  Images downloaded: 0
+  Duration: 339.5s
+  Output: /Users/dicoge/Documents/GitHub/hunterCard/data/database.json
+═══════════════════════════════════════
+
+Build result: {
+  "totalCards": 2099,
+  "yuyuCount": 1056,
+  "officialCount": 2099,
+  "imagesDownloaded": 0,
+  "duration": 339.5
+}
