@@ -256,11 +256,11 @@ export default function ScanScreen() {
       // 拍攝照片
       let photo;
       if (isWeb) {
-        photo = await webCameraRef.current!.takePictureAsync({
+        photo = await webCameraRef.current?.takePictureAsync({
           quality: 0.8,
         });
       } else {
-        photo = await cameraRef.current!.takePictureAsync({
+        photo = await cameraRef.current?.takePictureAsync({
           quality: 0.8,
         });
       }

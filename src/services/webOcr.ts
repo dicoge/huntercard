@@ -44,8 +44,8 @@ async function cropCardNumberArea(imageUri: string): Promise<string> {
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Failed to get 2D context for cropping');
 
-  const w = img.width;
-  const h = img.height;
+  const w = Math.min(img.width, 2048);
+  const h = Math.min(img.height, 2048);
 
   // 裁切區域：底部 20%，左右各裁 10%
   const cropX = Math.round(w * 0.1);
@@ -57,7 +57,11 @@ async function cropCardNumberArea(imageUri: string): Promise<string> {
   canvas.height = cropH;
 
   ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-  return canvas.toDataURL('image/png');
+  try {
+    return canvas.toDataURL('image/png');
+  } catch {
+    return imageUri;
+  }
 }
 
 /**
@@ -137,6 +141,11 @@ export async function recognizeCardNumber(imageUri: string): Promise<{ cardId: s
 
   // Step 3: Fallback — 對全圖做 OCR 並提取卡號
   console.log('[webOcr] no card number in cropped area, falling back to full image OCR');
-  const fullResult = await t.recognize(imageUri, 'jpn+eng');
-  return { cardId: extractCardId(fullResult.data.text), rawText: fullResult.data.text };
+  try {
+    const fullResult = await t.recognize(imageUri, 'jpn+eng');
+    return { cardId: extractCardId(fullResult.data.text), rawText: fullResult.data.text };
+  } catch (e) {
+    console.warn('[webOcr] fallback OCR failed:', e);
+    return { cardId: null, rawText: '' };
+  }
 }
