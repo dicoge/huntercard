@@ -275,29 +275,55 @@ export async function recognizeCardFromOcr(rawText: string): Promise<Recognition
     return { success: false, error: '資料庫載入失敗' };
   }
 
-  // Step 1: 嘗試從文字中提取卡號直接匹配
+  // Step 1: 嘗試從文字中提取卡號直接匹配（最可靠）
   const extractedIds = extractCardIds(rawText);
   if (extractedIds.length > 0) {
     for (const cardId of extractedIds) {
+      // Try lowercase match
       const match = allCards.find(c => c.id.toLowerCase() === cardId);
       if (match) {
         return { success: true, card: match };
       }
+      // Try prefix match (e.g. "NP04" matches "hBP04-xxx" → not reliable, skip)
+      // Try fuzzy card number (e.g. "hBPO4" → "hBP04")
+      const fuzzyMatch = allCards.find(c => {
+        const normalizedId = c.id.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const normalizedQuery = cardId.replace(/[^a-z0-9]/g, '');
+        return normalizedId === normalizedQuery ||
+               normalizedId.includes(normalizedQuery) ||
+               normalizedQuery.includes(normalizedId);
+      });
+      if (fuzzyMatch) {
+        return { success: true, card: fuzzyMatch };
+      }
     }
   }
 
+  // Step 2: 對每一行進行獨立匹配 — 只走嚴格匹配（卡號或精確名稱）
   const textLines = cleanOcrText(rawText);
-
-  // Step 2: 對每一行進行獨立匹配（最可能有整行就是卡牌名稱）
   for (const line of textLines) {
-    const result = await recognizeCard(line);
-    if (result.success && result.card) {
-      return result;
+    const lineIds = extractCardIds(line);
+    if (lineIds.length > 0) {
+      for (const id of lineIds) {
+        const match = allCards.find(c => c.id.toLowerCase() === id);
+        if (match) return { success: true, card: match };
+      }
+    }
+    // Strict name match only: must be > 60% similarity
+    const strictResult = await recognizeCard(line);
+    if (strictResult.success && strictResult.card) {
+      // Double-check: only accept if similarity is high enough
+      const query = line.toLowerCase().replace(/[^a-z0-9\u3040-\u9fff]/g, '');
+      const cardName = strictResult.card.name.toLowerCase().replace(/[^a-z0-9\u3040-\u9fff]/g, '');
+      const sim = calculateSimilarity(query, cardName);
+      if (sim > 0.6) {
+        return strictResult;
+      }
     }
   }
 
-  // Step 3: 用整個文字 blob 做模糊搜索
-  return await recognizeCard(rawText);
+  // Step 3: 如果以上都沒找到，直接回傳失敗（不降級到模糊搜尋）
+  return { success: false, error: '找不到匹配的卡牌，請確認卡牌在掃描框內' };
 }
 
 /**

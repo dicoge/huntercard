@@ -188,7 +188,7 @@ export default function ScanScreen() {
       const video = document.querySelector('video');
       if (video && video.readyState >= 2) {
         const result = analyzeFrameWithStability(video, scanArea);
-        if (result.isStable && result.confidence > 0.7) {
+        if (result.isStable && result.confidence > 0.85) {
           const now = Date.now();
           if (now - lastScanTimeRef.current > SCAN_COOLDOWN_MS) {
             lastScanTimeRef.current = now;

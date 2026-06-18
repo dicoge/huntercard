@@ -57,7 +57,7 @@ export function analyzeFrame(
   const width = scanArea.width;
   const height = scanArea.height;
   let edgePixels = 0;
-  const threshold = 30; // Edge threshold
+  const threshold = 60; // Higher = fewer false positives (was 30)
 
   for (let y = 1; y < height - 1; y++) {
     for (let x = 1; x < width - 1; x++) {
@@ -84,7 +84,7 @@ export function analyzeFrame(
 
   // Card detection heuristic:
   // Cards typically have moderate brightness (not too dark/light) and have straight edges
-  const hasCard = brightness > 0.15 && brightness < 0.85 && edgeDensity > 0.08 && edgeDensity < 0.5;
+  const hasCard = brightness > 0.2 && brightness < 0.8 && edgeDensity > 0.12 && edgeDensity < 0.4;
   const confidence = Math.min(1, Math.max(0,
     (hasCard ? 0.6 : 0) +
     (brightness > 0.2 && brightness < 0.8 ? 0.2 : 0) +
@@ -97,7 +97,7 @@ export function analyzeFrame(
 // ── Stability Detection ──
 
 const frameHistory: FrameAnalysis[] = [];
-const STABILITY_FRAMES = 5; // Need 5 consecutive frames with card
+const STABILITY_FRAMES = 10; // Need 10 consecutive frames with card (was 5)
 
 /**
  * Analyze frame with stability tracking
