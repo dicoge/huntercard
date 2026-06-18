@@ -2,13 +2,13 @@
  * ScanResultCard.tsx
  *
  * Floating price card overlay on camera view.
- * Shows card name, card ID, price, and confidence indicator.
- * Auto-dismisses after 5 seconds or on tap.
+ * Shows card name, card ID, all rarity/series prices inline,
+ * and confidence indicator. Auto-dismisses after 5 seconds or on tap.
  *
  * Style inspired by Rare Candy Scanner 3.0.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -42,14 +42,12 @@ export default function ScanResultCard({
   onDismiss,
   autoDismissMs = 5000,
 }: ScanResultCardProps) {
-  const [expanded, setExpanded] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (visible) {
-      // Slide in from top
       Animated.parallel([
         Animated.spring(slideAnim, {
           toValue: 1,
@@ -64,12 +62,10 @@ export default function ScanResultCard({
         }),
       ]).start();
 
-      // Auto-dismiss
       dismissTimer.current = setTimeout(() => {
         handleDismiss();
       }, autoDismissMs);
     } else {
-      // Reset
       slideAnim.setValue(0);
       opacityAnim.setValue(0);
     }
@@ -101,7 +97,6 @@ export default function ScanResultCard({
 
   if (!visible) return null;
 
-  // Generate rarity badge color
   const getRarityColor = (rarity: string): string => {
     const colors: Record<string, string> = {
       C: '#6b7280',
@@ -114,18 +109,19 @@ export default function ScanResultCard({
     return colors[rarity] || COLORS.textSecondary;
   };
 
-  // Format price display
-  const priceDisplay = card.sellPrice != null
-    ? `¥${card.sellPrice.toLocaleString()}`
-    : '—';
+  const formatPrice = (price: number | null): string =>
+    price != null ? `¥${price.toLocaleString()}` : '暫無交易';
 
-  // Confidence indicator
   const confidencePercent = Math.round(confidence * 100);
   const confidenceColor = confidencePercent >= 80
     ? '#10b981'
     : confidencePercent >= 50
       ? '#f59e0b'
       : '#ef4444';
+
+  const prices = card.prices && card.prices.length > 0 ? card.prices : null;
+  const variants = card.variants && card.variants.length > 0 ? card.variants : null;
+  const sellPriceNull = card.sellPrice == null;
 
   return (
     <Animated.View
@@ -147,7 +143,7 @@ export default function ScanResultCard({
         onPress={handleDismiss}
         activeOpacity={0.9}
       >
-        {/* Header row: rarity badge + confidence */}
+        {/* Header: rarity badge + confidence + close */}
         <View style={styles.headerRow}>
           <View style={[styles.rarityBadge, { backgroundColor: getRarityColor(card.rarity) }]}>
             <Text style={styles.rarityText}>{card.rarity}</Text>
@@ -162,7 +158,7 @@ export default function ScanResultCard({
           </TouchableOpacity>
         </View>
 
-        {/* Card info */}
+        {/* Card name + number */}
         <View style={styles.infoContainer}>
           <Text style={styles.cardName} numberOfLines={2}>
             {card.name}
@@ -172,75 +168,74 @@ export default function ScanResultCard({
           </Text>
         </View>
 
-        {/* Price row */}
-        <View style={styles.priceRow}>
-          <Text style={styles.priceLabel}>估值</Text>
-          <Text style={styles.priceValue}>{priceDisplay}</Text>
+        {/* All price rows — always visible */}
+        <View style={styles.pricesSection}>
+          {prices ? (
+            prices.map((p, i) => (
+              <View key={`p-${i}`} style={styles.priceRow}>
+                <Text style={styles.priceLabel} numberOfLines={1}>{p.name}</Text>
+                <Text style={[
+                  styles.priceValue,
+                  p.sellPrice != null ? styles.priceValuePositive : styles.priceValueNull,
+                ]}>
+                  {formatPrice(p.sellPrice)}
+                </Text>
+              </View>
+            ))
+          ) : (
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>{card.series || '估值'}</Text>
+              <Text style={[
+                styles.priceValue,
+                sellPriceNull ? styles.priceValueNull : styles.priceValuePositive,
+              ]}>
+                {formatPrice(card.sellPrice)}
+              </Text>
+            </View>
+          )}
         </View>
 
-        {/* Series info */}
-        {card.series ? (
-          <Text style={styles.seriesText} numberOfLines={1}>
-            {card.series}
-          </Text>
-        ) : null}
-
-        {/* Multi-price variants section */}
-        {(card.variants && card.variants.length > 0) || (card.prices && card.prices.length > 1) ? (
-          <TouchableOpacity
-            style={styles.variantsToggle}
-            onPress={() => setExpanded(!expanded)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.variantsToggleText}>
-              {expanded ? '▲ 收起其他版本' : '▼ 查看其他版本'}
-            </Text>
-          </TouchableOpacity>
-        ) : null}
-
-        {expanded && (
-          <View style={styles.variantsContainer}>
-            {/* Show variants from reprints (same cardNumber, different series) */}
-            {card.variants && card.variants.length > 0 && (
-              <>
-                {card.variants.map((v, i) => (
-                  <View key={`v-${i}`} style={styles.variantRow}>
-                    <Text style={styles.variantLabel} numberOfLines={1}>
-                      {v.seriesName || v.series}
-                    </Text>
-                    <Text style={[
-                      styles.variantPrice,
-                      v.sellPrice != null ? styles.variantPricePositive : styles.variantPriceNull,
-                    ]}>
-                      {v.sellPrice != null ? `¥${v.sellPrice.toLocaleString()}` : '—'}
-                    </Text>
-                  </View>
-                ))}
-              </>
-            )}
-
-            {/* Show detailed price variants (from the prices array) */}
-            {card.prices && card.prices.length > 1 && (
-              <>
-                {card.prices.map((p, i) => (
-                  <View key={`p-${i}`} style={styles.variantRow}>
-                    <Text style={styles.variantLabel} numberOfLines={1}>
-                      {p.name}
-                    </Text>
-                    <Text style={[
-                      styles.variantPrice,
-                      p.sellPrice != null ? styles.variantPricePositive : styles.variantPriceNull,
-                    ]}>
-                      {p.sellPrice != null ? `¥${p.sellPrice.toLocaleString()}` : '—'}
-                    </Text>
-                  </View>
-                ))}
-              </>
-            )}
+        {/* Series reprint variants */}
+        {variants && (
+          <View style={styles.variantsSection}>
+            <Text style={styles.variantsHeader}>其他系列版本</Text>
+            {variants.map((v, i) => {
+              const vPrices = v.prices && v.prices.length > 0 ? v.prices : null;
+              return (
+                <View key={`v-${i}`}>
+                  {vPrices ? (
+                    vPrices.map((vp, j) => (
+                      <View key={`vp-${i}-${j}`} style={styles.variantRow}>
+                        <Text style={styles.variantLabel} numberOfLines={1}>
+                          {vp.name}
+                        </Text>
+                        <Text style={[
+                          styles.variantPrice,
+                          vp.sellPrice != null ? styles.variantPricePositive : styles.variantPriceNull,
+                        ]}>
+                          {formatPrice(vp.sellPrice)}
+                        </Text>
+                      </View>
+                    ))
+                  ) : (
+                    <View style={styles.variantRow}>
+                      <Text style={styles.variantLabel} numberOfLines={1}>
+                        {v.seriesName || v.series}
+                      </Text>
+                      <Text style={[
+                        styles.variantPrice,
+                        v.sellPrice != null ? styles.variantPricePositive : styles.variantPriceNull,
+                      ]}>
+                        {formatPrice(v.sellPrice)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              );
+            })}
           </View>
         )}
 
-        {/* Dismiss hint */}
         <Text style={styles.dismissHint}>點擊關閉</Text>
       </TouchableOpacity>
     </Animated.View>
@@ -315,51 +310,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
   },
+  pricesSection: {
+    marginBottom: 4,
+  },
   priceRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 8,
-    marginBottom: 6,
-  },
-  priceLabel: {
-    color: COLORS.textSecondary,
-    fontSize: 13,
-  },
-  priceValue: {
-    color: '#00C853',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  seriesText: {
-    color: COLORS.textSecondary,
-    fontSize: 11,
-  },
-  dismissHint: {
-    color: 'rgba(255, 255, 255, 0.3)',
-    fontSize: 10,
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  // Variants section
-  variantsToggle: {
-    marginTop: 8,
-    paddingVertical: 4,
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  variantsToggleText: {
-    color: COLORS.primary,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  variantsContainer: {
-    marginTop: 6,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
-    paddingTop: 6,
-  },
-  variantRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -367,14 +321,53 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.04)',
   },
-  variantLabel: {
+  priceLabel: {
     color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 13,
+    flex: 1,
+    marginRight: 8,
+  },
+  priceValue: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  priceValuePositive: {
+    color: '#00C853',
+  },
+  priceValueNull: {
+    color: 'rgba(255, 255, 255, 0.35)',
+  },
+  dismissHint: {
+    color: 'rgba(255, 255, 255, 0.3)',
+    fontSize: 10,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  variantsSection: {
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    paddingTop: 6,
+  },
+  variantsHeader: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 11,
+    marginBottom: 4,
+  },
+  variantRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 3,
+  },
+  variantLabel: {
+    color: 'rgba(255, 255, 255, 0.6)',
     fontSize: 12,
     flex: 1,
     marginRight: 8,
   },
   variantPrice: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
   },
   variantPricePositive: {
