@@ -210,23 +210,47 @@ function extractCardIds(text: string): string[] {
   const patterns = [
     /h[a-z]{2}\d{0,2}-\d{1,3}/gi,
     /[a-z]{2}\d{2}-\d{3}/gi,
-    /BP\d{2}[-\s]?\d{3}/gi,
-    /SD\d{2}[-\s]?\d{3}/gi,
-    /PR[-\s]?\d{3}/gi,
+    /NP\d{2}[-‾\s]?\d{3}/gi,
+    /BP\d{2}[-‾\s]?\d{3}/gi,
+    /SD\d{2}[-‾\s]?\d{3}/gi,
+    /PR[-‾\s]?\d{3}/gi,
+    /hOCG[-‾\s]?\d{3}/gi,
+    /\d{3}[-‾/]\d{3}/gi,
   ];
+  // 卡號前綴別名對照表：實體卡上的編號 → 資料庫的系列 prefix
+  const prefixAliases: Record<string, string> = {
+    np: 'hbp',
+    bp: 'hbp',
+    sd: 'hsd',
+    pr: 'hpr',
+    sp: 'hsp',
+    ocg: 'hocg',
+    pc: 'hpc',
+    cs: 'hcs',
+    co: 'hco',
+    wf: 'hwf',
+    ys: 'hys',
+    ent: 'hent',
+  };
   const ids = new Set<string>();
   for (const pattern of patterns) {
     const matches = normalized.match(pattern);
     if (matches) {
       for (const m of matches) {
-        // 正規化：移除空白、轉小寫
-        const clean = m.replace(/[\s-]/g, '-').toLowerCase().replace(/-$/, '');
-        // 確保格式正確：hbp04-001
-        let formatted = clean;
-        if (/^bp\d{2}/.test(formatted)) formatted = 'h' + formatted;
-        if (/^sd\d{2}/.test(formatted)) formatted = 'h' + formatted;
-        if (/^pr/.test(formatted)) formatted = 'h' + formatted;
-        ids.add(formatted);
+        // 正規化：移除空白、特殊符號、轉小寫
+        let clean = m.replace(/[‾\s]/g, '-').toLowerCase().replace(/-$/, '');
+        // 如果格式是 'abc12-345'，檢查是否需要 prefix 別名
+        const prefixMatch = clean.match(/^([a-z]{2})(\d+.*)$/);
+        if (prefixMatch) {
+          const prefix = prefixMatch[1];
+          const rest = prefixMatch[2];
+          if (prefixAliases[prefix]) {
+            clean = prefixAliases[prefix] + rest;
+          }
+        }
+        // 確保以 'h' 開頭（某些別名已包含 h, 但 NP/BP 等沒有）
+        if (!clean.startsWith('h')) clean = 'h' + clean;
+        ids.add(clean);
       }
     }
   }
@@ -299,7 +323,7 @@ export async function recognizeCardFromOcr(rawText: string): Promise<Recognition
     }
   }
 
-  // Step 2: 對每一行進行獨立匹配 — 只走嚴格匹配（卡號或精確名稱）
+// Step 2: 對每一行進行獨立匹配 — 只接受卡號匹配或含日文的文字
   const textLines = cleanOcrText(rawText);
   for (const line of textLines) {
     const lineIds = extractCardIds(line);
@@ -309,14 +333,17 @@ export async function recognizeCardFromOcr(rawText: string): Promise<Recognition
         if (match) return { success: true, card: match };
       }
     }
-    // Strict name match only: must be > 60% similarity
+    // Only try name match if the text contains Japanese characters (kana/kanji)
+    // This avoids random ASCII OCR artifacts (like "SSRB") matching card names
+    const hasJapanese = /[\u3000-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uff00-\uffef]/.test(line);
+    if (!hasJapanese) continue;
     const strictResult = await recognizeCard(line);
     if (strictResult.success && strictResult.card) {
       // Double-check: only accept if similarity is high enough
       const query = line.toLowerCase().replace(/[^a-z0-9\u3040-\u9fff]/g, '');
       const cardName = strictResult.card.name.toLowerCase().replace(/[^a-z0-9\u3040-\u9fff]/g, '');
       const sim = calculateSimilarity(query, cardName);
-      if (sim > 0.6) {
+      if (sim > 0.4) {
         return strictResult;
       }
     }
