@@ -95,6 +95,21 @@ export async function loadAllCards(): Promise<CardInfo[]> {
 // ── 文字相似度 ──
 
 /**
+ * 正規化日文文字：全形轉半形、統一空白、移除常見 OCR 雜訊
+ */
+function normalizeText(text: string): string {
+  let t = text.normalize('NFKC'); // 全形→半形
+  t = t.replace(/[－‐-―−－]/g, '-'); // 統一連字號
+  t = t.replace(/[　　]+/g, ' '); // 全形空白→半形
+  t = t.replace(/[・･]+/g, ''); // 移除中黑點
+  t = t.replace(/[→⇒]/g, ''); // 移除箭頭
+  // 常見 OCR 誤認
+  t = t.replace(/[oO〇]/g, '0')    // O→0（用於卡號）
+       .replace(/[lI｜]/g, '1');   // lI→1（用於卡號）
+  return t.trim();
+}
+
+/**
  * 計算兩個字符串的相似度 (Levenshtein 距離)
  */
 function calculateSimilarity(str1: string, str2: string): number {
@@ -149,6 +164,105 @@ function keywordsMatch(cardKeywords: string[], searchKeywords: string[]): number
 // ── 主辨識邏輯 ──
 
 /**
+ * 從雜亂的 OCR 文字中提取可能的卡號（如 hBP04-001, hSD01-003 等）
+ */
+function extractCardIds(text: string): string[] {
+  const normalized = normalizeText(text);
+  // 卡號模式：hBP01-001, hSD02-003, hPR-002, hSP-001 等
+  const patterns = [
+    /h[a-z]{2}\d{0,2}-\d{1,3}/gi,
+    /[a-z]{2}\d{2}-\d{3}/gi,
+    /BP\d{2}[-\s]?\d{3}/gi,
+    /SD\d{2}[-\s]?\d{3}/gi,
+    /PR[-\s]?\d{3}/gi,
+  ];
+  const ids = new Set<string>();
+  for (const pattern of patterns) {
+    const matches = normalized.match(pattern);
+    if (matches) {
+      for (const m of matches) {
+        // 正規化：移除空白、轉小寫
+        const clean = m.replace(/[\s-]/g, '-').toLowerCase().replace(/-$/, '');
+        // 確保格式正確：hbp04-001
+        let formatted = clean;
+        if (/^bp\d{2}/.test(formatted)) formatted = 'h' + formatted;
+        if (/^sd\d{2}/.test(formatted)) formatted = 'h' + formatted;
+        if (/^pr/.test(formatted)) formatted = 'h' + formatted;
+        ids.add(formatted);
+      }
+    }
+  }
+  return Array.from(ids);
+}
+
+/**
+ * 正規化 OCR 輸出：分行清理、過濾雜訊、提取有意義的文字區塊
+ */
+function cleanOcrText(rawText: string): string[] {
+  const text = rawText.normalize('NFKC');
+  // 分行處理
+  const lines = text.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 2);
+  // 過濾常見的卡牌版面雜訊（HP、屬性、效果文字等）
+  const noisePatterns = [
+    /^(HP|LP|DMG|AP|DP|ATK|DEF)\s*\d+/i,
+    /^[\d,，]+円$/,
+    /^【.*】$/,
+    /^(この|自分の|相手の|ターン)/,
+    /^(白|黒|赤|青|黃|緑|紫|茶|無|color)/i,
+    /^(white|black|red|blue|green|yellow|purple|brown)/i,
+    /^(Oshi|推し|ホロメン|応援|サポート|バトル|ブースト)/,
+    /^\d+[%％]/,
+    /^(コスト|cost)/i,
+  ];
+  const meaningful = lines.filter(line =>
+    !noisePatterns.some(p => p.test(line))
+  );
+  // 優先找行內包含卡號或看起來像名稱的
+  const withId = meaningful.filter(l => /[a-z]{2,}\d/.test(l));
+  const shortName = meaningful.filter(l => l.length >= 2 && l.length <= 30 && /[぀-ゟ゠-ヿ一-龯]/.test(l));
+  // 回傳優先順序：有卡號的行 > 含日文的短行 > 其他
+  return [...new Set([...withId, ...shortName, ...meaningful])];
+}
+
+/**
+ * 用於 OCR 卡牌的智能識別（比一般搜尋更寬鬆）
+ */
+export async function recognizeCardFromOcr(rawText: string): Promise<RecognitionResult> {
+  if (!rawText || rawText.trim().length === 0) {
+    return { success: false, error: '無法識別到文字' };
+  }
+
+  const allCards = await loadAllCards();
+  if (allCards.length === 0) {
+    return { success: false, error: '資料庫載入失敗' };
+  }
+
+  // Step 1: 嘗試從文字中提取卡號直接匹配
+  const extractedIds = extractCardIds(rawText);
+  if (extractedIds.length > 0) {
+    for (const cardId of extractedIds) {
+      const match = allCards.find(c => c.id.toLowerCase() === cardId);
+      if (match) {
+        return { success: true, card: match };
+      }
+    }
+  }
+
+  const textLines = cleanOcrText(rawText);
+
+  // Step 2: 對每一行進行獨立匹配（最可能有整行就是卡牌名稱）
+  for (const line of textLines) {
+    const result = await recognizeCard(line);
+    if (result.success && result.card) {
+      return result;
+    }
+  }
+
+  // Step 3: 用整個文字 blob 做模糊搜索
+  return await recognizeCard(rawText);
+}
+
+/**
  * 識別卡牌（通過文字搜索）
  * @param searchText - 從 OCR 或用戶輸入的文字
  * @returns 識別結果
@@ -201,6 +315,55 @@ export async function recognizeCard(searchText: string): Promise<RecognitionResu
       success: true,
       card: containsMatch[0],
       suggestions: containsMatch.slice(1, 4),
+    };
+  }
+
+  // 4b. 如果文字包含空格，嘗試用每個關鍵字分別搜尋
+  const nameParts = query.split(/[\s,，、　]+/).filter(p => p.length > 1 && !/^\d+$/.test(p));
+  if (nameParts.length > 1) {
+    // 找同時有最多關鍵字的卡牌
+    const scoredByNameParts = allCards
+      .map(card => {
+        const cardLower = card.name.toLowerCase();
+        const score = nameParts.filter(p => cardLower.includes(p)).length;
+        return { card, score: score / nameParts.length };
+      })
+      .filter(s => s.score > 0)
+      .sort((a, b) => b.score - a.score);
+    if (scoredByNameParts.length > 0 && scoredByNameParts[0].score >= 0.5) {
+      return {
+        success: true,
+        card: scoredByNameParts[0].card,
+        suggestions: scoredByNameParts.slice(1, 4).map(s => s.card),
+      };
+    }
+  }
+
+  // 4c. 反過來：搜尋哪些卡牌名稱包含查詢文字
+  // （當 card.name 較長而 OCR 只命中一部分時有用）
+  const reversedMatch = allCards.filter(c => {
+    const cardLower = c.name.toLowerCase();
+    return queryLower.includes(cardLower);
+  }).sort((a, b) => b.name.length - a.name.length); // 最長（最精確）的優先
+  if (reversedMatch.length === 1) {
+    return { success: true, card: reversedMatch[0] };
+  }
+  if (reversedMatch.length > 1) {
+    return {
+      success: true,
+      card: reversedMatch[0],
+      suggestions: reversedMatch.slice(1, 4),
+    };
+  }
+
+  // 4d. 嘗試用搜索卡號片段（如「BP04」）
+  const idFragmentMatch = allCards.filter(c => c.id.toLowerCase().includes(queryLower));
+  if (idFragmentMatch.length > 0) {
+    // 取第一個（系列的代表）
+    return {
+      success: true,
+      card: idFragmentMatch[0],
+      suggestions: idFragmentMatch.slice(1, 4),
     };
   }
 

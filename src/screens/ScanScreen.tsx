@@ -20,12 +20,16 @@ import ScanSessionPanel from '../components/ScanSessionPanel';
 import { useScanSessionStore } from '../stores/scanSessionStore';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../constants';
-import { recognizeCard, searchCards, CardInfo } from '../services/cardRecognition';
+import { recognizeCard, recognizeCardFromOcr, searchCards, CardInfo } from '../services/cardRecognition';
 import { recognizeTextWeb } from '../services/webOcr';
+import ScanOverlay from '../components/ScanOverlay';
+import ScanResultCard from '../components/ScanResultCard';
+import { analyzeFrameWithStability, resetAutoScan } from '../services/autoScanService';
 
 // iOS Safari: getUserMedia 需直接從使用者手勢觸發
 // 所以 web 版跳過 expo-camera 的 useCameraPermissions，改用 WebCamera 直接管
 const isWeb = Platform.OS === 'web';
+const SCAN_COOLDOWN_MS = 3000; // Don't re-scan same card within 3s
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SCAN_AREA_SIZE = SCREEN_WIDTH * 0.75;
@@ -59,6 +63,12 @@ export default function ScanScreen() {
   const [suggestions, setSuggestions] = useState<CardInfo[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
   
+  // 掃描錯誤狀態
+  const [scanError, setScanError] = useState<string | null>(null);
+
+  // 已拍下的照片預覽 uri（OCR 失敗時顯示給使用者）
+  const [capturedPhotoUri, setCapturedPhotoUri] = useState<string | null>(null);
+
   // 手動搜尋
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -68,6 +78,18 @@ export default function ScanScreen() {
   const scanLineAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const borderAnim = useRef(new Animated.Value(0)).current;
+
+  // Auto-scan state & refs
+  const [autoScanEnabled, setAutoScanEnabled] = useState<boolean>(true);
+  const autoScanRef = useRef<number | null>(null);
+  const lastScanTimeRef = useRef<number>(0);
+
+  // Scan result card (floating overlay)
+  const [resultCard, setResultCard] = useState<{
+    visible: boolean;
+    card: CardInfo | null;
+    confidence: number;
+  }>({ visible: false, card: null, confidence: 0 });
 
   // 显式请求相机权限 - 修复 Android/iOS 权限问题（web 版跳過，由 WebCamera 直接處理）
   useEffect(() => {
@@ -145,12 +167,60 @@ export default function ScanScreen() {
     return () => borderAnimation.stop();
   }, [borderAnim]);
 
+  // Auto-scan rAF loop (web only) — detects card in frame and auto-triggers OCR
+  useEffect(() => {
+    // Auto-scan only works on web; native keeps manual scan
+    if (!isWeb) return;
+    if (!isCameraReady || !autoScanEnabled) return;
+    if (isScanning || isProcessingOCR) return;
+
+    let mounted = true;
+    const scanArea = {
+      x: Math.round((SCREEN_WIDTH - SCAN_AREA_SIZE) / 2),
+      y: Math.round(SCREEN_HEIGHT * 0.15),
+      width: Math.round(SCAN_AREA_SIZE),
+      height: Math.round(SCAN_AREA_SIZE * 0.63),
+    };
+
+    const loop = () => {
+      if (!mounted) return;
+
+      const video = document.querySelector('video');
+      if (video && video.readyState >= 2) {
+        const result = analyzeFrameWithStability(video, scanArea);
+        if (result.isStable && result.confidence > 0.7) {
+          const now = Date.now();
+          if (now - lastScanTimeRef.current > SCAN_COOLDOWN_MS) {
+            lastScanTimeRef.current = now;
+            captureAndRecognize();
+          }
+        }
+      }
+
+      autoScanRef.current = requestAnimationFrame(loop);
+    };
+
+    autoScanRef.current = requestAnimationFrame(loop);
+    return () => {
+      mounted = false;
+      if (autoScanRef.current) {
+        cancelAnimationFrame(autoScanRef.current);
+      }
+    };
+  }, [isCameraReady, autoScanEnabled, isScanning, isProcessingOCR, facing]);
+
   const toggleCameraFacing = () => {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
+    resetAutoScan();
   };
 
   const toggleFlash = () => {
     setFlash(current => !current);
+  };
+
+  const toggleAutoScan = () => {
+    setAutoScanEnabled(prev => !prev);
+    resetAutoScan();
   };
 
   // Web 版無法使用 expo-ocr-kit，用 Tesseract.js 兜底
@@ -165,7 +235,7 @@ export default function ScanScreen() {
     }
   };
 
-  // OCR 識別功能
+  // OCR 識別功能（支援 web/native，自動降級）
   const captureAndRecognize = async () => {
     if (isWeb) {
       if (!webCameraRef.current) {
@@ -176,11 +246,13 @@ export default function ScanScreen() {
       Alert.alert('錯誤', '相機未準備好');
       return;
     }
-    
+
     try {
       setIsProcessingOCR(true);
       setIsScanning(true);
-      
+      setScanError(null);
+      setCapturedPhotoUri(null);
+
       // 拍攝照片
       let photo;
       if (isWeb) {
@@ -192,81 +264,60 @@ export default function ScanScreen() {
           quality: 0.8,
         });
       }
-      
+
       if (!photo?.uri) {
         throw new Error('無法拍攝照片');
       }
-      
+
+      // 儲存照片 uri 用於預覽
+      setCapturedPhotoUri(photo.uri);
+
       // 使用 OCR 識別文字（web 版用 Tesseract.js，native 用 expo-ocr-kit）
       const recognizedText = await performOcr(photo.uri);
-      setRecognizedText(recognizedText);
+      const trimmedText = recognizedText.trim();
+      setRecognizedText(trimmedText);
 
       setIsProcessingOCR(false);
       setIsScanning(false);
 
-      if (recognizedText.trim().length > 0) {
-        // 使用識別的文字進行卡牌匹配
-        const result = await recognizeCard(recognizedText);
-        
+      if (trimmedText.length > 0) {
+        // 使用 OCR 專用辨識（含行分割、卡號提取）
+        const result = await recognizeCardFromOcr(trimmedText);
+
         if (result.success && result.card) {
           addCard(result.card);
           setLastScannedCard(result.card);
+          // Show floating result card
+          setResultCard({
+            visible: true,
+            card: result.card,
+            confidence: 0.85,
+          });
           setSearchResults([]);
           setSearchError(null);
           setSuggestions([]);
+          setCapturedPhotoUri(null);
+          // Reset auto-scan stability buffer after successful scan
+          resetAutoScan();
         } else {
-          // 沒有精確匹配，顯示文字讓用戶確認
-          Alert.alert(
-            '🔍 識別結果',
-            `識別到的文字：\n\n"${recognizedText}"\n\n請選擇：`,
-            [
-              { 
-                text: '使用此文字搜尋', 
-                onPress: async () => {
-                  const result = await recognizeCard(recognizedText);
-                  if (result.success && result.card) {
-                    addCard(result.card);
-                    setLastScannedCard(result.card);
-                    setSearchResults([]);
-                    setSearchError(null);
-                    setSuggestions([]);
-                  } else {
-                    setSearchError(result.error || '找不到匹配的卡牌');
-                    const searchResult = await searchCards(recognizedText, 5);
-                    setSearchResults(searchResult);
-                  }
-                }
-              },
-              { 
-                text: '手動輸入', 
-                onPress: () => setShowSearch(true)
-              },
-            ]
-          );
+          // 沒有精確匹配 — 用全部結果做模糊搜尋，讓用戶選擇
+          setSearchError(result.error || '找不到匹配的卡牌');
+          const searchResult = await searchCards(trimmedText, 10);
+          setSearchResults(searchResult);
         }
       } else {
-        Alert.alert(
-          '❌ 無法識別',
-          '請確保卡牌文字清晰可見，或使用手動輸入',
-          [
-            { text: '重試', onPress: () => captureAndRecognize() },
-            { text: '手動輸入', onPress: () => setShowSearch(true) },
-          ]
-        );
+        // OCR 回傳空文字（常見於 web 版）
+        // 直接向使用者顯示已拍攝的照片，提供手動搜尋
+        // 不彈 Alert，讓畫面底部的錯誤提示引導使用者
+        setScanError('無法自動辨識卡牌文字。請使用手動搜尋或從下方搜尋結果中選擇。');
+        // 用完整字串搜尋（雖然為空，但仍給個機會）
       }
     } catch (error) {
       console.error('OCR Error:', error);
       setIsProcessingOCR(false);
       setIsScanning(false);
-      
-      Alert.alert(
-        '⚠️ 識別失敗',
-        '無法識別圖像，請重試或使用手動輸入',
-        [
-          { text: '重試', onPress: () => captureAndRecognize() },
-          { text: '手動輸入', onPress: () => setShowSearch(true) },
-        ]
-      );
+
+      setScanError('無法完成掃描，請重試或使用手動輸入');
     }
   };
 
@@ -278,78 +329,57 @@ export default function ScanScreen() {
         allowsEditing: true,
         quality: 0.8,
       });
-      
+
       if (!result.canceled && result.assets[0]?.uri) {
         setIsProcessingOCR(true);
         setIsScanning(true);
 
+        setScanError(null);
+        setCapturedPhotoUri(result.assets[0].uri);
+
         const recognizedText = await performOcr(result.assets[0].uri);
-        setRecognizedText(recognizedText);
+        const trimmedText = recognizedText.trim();
+        setRecognizedText(trimmedText);
 
         setIsProcessingOCR(false);
         setIsScanning(false);
 
-        if (recognizedText.trim().length > 0) {
-          const cardResult = await recognizeCard(recognizedText);
+        if (trimmedText.length > 0) {
+          const cardResult = await recognizeCardFromOcr(trimmedText);
           if (cardResult.success && cardResult.card) {
             addCard(cardResult.card);
             setLastScannedCard(cardResult.card);
+            // Show floating result card
+            setResultCard({
+              visible: true,
+              card: cardResult.card,
+              confidence: 0.85,
+            });
             setSearchResults([]);
             setSearchError(null);
             setSuggestions([]);
+            setCapturedPhotoUri(null);
+            resetAutoScan();
           } else {
             setSearchError(cardResult.error || '找不到匹配的卡牌');
-            const searchResult = await searchCards(recognizedText, 5);
+            const searchResult = await searchCards(trimmedText, 10);
             setSearchResults(searchResult);
           }
         } else {
-          Alert.alert(
-            '❌ 無法識別',
-            '請確保卡牌文字清晰可見，或使用手動輸入',
-            [
-              { text: '重試', onPress: () => pickFromGallery() },
-              { text: '手動輸入', onPress: () => setShowSearch(true) },
-            ]
-          );
+          setScanError('無法自動辨識卡牌文字。請使用手動搜尋或從下方搜尋結果中選擇。');
         }
       }
     } catch (error) {
       console.error('Gallery OCR Error:', error);
       setIsProcessingOCR(false);
       setIsScanning(false);
-      Alert.alert(
-        '⚠️ 識別失敗',
-        '無法讀取或識別圖片，請重試或使用手動輸入',
-        [
-          { text: '重試', onPress: () => pickFromGallery() },
-          { text: '手動輸入', onPress: () => setShowSearch(true) },
-        ]
-      );
+      setScanError('無法讀取或識別圖片，請重試或使用手動輸入');
     }
   };
 
   const handleScan = () => {
     if (isScanning || isProcessingOCR) return;
-    
-    Alert.alert(
-      '📷 選擇掃描方式',
-      '請選擇如何掃描卡牌',
-      [
-        { 
-          text: '📸 拍照識別', 
-          onPress: () => captureAndRecognize()
-        },
-        { 
-          text: '🖼️ 從相冊選擇', 
-          onPress: () => pickFromGallery()
-        },
-        { 
-          text: '🔤 手動輸入', 
-          onPress: () => setShowSearch(true)
-        },
-        { text: '取消', style: 'cancel' },
-      ]
-    );
+    captureAndRecognize();
   };
 
   // 當權限被授予時，設置標記並等待相機準備
@@ -372,6 +402,15 @@ export default function ScanScreen() {
     const errorMessage = error?.message || '相機載入失敗，請重新開啟應用程式';
     setCameraError(errorMessage);
     setIsCameraReady(false);
+  };
+
+  const handleRetry = () => {
+    setCameraError(null);
+    if (isWeb && webCameraRef.current) {
+      webCameraRef.current.retry();
+    } else {
+      setIsCameraReady(false);
+    }
   };
   
   // 演示識別功能
@@ -417,6 +456,8 @@ export default function ScanScreen() {
   const handleSelectSuggestion = (card: CardInfo) => {
     setRecognizedCard(card);
     setSuggestions([]);
+    addCard(card);
+    setResultCard({ visible: true, card, confidence: 0.85 });
   };
   
   // 清除結果
@@ -557,85 +598,27 @@ export default function ScanScreen() {
           onCameraReady={handleCameraReady}
           onMountError={handleMountError}
         >
-          {/* 遮罩层 — same content for both */}
-          <View style={styles.overlay}>
-            <View style={styles.overlayTop} />
-            <View style={styles.scanAreaContainer}>
-              <View style={styles.overlaySide} />
-              <Animated.View 
-                style={[
-                  styles.scanArea,
-                  { 
-                    transform: [{ scale: pulseAnim }],
-                    borderColor: borderAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [COLORS.primary, COLORS.primaryLight],
-                    }),
-                  }
-                ]}
-              >
-                <Animated.View 
-                  style={[
-                    styles.scanLine,
-                    {
-                      transform: [{
-                      translateY: scanLineAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, SCAN_AREA_SIZE - 4],
-                      }),
-                    }],
-                    opacity: scanLineAnim.interpolate({
-                      inputRange: [0, 0.5, 1],
-                      outputRange: [0, 1, 0],
-                    }),
-                  }
-                ]}
-              />
-              <View style={[styles.corner, styles.topLeft]} />
-              <View style={[styles.corner, styles.topRight]} />
-              <View style={[styles.corner, styles.bottomLeft]} />
-              <View style={[styles.corner, styles.bottomRight]} />
-              {isScanning && (
-                <View style={styles.scanningIndicator}>
-                  <Text style={styles.scanningText}>識別中...</Text>
-                </View>
-              )}
-            </Animated.View>
-            <View style={styles.overlaySide} />
-          </View>
-          <View style={styles.overlayBottom}>
-            <Text style={styles.hintText}>將卡牌置於掃描框內</Text>
-            <View style={styles.controls}>
-              <TouchableOpacity 
-                style={[styles.controlBtn, flash && styles.controlBtnActive]}
-                onPress={toggleFlash}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.controlIcon}>{flash ? '🔦' : '💡'}</Text>
-                <Text style={styles.controlLabel}>{flash ? '閃光燈開' : '閃光燈'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.scanButton, isScanning && styles.scanButtonDisabled]}
-                onPress={handleScan}
-                disabled={isScanning}
-                activeOpacity={0.7}
-              >
-                <View style={styles.scanButtonInner}>
-                  <Text style={styles.scanButtonIcon}>{isScanning ? '⏳' : '📷'}</Text>
-                </View>
-                <Text style={styles.scanButtonLabel}>{isScanning ? '識別中...' : '掃描'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.controlBtn}
-                onPress={toggleCameraFacing}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.controlIcon}>🔄</Text>
-                <Text style={styles.controlLabel}>翻轉</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          </View>
+          <ScanOverlay
+            scanLineAnim={scanLineAnim}
+            pulseAnim={pulseAnim}
+            borderAnim={borderAnim}
+            isScanning={isScanning}
+            flash={flash}
+            autoScanEnabled={autoScanEnabled}
+            isCameraReady={isCameraReady}
+            cameraError={cameraError}
+            onFlash={toggleFlash}
+            onScan={handleScan}
+            onFlip={toggleCameraFacing}
+            onGallery={pickFromGallery}
+            onManualSearch={() => setShowSearch(true)}
+            onToggleAutoScan={toggleAutoScan}
+            onRetry={() => {
+              setCameraError(null);
+              if (webCameraRef.current) webCameraRef.current.retry();
+              else setIsCameraReady(false);
+            }}
+          />
         </WebCamera>
       ) : (
         <CameraView
@@ -646,86 +629,37 @@ export default function ScanScreen() {
           onCameraReady={handleCameraReady}
           onMountError={handleMountError}
         >
-          <View style={styles.overlay}>
-            <View style={styles.overlayTop} />
-            <View style={styles.scanAreaContainer}>
-              <View style={styles.overlaySide} />
-              <Animated.View 
-                style={[
-                  styles.scanArea,
-                  { 
-                    transform: [{ scale: pulseAnim }],
-                    borderColor: borderAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [COLORS.primary, COLORS.primaryLight],
-                    }),
-                  }
-                ]}
-              >
-                <Animated.View 
-                  style={[
-                    styles.scanLine,
-                    {
-                      transform: [{
-                      translateY: scanLineAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, SCAN_AREA_SIZE - 4],
-                      }),
-                    }],
-                    opacity: scanLineAnim.interpolate({
-                      inputRange: [0, 0.5, 1],
-                      outputRange: [0, 1, 0],
-                    }),
-                  }
-                ]}
-              />
-              <View style={[styles.corner, styles.topLeft]} />
-              <View style={[styles.corner, styles.topRight]} />
-              <View style={[styles.corner, styles.bottomLeft]} />
-              <View style={[styles.corner, styles.bottomRight]} />
-              {isScanning && (
-                <View style={styles.scanningIndicator}>
-                  <Text style={styles.scanningText}>識別中...</Text>
-                </View>
-              )}
-            </Animated.View>
-            <View style={styles.overlaySide} />
-          </View>
-          <View style={styles.overlayBottom}>
-            <Text style={styles.hintText}>將卡牌置於掃描框內</Text>
-            <View style={styles.controls}>
-              <TouchableOpacity 
-                style={[styles.controlBtn, flash && styles.controlBtnActive]}
-                onPress={toggleFlash}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.controlIcon}>{flash ? '🔦' : '💡'}</Text>
-                <Text style={styles.controlLabel}>{flash ? '閃光燈開' : '閃光燈'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.scanButton, isScanning && styles.scanButtonDisabled]}
-                onPress={handleScan}
-                disabled={isScanning}
-                activeOpacity={0.7}
-              >
-                <View style={styles.scanButtonInner}>
-                  <Text style={styles.scanButtonIcon}>{isScanning ? '⏳' : '📷'}</Text>
-                </View>
-                <Text style={styles.scanButtonLabel}>{isScanning ? '識別中...' : '掃描'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.controlBtn}
-                onPress={toggleCameraFacing}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.controlIcon}>🔄</Text>
-                <Text style={styles.controlLabel}>翻轉</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          </View>
+          <ScanOverlay
+            scanLineAnim={scanLineAnim}
+            pulseAnim={pulseAnim}
+            borderAnim={borderAnim}
+            isScanning={isScanning}
+            flash={flash}
+            autoScanEnabled={autoScanEnabled}
+            isCameraReady={isCameraReady}
+            cameraError={cameraError}
+            onFlash={toggleFlash}
+            onScan={handleScan}
+            onFlip={toggleCameraFacing}
+            onGallery={pickFromGallery}
+            onManualSearch={() => setShowSearch(true)}
+            onToggleAutoScan={toggleAutoScan}
+            onRetry={() => {
+              setCameraError(null);
+              if (webCameraRef.current) webCameraRef.current.retry();
+              else setIsCameraReady(false);
+            }}
+          />
         </CameraView>
       )}
+      
+      {/* Floating result card */}
+      <ScanResultCard
+        card={resultCard.card!}
+        visible={resultCard.visible}
+        confidence={resultCard.confidence}
+        onDismiss={() => { setResultCard({ visible: false, card: null, confidence: 0 }); }}
+      />
       
       {/* 最後掃描的卡牌確認提示 */}
       {lastScannedCard && (
@@ -751,19 +685,55 @@ export default function ScanScreen() {
         </View>
       )}
       
-      {/* 錯誤提示 */}
+      {/* 錯誤提示（搜索失敗） */}
       {searchError && !recognizedCard && (
         <View style={resultStyles.errorContainer}>
           <Text style={resultStyles.errorText}>❌ {searchError}</Text>
-          <TouchableOpacity 
-            style={resultStyles.retryButton}
-            onPress={() => {
-              setSearchError(null);
-              setShowSearch(true);
-            }}
-          >
-            <Text style={resultStyles.retryText}>重新搜尋</Text>
-          </TouchableOpacity>
+          <View style={resultStyles.errorActions}>
+            <TouchableOpacity
+              style={resultStyles.retryButton}
+              onPress={() => {
+                setSearchError(null);
+                setShowSearch(true);
+              }}
+            >
+              <Text style={resultStyles.retryText}>手動搜尋</Text>
+            </TouchableOpacity>
+            {recognizedText ? (
+              <TouchableOpacity
+                style={resultStyles.debugButton}
+                onPress={() => {
+                  Alert.alert('識別文字偵錯', `OCR 識別到的原始文字：\n\n"${recognizedText}"`);
+                }}
+              >
+                <Text style={resultStyles.debugText}>查看識別文字</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </View>
+      )}
+
+      {/* 掃描失敗提示（OCR 回傳空） */}
+      {scanError && (
+        <View style={resultStyles.errorContainer}>
+          <Text style={resultStyles.errorText}>⚠️ {scanError}</Text>
+          <View style={resultStyles.errorActions}>
+            <TouchableOpacity
+              style={resultStyles.retryButton}
+              onPress={() => {
+                setScanError(null);
+                setShowSearch(true);
+              }}
+            >
+              <Text style={resultStyles.retryText}>手動搜尋</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={resultStyles.retryButton}
+              onPress={() => captureAndRecognize()}
+            >
+              <Text style={resultStyles.retryText}>重試掃描</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
       
@@ -1220,6 +1190,13 @@ const resultStyles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     marginBottom: 10,
+    textAlign: 'center',
+  },
+  errorActions: {
+    flexDirection: 'row',
+    gap: 10,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
   },
   retryButton: {
     backgroundColor: '#fff',
@@ -1231,6 +1208,16 @@ const resultStyles = StyleSheet.create({
     color: '#FF5252',
     fontSize: 14,
     fontWeight: '600',
+  },
+  debugButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 16,
+  },
+  debugText: {
+    color: '#fff',
+    fontSize: 14,
   },
   suggestionsListContainer: {
     position: 'absolute',
