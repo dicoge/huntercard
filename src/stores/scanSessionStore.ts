@@ -1,11 +1,14 @@
 /**
  * Scan Session Store (Zustand)
  * 管理連續掃描的卡牌清單與總價值
+ *
+ * Uses platform-specific storage module:
+ * - web: localStorage (avoids broken async-storage npm package)
+ * - native: AsyncStorage
  */
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
+import platformStorage from './storage';
 import { CardInfo } from '../services/cardRecognition';
 
 export interface SessionCard extends CardInfo {
@@ -81,9 +84,7 @@ export const useScanSessionStore = create<ScanSessionState>()(
     }),
     {
       name: 'hunterCard-scan-session',
-      storage: createJSONStorage(() =>
-        Platform.OS === 'web' ? localStorage : AsyncStorage
-      ),
+      storage: createJSONStorage(() => platformStorage),
     }
   )
 );
