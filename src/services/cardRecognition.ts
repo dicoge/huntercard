@@ -8,6 +8,20 @@
 
 // ── 類型定義 ──
 
+export interface CardPrice {
+  name: string;
+  sellPrice: number | null;
+  rarity?: string;
+}
+
+export interface CardVariant {
+  series: string;
+  seriesName: string;  // Human-readable series name
+  sellPrice: number | null;
+  prices: CardPrice[];
+  rarity: string;
+}
+
 export interface CardInfo {
   id: string;
   name: string;
@@ -19,6 +33,8 @@ export interface CardInfo {
   yuyuName: string;
   color: string;
   imageUrl: string;
+  prices?: CardPrice[];       // Detailed price variants from database
+  variants?: CardVariant[];   // Same cardNumber in different series
 }
 
 export interface RecognitionResult {
@@ -41,6 +57,7 @@ interface DatabaseRecord {
   color: string;
   localImage?: string;
   officialImage?: string;
+  prices?: any[];
   [key: string]: any;
 }
 
@@ -52,9 +69,27 @@ interface DatabaseSchema {
 
 let cachedDb: CardInfo[] | null = null;
 let dbFetchPromise: Promise<CardInfo[]> | null = null;
+let seriesNamesCache: Record<string, string> | null = null;
+
+/**
+ * 載入 series-names.json 並快取
+ */
+async function loadSeriesNames(): Promise<Record<string, string>> {
+  if (seriesNamesCache) return seriesNamesCache;
+  try {
+    const res = await fetch('/data/series-names.json');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    seriesNamesCache = await res.json();
+    return seriesNamesCache!;
+  } catch (e: any) {
+    console.error('[cardRecognition] Failed to load series names:', e.message);
+    return {};
+  }
+}
 
 /**
  * 載入 database.json 並轉換為 CardInfo 陣列
+ * 同一 cardNumber 在不同系列時，自動合併為一筆並以 variants 列出
  */
 export async function loadAllCards(): Promise<CardInfo[]> {
   if (cachedDb) return cachedDb;
@@ -62,23 +97,58 @@ export async function loadAllCards(): Promise<CardInfo[]> {
 
   dbFetchPromise = (async () => {
     try {
-      const res = await fetch('/data/database.json');
+      const [res, seriesNames] = await Promise.all([
+        fetch('/data/database.json'),
+        loadSeriesNames(),
+      ]);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const db: DatabaseSchema = await res.json();
       const cards = db.cards || {};
-      
-      const result: CardInfo[] = Object.values(cards).map(c => ({
-        id: (c as any).cardNumber || c.id || '',
-        name: c.name || '',
-        cardNumber: (c as any).cardNumber || c.id || '',
-        type: c.type || '',
-        rarity: c.rarity || '',
-        series: c.series || '',
-        sellPrice: c.sellPrice != null && c.sellPrice > 0 ? c.sellPrice : null,
-        yuyuName: c.yuyuName || '',
-        color: c.color || '',
-        imageUrl: c.officialImage || c.localImage || '',
-      }));
+
+      // Group entries by cardNumber
+      const groupedByCardNumber: Record<string, DatabaseRecord[]> = {};
+      for (const entry of Object.values(cards)) {
+        const cn = (entry as any).cardNumber || entry.id || '';
+        if (!groupedByCardNumber[cn]) {
+          groupedByCardNumber[cn] = [];
+        }
+        groupedByCardNumber[cn].push(entry);
+      }
+
+      const result: CardInfo[] = [];
+      for (const entries of Object.values(groupedByCardNumber)) {
+        // Sort: prefer non-null sellPrice (highest first), then by id for stability
+        entries.sort((a, b) => {
+          const aPrice = a.sellPrice != null ? a.sellPrice : -1;
+          const bPrice = b.sellPrice != null ? b.sellPrice : -1;
+          return bPrice - aPrice;
+        });
+        const primary = entries[0];
+
+        // Build variants for other entries with the same cardNumber
+        const variants: CardVariant[] = entries.slice(1).map(entry => ({
+          series: entry.series || '',
+          seriesName: seriesNames[entry.series || ''] || entry.series || '',
+          sellPrice: entry.sellPrice != null && entry.sellPrice > 0 ? entry.sellPrice : null,
+          prices: (entry as any).prices || [],
+          rarity: entry.rarity || '',
+        }));
+
+        result.push({
+          id: (primary as any).cardNumber || primary.id || '',
+          name: primary.name || '',
+          cardNumber: (primary as any).cardNumber || primary.id || '',
+          type: primary.type || '',
+          rarity: primary.rarity || '',
+          series: primary.series || '',
+          sellPrice: primary.sellPrice != null && primary.sellPrice > 0 ? primary.sellPrice : null,
+          yuyuName: primary.yuyuName || '',
+          color: primary.color || '',
+          imageUrl: primary.officialImage || primary.localImage || '',
+          prices: (primary as any).prices || [],
+          variants: variants.length > 0 ? variants : undefined,
+        });
+      }
 
       cachedDb = result;
       return result;

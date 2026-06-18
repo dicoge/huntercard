@@ -8,7 +8,7 @@
  * Style inspired by Rare Candy Scanner 3.0.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -42,6 +42,7 @@ export default function ScanResultCard({
   onDismiss,
   autoDismissMs = 5000,
 }: ScanResultCardProps) {
+  const [expanded, setExpanded] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -184,6 +185,61 @@ export default function ScanResultCard({
           </Text>
         ) : null}
 
+        {/* Multi-price variants section */}
+        {(card.variants && card.variants.length > 0) || (card.prices && card.prices.length > 1) ? (
+          <TouchableOpacity
+            style={styles.variantsToggle}
+            onPress={() => setExpanded(!expanded)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.variantsToggleText}>
+              {expanded ? '▲ 收起其他版本' : '▼ 查看其他版本'}
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+
+        {expanded && (
+          <View style={styles.variantsContainer}>
+            {/* Show variants from reprints (same cardNumber, different series) */}
+            {card.variants && card.variants.length > 0 && (
+              <>
+                {card.variants.map((v, i) => (
+                  <View key={`v-${i}`} style={styles.variantRow}>
+                    <Text style={styles.variantLabel} numberOfLines={1}>
+                      {v.seriesName || v.series}
+                    </Text>
+                    <Text style={[
+                      styles.variantPrice,
+                      v.sellPrice != null ? styles.variantPricePositive : styles.variantPriceNull,
+                    ]}>
+                      {v.sellPrice != null ? `¥${v.sellPrice.toLocaleString()}` : '—'}
+                    </Text>
+                  </View>
+                ))}
+              </>
+            )}
+
+            {/* Show detailed price variants (from the prices array) */}
+            {card.prices && card.prices.length > 1 && (
+              <>
+                {card.prices.map((p, i) => (
+                  <View key={`p-${i}`} style={styles.variantRow}>
+                    <Text style={styles.variantLabel} numberOfLines={1}>
+                      {p.name}
+                    </Text>
+                    <Text style={[
+                      styles.variantPrice,
+                      p.sellPrice != null ? styles.variantPricePositive : styles.variantPriceNull,
+                    ]}>
+                      {p.sellPrice != null ? `¥${p.sellPrice.toLocaleString()}` : '—'}
+                    </Text>
+                  </View>
+                ))}
+              </>
+            )}
+          </View>
+        )}
+
         {/* Dismiss hint */}
         <Text style={styles.dismissHint}>點擊關閉</Text>
       </TouchableOpacity>
@@ -283,5 +339,48 @@ const styles = StyleSheet.create({
     fontSize: 10,
     textAlign: 'center',
     marginTop: 8,
+  },
+  // Variants section
+  variantsToggle: {
+    marginTop: 8,
+    paddingVertical: 4,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  variantsToggleText: {
+    color: COLORS.primary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  variantsContainer: {
+    marginTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    paddingTop: 6,
+  },
+  variantRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.04)',
+  },
+  variantLabel: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 12,
+    flex: 1,
+    marginRight: 8,
+  },
+  variantPrice: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  variantPricePositive: {
+    color: '#00C853',
+  },
+  variantPriceNull: {
+    color: 'rgba(255, 255, 255, 0.3)',
   },
 });
