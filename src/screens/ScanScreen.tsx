@@ -20,7 +20,7 @@ import ScanSessionPanel from '../components/ScanSessionPanel';
 import { useScanSessionStore } from '../stores/scanSessionStore';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../constants';
-import { recognizeCard, recognizeCardFromOcr, searchCards, CardInfo } from '../services/cardRecognition';
+import { recognizeCard, recognizeCardFromOcr, recognizeCardFromImage, searchCards, CardInfo } from '../services/cardRecognition';
 import { recognizeTextWeb } from '../services/webOcr';
 import ScanOverlay from '../components/ScanOverlay';
 import ScanResultCard from '../components/ScanResultCard';
@@ -272,17 +272,12 @@ export default function ScanScreen() {
       // 儲存照片 uri 用於預覽
       setCapturedPhotoUri(photo.uri);
 
-      // 使用 OCR 識別文字（web 版用 Tesseract.js，native 用 expo-ocr-kit）
-      const recognizedText = await performOcr(photo.uri);
-      const trimmedText = recognizedText.trim();
-      setRecognizedText(trimmedText);
+      if (isWeb) {
+        // Web: 使用卡號優先的圖片裁切 + OCR（比全圖 OCR 更準確）
+        const result = await recognizeCardFromImage(photo.uri);
 
-      setIsProcessingOCR(false);
-      setIsScanning(false);
-
-      if (trimmedText.length > 0) {
-        // 使用 OCR 專用辨識（含行分割、卡號提取）
-        const result = await recognizeCardFromOcr(trimmedText);
+        setIsProcessingOCR(false);
+        setIsScanning(false);
 
         if (result.success && result.card) {
           addCard(result.card);
@@ -300,17 +295,76 @@ export default function ScanScreen() {
           // Reset auto-scan stability buffer after successful scan
           resetAutoScan();
         } else {
-          // 沒有精確匹配 — 用全部結果做模糊搜尋，讓用戶選擇
-          setSearchError(result.error || '找不到匹配的卡牌');
-          const searchResult = await searchCards(trimmedText, 10);
-          setSearchResults(searchResult);
+          // 找不到卡號 — 用全圖 OCR 兜底做名稱匹配
+          const recognizedText = await recognizeTextWeb(photo.uri);
+          const trimmedText = recognizedText.text.trim();
+          setRecognizedText(trimmedText);
+
+          if (trimmedText.length > 0) {
+            const fallbackResult = await recognizeCardFromOcr(trimmedText);
+            if (fallbackResult.success && fallbackResult.card) {
+              addCard(fallbackResult.card);
+              setLastScannedCard(fallbackResult.card);
+              setResultCard({
+                visible: true,
+                card: fallbackResult.card,
+                confidence: 0.85,
+              });
+              setSearchResults([]);
+              setSearchError(null);
+              setSuggestions([]);
+              setCapturedPhotoUri(null);
+              resetAutoScan();
+              return;
+            }
+            setSearchError(fallbackResult.error || '找不到匹配的卡牌');
+            const searchResult = await searchCards(trimmedText, 10);
+            setSearchResults(searchResult);
+          } else {
+            setScanError('無法自動辨識卡牌文字。請使用手動搜尋或從下方搜尋結果中選擇。');
+          }
         }
       } else {
-        // OCR 回傳空文字（常見於 web 版）
-        // 直接向使用者顯示已拍攝的照片，提供手動搜尋
-        // 不彈 Alert，讓畫面底部的錯誤提示引導使用者
-        setScanError('無法自動辨識卡牌文字。請使用手動搜尋或從下方搜尋結果中選擇。');
-        // 用完整字串搜尋（雖然為空，但仍給個機會）
+        // Native: 用 expo-ocr-kit 做全圖 OCR
+        const recognizedText = await performOcr(photo.uri);
+        const trimmedText = recognizedText.trim();
+        setRecognizedText(trimmedText);
+
+        setIsProcessingOCR(false);
+        setIsScanning(false);
+
+        if (trimmedText.length > 0) {
+          // 使用 OCR 專用辨識（含行分割、卡號提取）
+          const result = await recognizeCardFromOcr(trimmedText);
+
+          if (result.success && result.card) {
+            addCard(result.card);
+            setLastScannedCard(result.card);
+            // Show floating result card
+            setResultCard({
+              visible: true,
+              card: result.card,
+              confidence: 0.85,
+            });
+            setSearchResults([]);
+            setSearchError(null);
+            setSuggestions([]);
+            setCapturedPhotoUri(null);
+            // Reset auto-scan stability buffer after successful scan
+            resetAutoScan();
+          } else {
+            // 沒有精確匹配 — 用全部結果做模糊搜尋，讓用戶選擇
+            setSearchError(result.error || '找不到匹配的卡牌');
+            const searchResult = await searchCards(trimmedText, 10);
+            setSearchResults(searchResult);
+          }
+        } else {
+          // OCR 回傳空文字（常見於 web 版）
+          // 直接向使用者顯示已拍攝的照片，提供手動搜尋
+          // 不彈 Alert，讓畫面底部的錯誤提示引導使用者
+          setScanError('無法自動辨識卡牌文字。請使用手動搜尋或從下方搜尋結果中選擇。');
+          // 用完整字串搜尋（雖然為空，但仍給個機會）
+        }
       }
     } catch (error) {
       console.error('OCR Error:', error);
@@ -337,19 +391,16 @@ export default function ScanScreen() {
         setScanError(null);
         setCapturedPhotoUri(result.assets[0].uri);
 
-        const recognizedText = await performOcr(result.assets[0].uri);
-        const trimmedText = recognizedText.trim();
-        setRecognizedText(trimmedText);
+        if (isWeb) {
+          // Web: 卡號優先 OCR
+          const cardResult = await recognizeCardFromImage(result.assets[0].uri);
 
-        setIsProcessingOCR(false);
-        setIsScanning(false);
+          setIsProcessingOCR(false);
+          setIsScanning(false);
 
-        if (trimmedText.length > 0) {
-          const cardResult = await recognizeCardFromOcr(trimmedText);
           if (cardResult.success && cardResult.card) {
             addCard(cardResult.card);
             setLastScannedCard(cardResult.card);
-            // Show floating result card
             setResultCard({
               visible: true,
               card: cardResult.card,
@@ -361,12 +412,67 @@ export default function ScanScreen() {
             setCapturedPhotoUri(null);
             resetAutoScan();
           } else {
-            setSearchError(cardResult.error || '找不到匹配的卡牌');
-            const searchResult = await searchCards(trimmedText, 10);
-            setSearchResults(searchResult);
+            // Fallback 到全圖 OCR
+            const recognizedText = await recognizeTextWeb(result.assets[0].uri);
+            const trimmedText = recognizedText.text.trim();
+            setRecognizedText(trimmedText);
+
+            if (trimmedText.length > 0) {
+              const fallbackResult = await recognizeCardFromOcr(trimmedText);
+              if (fallbackResult.success && fallbackResult.card) {
+                addCard(fallbackResult.card);
+                setLastScannedCard(fallbackResult.card);
+                setResultCard({
+                  visible: true,
+                  card: fallbackResult.card,
+                  confidence: 0.85,
+                });
+                setSearchResults([]);
+                setSearchError(null);
+                setSuggestions([]);
+                setCapturedPhotoUri(null);
+                resetAutoScan();
+                return;
+              }
+              setSearchError(fallbackResult.error || '找不到匹配的卡牌');
+              const searchResult = await searchCards(trimmedText, 10);
+              setSearchResults(searchResult);
+            } else {
+              setScanError('無法自動辨識卡牌文字。請使用手動搜尋或從下方搜尋結果中選擇。');
+            }
           }
         } else {
-          setScanError('無法自動辨識卡牌文字。請使用手動搜尋或從下方搜尋結果中選擇。');
+          const recognizedText = await performOcr(result.assets[0].uri);
+          const trimmedText = recognizedText.trim();
+          setRecognizedText(trimmedText);
+
+          setIsProcessingOCR(false);
+          setIsScanning(false);
+
+          if (trimmedText.length > 0) {
+            const cardResult = await recognizeCardFromOcr(trimmedText);
+            if (cardResult.success && cardResult.card) {
+              addCard(cardResult.card);
+              setLastScannedCard(cardResult.card);
+              // Show floating result card
+              setResultCard({
+                visible: true,
+                card: cardResult.card,
+                confidence: 0.85,
+              });
+              setSearchResults([]);
+              setSearchError(null);
+              setSuggestions([]);
+              setCapturedPhotoUri(null);
+              resetAutoScan();
+            } else {
+              setSearchError(cardResult.error || '找不到匹配的卡牌');
+              const searchResult = await searchCards(trimmedText, 10);
+              setSearchResults(searchResult);
+            }
+          } else {
+            setScanError('無法自動辨識卡牌文字。請使用手動搜尋或從下方搜尋結果中選擇。');
+          }
         }
       }
     } catch (error) {

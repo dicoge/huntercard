@@ -1,10 +1,12 @@
 /**
  * 卡牌識別服務
  * Card Recognition Service
- * 
+ *
  * 用於識別掃描的卡牌並返回價格資訊
  * 資料來源：database.json（統一資料庫）
  */
+
+import { recognizeCardNumber } from './webOcr';
 
 // ── 類型定義 ──
 
@@ -284,6 +286,43 @@ function cleanOcrText(rawText: string): string[] {
   const shortName = meaningful.filter(l => l.length >= 2 && l.length <= 30 && /[぀-ゟ゠-ヿ一-龯]/.test(l));
   // 回傳優先順序：有卡號的行 > 含日文的短行 > 其他
   return [...new Set([...withId, ...shortName, ...meaningful])];
+}
+
+/**
+ * 用於 OCR 卡牌的智能識別（先裁切找卡號，再比對資料庫）
+ * 從圖片直接辨識，優先找卡號（比全圖名稱匹配更可靠）
+ */
+export async function recognizeCardFromImage(imageUri: string): Promise<RecognitionResult> {
+  const { cardId, rawText } = await recognizeCardNumber(imageUri);
+
+  if (!cardId || cardId.trim().length === 0) {
+    return { success: false, error: '無法從卡牌識別到卡號，請調整角度或光線後重試' };
+  }
+
+  const allCards = await loadAllCards();
+  if (allCards.length === 0) {
+    return { success: false, error: '資料庫載入失敗' };
+  }
+
+  // 精確匹配卡號
+  const match = allCards.find(c => c.id.toLowerCase() === cardId);
+  if (match) {
+    return { success: true, card: match };
+  }
+
+  // 模糊匹配（如 NP04 → hBP04 已在 extractCardId 處理，但仍可能有數位誤判）
+  const fuzzyMatch = allCards.find(c => {
+    const normalizedId = c.id.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const normalizedQuery = cardId.replace(/[^a-z0-9]/g, '');
+    return normalizedId === normalizedQuery ||
+           normalizedId.includes(normalizedQuery) ||
+           normalizedQuery.includes(normalizedId);
+  });
+  if (fuzzyMatch) {
+    return { success: true, card: fuzzyMatch };
+  }
+
+  return { success: false, error: `找到卡號 ${cardId} 但資料庫無匹配，請確認卡牌版本` };
 }
 
 /**

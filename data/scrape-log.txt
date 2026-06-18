@@ -1,4 +1,4 @@
-=== Scrape Log 2026-06-18T08:20:03.692Z ===
+=== Scrape Log 2026-06-18T12:05:27.430Z ===
 ═══════════════════════════════════════
   hunterCard Database Builder
 ═══════════════════════════════════════
@@ -80,23 +80,23 @@
 ── Step 3: Merge official data ──
 
 [database] Loading official card data...
-  [official] Loaded 2099 cards from 43 files
+  [official] Loaded 2105 cards from 43 files
 
 ── Step 4: Build unified database ──
 
 ═══════════════════════════════════════
   ✅ Build complete!
-  Total cards: 2099
+  Total cards: 2105
   Cards with prices: 1056
   Images downloaded: 0
-  Duration: 339.5s
-  Output: /Users/dicoge/Documents/GitHub/hunterCard/data/database.json
+  Duration: 303.3s
+  Output: /Users/dicoge/hunterCard/data/database.json
 ═══════════════════════════════════════
 
 Build result: {
-  "totalCards": 2099,
+  "totalCards": 2105,
   "yuyuCount": 1056,
-  "officialCount": 2099,
+  "officialCount": 2105,
   "imagesDownloaded": 0,
-  "duration": 339.5
+  "duration": 303.3
 }
