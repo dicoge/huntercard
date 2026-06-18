@@ -97,58 +97,26 @@ export async function loadAllCards(): Promise<CardInfo[]> {
 
   dbFetchPromise = (async () => {
     try {
-      const [res, seriesNames] = await Promise.all([
-        fetch('/data/database.json'),
-        loadSeriesNames(),
-      ]);
+      const res = await fetch('/data/database.json');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const db: DatabaseSchema = await res.json();
       const cards = db.cards || {};
 
-      // Group entries by cardNumber
-      const groupedByCardNumber: Record<string, DatabaseRecord[]> = {};
-      for (const entry of Object.values(cards)) {
-        const cn = (entry as any).cardNumber || entry.id || '';
-        if (!groupedByCardNumber[cn]) {
-          groupedByCardNumber[cn] = [];
-        }
-        groupedByCardNumber[cn].push(entry);
-      }
-
-      const result: CardInfo[] = [];
-      for (const entries of Object.values(groupedByCardNumber)) {
-        // Sort: prefer non-null sellPrice (highest first), then by id for stability
-        entries.sort((a, b) => {
-          const aPrice = a.sellPrice != null ? a.sellPrice : -1;
-          const bPrice = b.sellPrice != null ? b.sellPrice : -1;
-          return bPrice - aPrice;
-        });
-        const primary = entries[0];
-
-        // Build variants for other entries with the same cardNumber
-        const variants: CardVariant[] = entries.slice(1).map(entry => ({
-          series: entry.series || '',
-          seriesName: seriesNames[entry.series || ''] || entry.series || '',
-          sellPrice: entry.sellPrice != null && entry.sellPrice > 0 ? entry.sellPrice : null,
-          prices: (entry as any).prices || [],
-          rarity: entry.rarity || '',
-        }));
-
-        result.push({
-          id: (primary as any).cardNumber || primary.id || '',
-          name: primary.name || '',
-          cardNumber: (primary as any).cardNumber || primary.id || '',
-          type: primary.type || '',
-          rarity: primary.rarity || '',
-          series: primary.series || '',
-          sellPrice: primary.sellPrice != null && primary.sellPrice > 0 ? primary.sellPrice : null,
-          yuyuName: primary.yuyuName || '',
-          color: primary.color || '',
-          imageUrl: primary.officialImage || primary.localImage || '',
-          prices: (primary as any).prices || [],
-          variants: variants.length > 0 ? variants : undefined,
-        });
-      }
+      // Each compound-key entry (e.g. hBP04-005_hBP04, hBP04-005_ent07) is a separate CardInfo
+      // This preserves correct series/category filtering unlike grouped-by-cardNumber
+      const result: CardInfo[] = Object.values(cards).map(entry => ({
+        id: (entry as any).cardNumber || entry.id || '',
+        name: entry.name || '',
+        cardNumber: (entry as any).cardNumber || entry.id || '',
+        type: entry.type || '',
+        rarity: entry.rarity || '',
+        series: entry.series || '',
+        sellPrice: entry.sellPrice != null && entry.sellPrice > 0 ? entry.sellPrice : null,
+        yuyuName: entry.yuyuName || '',
+        color: entry.color || '',
+        imageUrl: entry.officialImage || entry.localImage || '',
+        prices: (entry as any).prices || [],
+      }));
 
       cachedDb = result;
       return result;

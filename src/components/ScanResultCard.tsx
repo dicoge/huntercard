@@ -95,6 +95,19 @@ export default function ScanResultCard({
     });
   };
 
+  // Deduplicate price entries by (name + sellPrice) — must be before early return (React hooks rule)
+  const uniquePrices = useMemo(() => {
+    const p = card?.prices;
+    if (!p || p.length === 0) return null;
+    const seen = new Set<string>();
+    return p.filter(entry => {
+      const key = `${entry.name}|${entry.sellPrice}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [card?.prices]);
+
   if (!visible) return null;
 
   const getRarityColor = (rarity: string): string => {
@@ -119,21 +132,8 @@ export default function ScanResultCard({
       ? '#f59e0b'
       : '#ef4444';
 
-  const prices = (card.prices && card.prices.length > 0 ? card.prices : null);
   const variants = card.variants && card.variants.length > 0 ? card.variants : null;
   const sellPriceNull = card.sellPrice == null;
-
-  // Deduplicate price entries by (name + sellPrice) to handle duplicate sellers
-  const uniquePrices = useMemo(() => {
-    if (!prices) return null;
-    const seen = new Set<string>();
-    return prices.filter(p => {
-      const key = `${p.name}|${p.sellPrice}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }, [prices]);
 
   return (
     <Animated.View
