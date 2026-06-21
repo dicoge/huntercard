@@ -67,6 +67,7 @@ const UA_STRING = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 
 // Series URLs - same as scrape-yuyu-prices.js
 const SERIES_PAGES = [
   { name: 'hBP04', url: '/sell/hocg/s/hbp04' },
+  { name: 'hBP08', url: '/sell/hocg/s/hbp08' },
   ...['hBP01','hBP02','hBP03','hBP05','hBP06','hBP07',
       'hSD01','hSD02','hSD03','hSD04','hSD05','hSD06','hSD07',
       'hSD08','hSD09','hSD10','hSD11','hSD12','hSD13','hSD14',

@@ -18,6 +18,7 @@ const OUTPUT_DIR = path.join(__dirname, '../data/yuyu-prices');
 // Series URLs - using yuyu-tei's actual URL structure
 const SERIES_PAGES = [
   { name: 'hBP04', url: '/sell/hocg/s/hbp04' },
+  { name: 'hBP08', url: '/sell/hocg/s/hbp08' },
   // For other series, use search with vers[] parameter
   ...['hBP01','hBP02','hBP03','hBP05','hBP06','hBP07',
       'hSD01','hSD02','hSD03','hSD04','hSD05','hSD06','hSD07',

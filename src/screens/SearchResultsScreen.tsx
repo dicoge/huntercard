@@ -127,7 +127,8 @@ function searchCards(database: DatabaseSchema, query: string, nameMap: Record<st
            name.includes(searchQ) ||
            type.includes(searchQ) ||
            rarity.includes(searchQ) ||
-           colorSearch.includes(searchQ);
+           colorSearch.includes(searchQ) ||
+           series.includes(searchQ);
   });
 
   // Deduplicate by cardNumber: keep the version whose series matches the search query,
