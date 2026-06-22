@@ -2,6 +2,7 @@
   "buildCommand": "expo export --platform web && node scripts/fix-html.js && node scripts/copy-assets.js",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     {
       "source": "/(.*)",
       "destination": "/index.html"
