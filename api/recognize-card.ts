@@ -1,12 +1,12 @@
 /**
- * recognize-card.ts — Uses OpenRouter Gemini Vision API to extract card numbers
- * from Hololive TCG card images, then looks up full card data in the database.
+ * recognize-card.ts — Uses OpenRouter Gemini Vision API to identify Hololive TCG cards.
+ *
+ * Two strategies:
+ *   Strat 1: Read the tiny card number (e.g. hBP01-001)
+ *   Strat 2: If no card number, identify by card text/character name
  *
  * POST /api/recognize-card
  * Body: { image: "data:image/jpeg;base64,..." }
- * Returns: { success: true, card: { cardNumber, name, sellPrice, series, rarity, imageUrl, prices } }
- *          { success: true, cardNumber, notFound: true, error: "..." }  // card not in DB
- *          { success: false, error: "..." }
  */
 
 export const config = { runtime: 'edge' };
@@ -15,82 +15,64 @@ const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL = 'google/gemini-3-pro-image';
 const DATABASE_URL = 'https://huntercard-alpha.vercel.app/data/database.json';
 
-// Module-level cache for database fetch — avoids redundant fetches
 let dbFetchPromise: Promise<Record<string, any> | null> | null = null;
 
-/**
- * Fetch and cache the card database JSON.
- * Returns the cards map (keyed by composite ID like "hBP04-005_hBP04").
- */
 async function getDatabase(): Promise<Record<string, any> | null> {
   if (dbFetchPromise) return dbFetchPromise;
-
   dbFetchPromise = (async () => {
     try {
       const res = await fetch(DATABASE_URL);
       if (!res.ok) { dbFetchPromise = null; return null; }
-      const data = await res.json();
-      return data?.cards || null;
+      return (await res.json())?.cards || null;
     } catch {
-      dbFetchPromise = null; // reset so next call retries
+      dbFetchPromise = null;
       return null;
     }
   })();
-
   return dbFetchPromise;
 }
 
-const SYSTEM_PROMPT = `You are a card number extractor for Hololive Trading Card Game (Hololive TCG).
-Look at the card image and extract ONLY the card number printed on it.
-Hololive TCG card numbers look like: hBP01-001, hSD02-003, hPR-002, BP04-005, NP04-005, etc.
-Reply with ONLY the card number — no explanation, no extra text, no quotes.
-If you cannot see a card number, reply with: ERROR`;
+// ── Card number extraction ──
+const prefixMap: Record<string, string> = {
+  np: 'hbp', bp: 'hbp', sd: 'hsd', pr: 'hpr',
+  sp: 'hsp', ocg: 'hocg', pc: 'hpc', cs: 'hcs',
+  co: 'hco', wf: 'hwf', ys: 'hys', ent: 'hent',
+};
 
-/**
- * Validate and normalize a raw card number string
- */
 function normalizeCardNumber(raw: string): string | null {
-  let cleaned = raw.trim();
-  // Strip quotes, backticks, periods
-  cleaned = cleaned.replace(/^['"`\s]+|['"`\s]+$/g, '');
-  cleaned = cleaned.replace(/\.$/, '');
-  cleaned = cleaned.toLowerCase();
-
-  // Normalize prefix aliases
-  const prefixMap: Record<string, string> = {
-    np: 'hbp', bp: 'hbp', sd: 'hsd', pr: 'hpr',
-    sp: 'hsp', ocg: 'hocg', pc: 'hpc', cs: 'hcs',
-    co: 'hco', wf: 'hwf', ys: 'hys', ent: 'hent',
-  };
-
-  // Match patterns like hBP04-005, BP04-005, NP04-005
-  // Also handles trailing rarity text like "hBP01-001 SEC" or "hBP04-005 C"
-  const match = cleaned.match(/(h?[a-z]{2,3}\d{0,2}[-\s]?\d{1,3})/i);
-  if (!match) return null;
-
-  let result = match[1];
-  // Normalize spaces to hyphens (e.g. "hBP04 005" → "hBP04-005")
-  result = result.replace(/[-\s]/g, '-');
-  // Ensure hyphen — only if not already present
-  if (!result.includes('-')) {
-    result = result.replace(/(\d)(\d{2,3})$/, '$1-$2');
+  let cleaned = raw.trim().replace(/^['"`\s]+|['"`\s]+$/g, '').replace(/\.$/, '').toLowerCase();
+  const m = cleaned.match(/(h?[a-z]{2,3}\d{0,2}[-\s]?\d{1,3})/i);
+  if (!m) return null;
+  let r = m[1].replace(/[-\s]/g, '-');
+  if (!r.includes('-')) r = r.replace(/(\d)(\d{2,3})$/, '$1-$2');
+  if (!r.startsWith('h')) {
+    const p = r.slice(0, 2), rest = r.slice(2);
+    r = (prefixMap[p] || 'h' + p) + rest;
   }
-  // Add 'h' prefix if missing, with alias
-  if (!result.startsWith('h')) {
-    const prefix = result.substring(0, 2);
-    const rest = result.substring(2);
-    if (prefixMap[prefix]) {
-      result = prefixMap[prefix] + rest;
-    } else {
-      result = 'h' + result;
-    }
-  }
-
-  return result;
+  return r;
 }
 
-function jsonResponse(data: any, status = 200): Response {
-  return new Response(JSON.stringify(data), {
+// ── Name-based search ──
+function searchByName(cards: Record<string, any>, keywords: string[]): any {
+  let best: any = null;
+  let bestScore = 0;
+
+  for (const entry of Object.values(cards) as any[]) {
+    const name: string = (entry.name || '').toLowerCase();
+    let score = 0;
+    for (const kw of keywords) {
+      if (name.includes(kw)) score += 1;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      best = entry;
+    }
+  }
+  return bestScore >= 1 ? best : null;
+}
+
+function json(d: any, status = 200): Response {
+  return new Response(JSON.stringify(d), {
     status,
     headers: {
       'Access-Control-Allow-Origin': '*',
@@ -101,37 +83,52 @@ function jsonResponse(data: any, status = 200): Response {
   });
 }
 
+function fmt(entry: any) {
+  return {
+    cardNumber: entry.cardNumber,
+    name: entry.name,
+    sellPrice: entry.sellPrice,
+    series: entry.series,
+    rarity: entry.rarity,
+    imageUrl: entry.officialImage || '',
+    prices: entry.prices,
+  };
+}
+
+// ── Main handler ──
 export default async function handler(req: Request): Promise<Response> {
-  // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204 });
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204 });
+  if (req.method !== 'POST') return json({ success: false, error: 'Method not allowed' }, 405);
 
-  // Only accept POST
-  if (req.method !== 'POST') {
-    return jsonResponse({ success: false, error: 'Method not allowed' }, 405);
-  }
-
-  // Check API key
   const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    return jsonResponse({ success: false, error: 'Server configuration error: API key not set' }, 500);
-  }
+  if (!apiKey) return json({ success: false, error: 'API key not set' }, 500);
 
   try {
-    // Parse request body
     const body = await req.json();
     const { image } = body;
-
-    if (!image || typeof image !== 'string') {
-      return jsonResponse({ success: false, error: 'Missing or invalid image field' }, 400);
-    }
-
-    // Accept both data URIs and raw base64
+    if (!image || typeof image !== 'string') return json({ success: false, error: 'Invalid image' }, 400);
     const imageData = image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`;
 
-    // Call OpenRouter Gemini Vision API
-    const orResponse = await fetch(OPENROUTER_URL, {
+    // ── Gemini call: extract all card info ──
+    const geminiPrompt = `You are analyzing a Hololive TCG card photo taken from a phone.
+Extract the following information from this card image:
+
+1. CARD NUMBER: Look for tiny text like hBP01-001, hSD02-003, hBP04-005 on the card. Check the bottom edges carefully.
+
+2. CHARACTER NAME: Who is the character on this card? (e.g. ときのそら, 紫咲シオン, ラプラス・ダークネス)
+
+3. CARD NAME / TITLE: What is the name/title of this specific card? (e.g. 総帥のお仕事, 秘密結社holoX)
+
+4. Any other identifying text you see.
+
+IMPORTANT: Ignore any phone UI overlay text (time, app title, buttons). Focus ONLY on text printed on the card itself.
+
+Reply with:
+CARD_NUMBER: [number or NONE]
+CHARACTER: [name or NONE]
+TITLE: [title or NONE]`;
+
+    const orRes = await fetch(OPENROUTER_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -142,91 +139,93 @@ export default async function handler(req: Request): Promise<Response> {
       body: JSON.stringify({
         model: MODEL,
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: 'Extract the card number from this Hololive TCG card:' },
-              { type: 'image_url', image_url: { url: imageData } },
-            ],
-          },
+          { role: 'system', content: geminiPrompt },
+          { role: 'user', content: [
+            { type: 'text', text: 'Identify this Hololive TCG card.' },
+            { type: 'image_url', image_url: { url: imageData } },
+          ]},
         ],
-        max_tokens: 30,
+        max_tokens: 150,
         temperature: 0.0,
       }),
     });
 
-    // Handle OpenRouter errors
-    if (!orResponse.ok) {
-      const errorText = await orResponse.text();
-      let errorDetail = `OpenRouter HTTP ${orResponse.status}`;
-      try {
-        const errJson = JSON.parse(errorText);
-        errorDetail = errJson?.error?.message || errJson?.error || errorDetail;
-      } catch {
-        errorDetail += `: ${errorText.slice(0, 300)}`;
-      }
-      return jsonResponse({ success: false, error: errorDetail }, 502);
+    if (!orRes.ok) {
+      const err = await orRes.text();
+      return json({ success: false, error: `Gemini error (${orRes.status})` }, 502);
     }
 
-    // Parse OpenRouter response
-    const orData = await orResponse.json();
-    const rawText = orData?.choices?.[0]?.message?.content?.trim() || '';
+    const orData = await orRes.json();
+    const reply = (orData?.choices?.[0]?.message?.content || '').trim();
+    if (!reply) return json({ success: false, error: 'Gemini returned empty response' }, 502);
 
-    // If Gemini couldn't find a card number
-    if (!rawText || rawText === 'ERROR' || rawText.includes('ERROR')) {
-      return jsonResponse({
-        success: false,
-        error: 'Could not detect a card number in this image. Please ensure the card is well-lit and fully visible.',
-      }, 422);
-    }
+    // Parse Gemini's response
+    const cnMatch = reply.match(/CARD_NUMBER:\s*(.+)/i);
+    const charMatch = reply.match(/CHARACTER:\s*(.+)/i);
+    const titleMatch = reply.match(/TITLE:\s*(.+)/i);
 
-    // Normalize and validate the card number
-    const cardNumber = normalizeCardNumber(rawText);
-    if (!cardNumber) {
-      return jsonResponse({
-        success: false,
-        error: `Detected text "${rawText}" is not a valid card number format.`,
-        raw: rawText,
-      }, 422);
-    }
+    const cardNumberRaw = cnMatch ? cnMatch[1].trim() : 'NONE';
+    const characterName = charMatch ? charMatch[1].trim() : '';
+    const cardTitle = titleMatch ? titleMatch[1].trim() : '';
 
-    // Look up card in database
     const cards = await getDatabase();
-    if (!cards) {
-      // Database unavailable — still return cardNumber so frontend can proceed with partial data
-      return jsonResponse({ success: true, cardNumber, dbUnavailable: true });
+
+    // ── Strat 1: Card number found ──
+    if (cardNumberRaw !== 'NONE' && cardNumberRaw !== '') {
+      const cardNumber = normalizeCardNumber(cardNumberRaw);
+      if (cardNumber && cards) {
+        const key = Object.keys(cards).find(
+          k => (cards[k] as any).cardNumber?.toLowerCase() === cardNumber
+        );
+        if (key) return json({ success: true, card: fmt(cards[key]) });
+      }
     }
 
-    // Find the card by matching cardNumber case-insensitively
-    const cardKey = Object.keys(cards).find(
-      (k) => cards[k].cardNumber?.toLowerCase() === cardNumber,
-    );
-    const match = cardKey ? cards[cardKey] : null;
+    // ── Strat 2: Search by character/title name ──
+    if (cards && (characterName || cardTitle)) {
+      // Build search keywords from character name and card title
+      const searchText = `${characterName} ${cardTitle}`.toLowerCase();
+      // Extract meaningful keywords (ignore common words)
+      const keywords = searchText
+        .replace(/[（(][^)）]*[)）]/g, '')
+        .split(/[\s,，、・]+/)
+        .filter(k => k.length >= 2 && !/^\d+$/.test(k));
 
-    if (!match) {
-      return jsonResponse({
-        success: true,
-        cardNumber,
-        notFound: true,
-        error: `卡號 ${cardNumber} 未在資料庫中`,
-      });
+      // Find best matching card
+      let bestEntry: any = null;
+      let bestScore = 0;
+
+      for (const entry of Object.values(cards) as any[]) {
+        const name: string = (entry.name || '').toLowerCase();
+        let score = 0;
+        for (const kw of keywords) {
+          if (name.includes(kw)) score += 1;
+        }
+        // Bonus: if character name is a direct substring of the card name
+        const charLower = characterName.toLowerCase().replace(/[^a-z0-9ぁ-んァ-ヶー一-龠]/g, '');
+        const nameNorm = name.replace(/[^a-z0-9ぁ-んァ-ヶー一-龠]/g, '');
+        if (charLower && nameNorm.includes(charLower)) score += 3;
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestEntry = entry;
+        }
+      }
+
+      // Accept match with score >= 1 (at least one keyword matched)
+      if (bestEntry && bestScore >= 1) {
+        // If multiple variants of same cardNumber, prefer hPR series
+        const allVariants = Object.values(cards).filter(
+          (e: any) => e.cardNumber === bestEntry.cardNumber
+        ) as any[];
+        const best = allVariants.find((e: any) => e.series === 'hPR') || bestEntry;
+        return json({ success: true, card: fmt(best), matchMethod: 'name' });
+      }
     }
 
-    // Success with full card data
-    return jsonResponse({
-      success: true,
-      card: {
-        cardNumber: match.cardNumber,
-        name: match.name,
-        sellPrice: match.sellPrice,
-        series: match.series,
-        rarity: match.rarity,
-        imageUrl: match.officialImage || '',
-        prices: match.prices,
-      },
-    });
+    // Both strategies failed
+    return json({ success: false, error: '無法辨識此卡牌', raw: reply }, 404);
   } catch (e: any) {
-    return jsonResponse({ success: false, error: `Internal error: ${e.message}` }, 500);
+    return json({ success: false, error: `Error: ${e.message}` }, 500);
   }
 }
