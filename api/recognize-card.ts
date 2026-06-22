@@ -3,6 +3,8 @@
 // Request: { image: "data:image/png;base64,<base64 data>" }
 // Response: { success: true, cardNumber: "hbp04-001" } | { success: false, error: "..." }
 
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+
 export const config = { runtime: 'nodejs' };
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
@@ -10,14 +12,9 @@ const MODEL = 'google/gemini-3.1-flash-image';
 const PROMPT = 'Extract the card number from this hololive TCG card image. Reply with ONLY the card number (e.g. hBP04-001 or BP04-001).';
 
 function validateCardNumber(raw: string): string | null {
-  // Normalize: trim, lowercase
   let cleaned = raw.trim().toLowerCase();
-
-  // Remove surrounding quotes if any
   cleaned = cleaned.replace(/^["'\s]+|["'\s]+$/g, '');
 
-  // Ensure it matches expected patterns: optional h prefix, series code, digits
-  // e.g., hbp04-001, bp04-001, hBP04-001, hsd01-012, hpr-003
   if (!/^h?(bp|sd|pr|bd|y)\d{0,2}(-\d{2,3})?$/.test(cleaned)) {
     return null;
   }
@@ -25,55 +22,39 @@ function validateCardNumber(raw: string): string | null {
   return cleaned;
 }
 
-export default async function handler(req: Request) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
-    });
+    return res.status(204).send('');
   }
 
   // Only accept POST
   if (req.method !== 'POST') {
-    return Response.json(
-      { success: false, error: 'Method not allowed' },
-      { status: 405, headers: { 'Access-Control-Allow-Origin': '*' } }
-    );
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   try {
-    const body = await req.json();
-    const { image } = body;
+    const { image } = req.body || {};
 
     if (!image || typeof image !== 'string') {
       console.error('[recognize-card] Missing or invalid image field');
-      return Response.json(
-        { success: false, error: 'Missing image field (base64 data URI required)' },
-        { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } }
-      );
+      return res.status(400).json({ success: false, error: 'Missing image field (base64 data URI required)' });
     }
 
-    // Validate it looks like a data URI
     if (!image.startsWith('data:image/')) {
       console.error('[recognize-card] Image field is not a valid data URI');
-      return Response.json(
-        { success: false, error: 'Image must be a base64 data URI (data:image/...)' },
-        { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } }
-      );
+      return res.status(400).json({ success: false, error: 'Image must be a base64 data URI (data:image/...)' });
     }
 
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
       console.error('[recognize-card] OPENROUTER_API_KEY not set');
-      return Response.json(
-        { success: false, error: 'Server configuration error: API key not set' },
-        { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } }
-      );
+      return res.status(500).json({ success: false, error: 'Server configuration error: API key not set' });
     }
 
     console.log('[recognize-card] Calling OpenRouter Gemini Vision API...');
@@ -93,10 +74,7 @@ export default async function handler(req: Request) {
             role: 'user',
             content: [
               { type: 'text', text: PROMPT },
-              {
-                type: 'image_url',
-                image_url: { url: image },
-              },
+              { type: 'image_url', image_url: { url: image } },
             ],
           },
         ],
@@ -108,10 +86,7 @@ export default async function handler(req: Request) {
     if (!openRouterResponse.ok) {
       const errorText = await openRouterResponse.text();
       console.error(`[recognize-card] OpenRouter API error ${openRouterResponse.status}: ${errorText}`);
-      return Response.json(
-        { success: false, error: 'Card recognition service unavailable' },
-        { status: 502, headers: { 'Access-Control-Allow-Origin': '*' } }
-      );
+      return res.status(502).json({ success: false, error: 'Card recognition service unavailable' });
     }
 
     const data = await openRouterResponse.json();
@@ -119,10 +94,7 @@ export default async function handler(req: Request) {
 
     if (!rawText) {
       console.error('[recognize-card] Empty response from OpenRouter');
-      return Response.json(
-        { success: false, error: 'Could not recognize card number' },
-        { status: 422, headers: { 'Access-Control-Allow-Origin': '*' } }
-      );
+      return res.status(422).json({ success: false, error: 'Could not recognize card number' });
     }
 
     console.log(`[recognize-card] Raw response: "${rawText}"`);
@@ -131,23 +103,14 @@ export default async function handler(req: Request) {
 
     if (!cardNumber) {
       console.error(`[recognize-card] Response did not match card number pattern: "${rawText}"`);
-      return Response.json(
-        { success: false, error: 'Could not recognize card number' },
-        { status: 422, headers: { 'Access-Control-Allow-Origin': '*' } }
-      );
+      return res.status(422).json({ success: false, error: 'Could not recognize card number' });
     }
 
     console.log(`[recognize-card] Recognized card: ${cardNumber}`);
 
-    return Response.json(
-      { success: true, cardNumber },
-      { headers: { 'Access-Control-Allow-Origin': '*' } }
-    );
+    return res.status(200).json({ success: true, cardNumber });
   } catch (e: any) {
     console.error('[recognize-card] Unexpected error:', e.message);
-    return Response.json(
-      { success: false, error: e.message || 'Could not recognize card number' },
-      { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } }
-    );
+    return res.status(500).json({ success: false, error: e.message || 'Could not recognize card number' });
   }
 }
