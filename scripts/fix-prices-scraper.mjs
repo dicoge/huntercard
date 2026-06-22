@@ -1,38 +1,87 @@
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 puppeteer.use(StealthPlugin());
 
-const SERIES_PAGES = [
-  { name: 'hBP04', url: '/sell/hocg/s/search?search_word=&vers[]=hbp04' },
-  { name: 'hBP01', url: '/sell/hocg/s/search?search_word=&vers[]=hbp01' },
-  { name: 'hBP02', url: '/sell/hocg/s/search?search_word=&vers[]=hbp02' },
-  { name: 'hBP03', url: '/sell/hocg/s/search?search_word=&vers[]=hbp03' },
-  { name: 'hBP05', url: '/sell/hocg/s/search?search_word=&vers[]=hbp05' },
-  { name: 'hBP06', url: '/sell/hocg/s/search?search_word=&vers[]=hbp06' },
-  { name: 'hBP07', url: '/sell/hocg/s/search?search_word=&vers[]=hbp07' },
-  { name: 'hBP08', url: '/sell/hocg/s/search?search_word=&vers[]=hbp08' },
-  { name: 'hSD01', url: '/sell/hocg/s/search?search_word=&vers[]=hsd01' },
-  { name: 'hSD02', url: '/sell/hocg/s/search?search_word=&vers[]=hsd02' },
-  { name: 'hSD03', url: '/sell/hocg/s/search?search_word=&vers[]=hsd03' },
-  { name: 'hSD04', url: '/sell/hocg/s/search?search_word=&vers[]=hsd04' },
-  { name: 'hSD05', url: '/sell/hocg/s/search?search_word=&vers[]=hsd05' },
-  { name: 'hSD06', url: '/sell/hocg/s/search?search_word=&vers[]=hsd06' },
-  { name: 'hSD07', url: '/sell/hocg/s/search?search_word=&vers[]=hsd07' },
-  { name: 'hSD08', url: '/sell/hocg/s/search?search_word=&vers[]=hsd08' },
-  { name: 'hSD09', url: '/sell/hocg/s/search?search_word=&vers[]=hsd09' },
-  { name: 'hSD10', url: '/sell/hocg/s/search?search_word=&vers[]=hsd10' },
-  { name: 'hSD11', url: '/sell/hocg/s/search?search_word=&vers[]=hsd11' },
-  { name: 'hSD12', url: '/sell/hocg/s/search?search_word=&vers[]=hsd12' },
-  { name: 'hSD13', url: '/sell/hocg/s/search?search_word=&vers[]=hsd13' },
-  { name: 'hSD14', url: '/sell/hocg/s/search?search_word=&vers[]=hsd14' },
-  { name: 'hSD15', url: '/sell/hocg/s/search?search_word=&vers[]=hsd15' },
-  { name: 'hSD16', url: '/sell/hocg/s/search?search_word=&vers[]=hsd16' },
-  { name: 'hSD17', url: '/sell/hocg/s/search?search_word=&vers[]=hsd17' },
-  { name: 'hSD18', url: '/sell/hocg/s/search?search_word=&vers[]=hsd18' },
-  { name: 'hSD19', url: '/sell/hocg/s/search?search_word=&vers[]=hsd19' },
-];
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Known special series → yuyu-tei URL mapping
+const SPECIAL_URLS = {
+  'hPR': '/sell/hocg/s/special/1',
+  'hY': '/sell/hocg/s/special/2',
+  'ent07': '/sell/hocg/s/special/4',
+  'hCS01': '/sell/hocg/s/special/5',
+  'hPC01': '/sell/hocg/s/special/7',
+  'hSD2025summer': '/sell/hocg/s/special/8',
+};
+
+// Series without a yuyu-tei page (skip with warning)
+const NO_PAGE_SERIES = new Set(['hCO01', 'hWF01']);
+
+/**
+ * Generate series page list from database.json, replacing hardcoded SERIES_PAGES.
+ * Falls back gracefully if database.json is missing or unreadable.
+ */
+function generateSeriesPages() {
+  let db;
+  try {
+    db = JSON.parse(fs.readFileSync(path.join(__dirname, '../data/database.json'), 'utf-8'));
+  } catch (err) {
+    console.warn(`[warn] 無法讀取 data/database.json (${err.message}) — 使用空 series 清單`);
+    return [];
+  }
+
+  if (!db.cards || typeof db.cards !== 'object') {
+    console.warn('[warn] database.json 格式錯誤：缺少 cards 欄位');
+    return [];
+  }
+
+  const seriesCodes = new Set(Object.values(db.cards).map(c => c.series));
+  const hbpSeries = [];
+  const hsdSeries = [];
+  const hysSeries = [];
+  const specialSeries = [];
+
+  for (const series of seriesCodes) {
+    if (NO_PAGE_SERIES.has(series)) {
+      console.warn(`[warn] 系列 "${series}" — 無對應 yuyu-tei URL，跳過`);
+      continue;
+    }
+
+    if (SPECIAL_URLS[series]) {
+      specialSeries.push({ name: series, url: SPECIAL_URLS[series] });
+    } else if (series.startsWith('hBP')) {
+      const code = series.toLowerCase();
+      // hBP04 has a dedicated page; others use search
+      if (series === 'hBP04') {
+        hbpSeries.push({ name: series, url: `/sell/hocg/s/${code}` });
+      } else {
+        hbpSeries.push({ name: series, url: `/sell/hocg/s/search?search_word=&vers[]=${code}` });
+      }
+    } else if (series.startsWith('hSD')) {
+      hsdSeries.push({ name: series, url: `/sell/hocg/s/search?search_word=&vers[]=${series.toLowerCase()}` });
+    } else if (series.startsWith('hYS')) {
+      hysSeries.push({ name: series, url: `/sell/hocg/s/${series.toLowerCase()}` });
+    } else {
+      console.warn(`[warn] 未知系列 "${series}" — 無對應 yuyu-tei URL，跳過`);
+    }
+  }
+
+  // Sort each group by name
+  const sortByName = (a, b) => a.name.localeCompare(b.name);
+  hbpSeries.sort(sortByName);
+  hsdSeries.sort(sortByName);
+  hysSeries.sort(sortByName);
+  specialSeries.sort(sortByName);
+
+  return [...hbpSeries, ...hsdSeries, ...hysSeries, ...specialSeries];
+}
+
+const SERIES_PAGES = generateSeriesPages();
 
 async function run() {
   const browser = await puppeteer.launch({

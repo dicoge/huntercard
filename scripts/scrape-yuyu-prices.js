@@ -15,26 +15,79 @@ const __dirname = path.dirname(__filename);
 const BASE_URL = 'https://yuyu-tei.jp';
 const OUTPUT_DIR = path.join(__dirname, '../data/yuyu-prices');
 
-// Series URLs - using yuyu-tei's actual URL structure
-const SERIES_PAGES = [
-  { name: 'hBP04', url: '/sell/hocg/s/hbp04' },
-  { name: 'hBP08', url: '/sell/hocg/s/hbp08' },
-  // For other series, use search with vers[] parameter
-  ...['hBP01','hBP02','hBP03','hBP05','hBP06','hBP07',
-      'hSD01','hSD02','hSD03','hSD04','hSD05','hSD06','hSD07',
-      'hSD08','hSD09','hSD10','hSD11','hSD12','hSD13','hSD14',
-      'hSD15','hSD16','hSD17','hSD18','hSD19'].map(s => ({
-    name: s,
-    url: `/sell/hocg/s/search?search_word=&vers[]=${s.toLowerCase()}`,
-  })),
-  // Special series
-  { name: 'hPR', url: '/sell/hocg/s/special/1' },
-  { name: 'hY', url: '/sell/hocg/s/special/2' },
-  { name: 'ent07', url: '/sell/hocg/s/special/4' },
-  { name: 'hCS01', url: '/sell/hocg/s/special/5' },
-  { name: 'hPC01', url: '/sell/hocg/s/special/7' },
-  { name: 'hSD2025summer', url: '/sell/hocg/s/special/8' },
-];
+// Known special series → yuyu-tei URL mapping
+const SPECIAL_URLS = {
+  'hPR': '/sell/hocg/s/special/1',
+  'hY': '/sell/hocg/s/special/2',
+  'ent07': '/sell/hocg/s/special/4',
+  'hCS01': '/sell/hocg/s/special/5',
+  'hPC01': '/sell/hocg/s/special/7',
+  'hSD2025summer': '/sell/hocg/s/special/8',
+};
+
+// Series without a yuyu-tei page (skip with warning)
+const NO_PAGE_SERIES = new Set(['hCO01', 'hWF01']);
+
+/**
+ * Generate series page list from database.json, replacing hardcoded SERIES_PAGES.
+ * Falls back gracefully if database.json is missing or unreadable.
+ */
+function generateSeriesPages() {
+  let db;
+  try {
+    db = JSON.parse(fs.readFileSync(path.join(__dirname, '../data/database.json'), 'utf-8'));
+  } catch (err) {
+    console.warn(`[warn] 無法讀取 data/database.json (${err.message}) — 使用空 series 清單`);
+    return [];
+  }
+
+  if (!db.cards || typeof db.cards !== 'object') {
+    console.warn('[warn] database.json 格式錯誤：缺少 cards 欄位');
+    return [];
+  }
+
+  const seriesCodes = new Set(Object.values(db.cards).map(c => c.series));
+  const hbpSeries = [];
+  const hsdSeries = [];
+  const hysSeries = [];
+  const specialSeries = [];
+
+  for (const series of seriesCodes) {
+    if (NO_PAGE_SERIES.has(series)) {
+      console.warn(`[warn] 系列 "${series}" — 無對應 yuyu-tei URL，跳過`);
+      continue;
+    }
+
+    if (SPECIAL_URLS[series]) {
+      specialSeries.push({ name: series, url: SPECIAL_URLS[series] });
+    } else if (series.startsWith('hBP')) {
+      const code = series.toLowerCase();
+      // hBP04 has a dedicated page; others use search
+      if (series === 'hBP04') {
+        hbpSeries.push({ name: series, url: `/sell/hocg/s/${code}` });
+      } else {
+        hbpSeries.push({ name: series, url: `/sell/hocg/s/search?search_word=&vers[]=${code}` });
+      }
+    } else if (series.startsWith('hSD')) {
+      hsdSeries.push({ name: series, url: `/sell/hocg/s/search?search_word=&vers[]=${series.toLowerCase()}` });
+    } else if (series.startsWith('hYS')) {
+      hysSeries.push({ name: series, url: `/sell/hocg/s/${series.toLowerCase()}` });
+    } else {
+      console.warn(`[warn] 系列 "${series}" — 無對應 yuyu-tei URL，跳過`);
+    }
+  }
+
+  // Sort each group by name
+  const sortByName = (a, b) => a.name.localeCompare(b.name);
+  hbpSeries.sort(sortByName);
+  hsdSeries.sort(sortByName);
+  hysSeries.sort(sortByName);
+  specialSeries.sort(sortByName);
+
+  return [...hbpSeries, ...hsdSeries, ...hysSeries, ...specialSeries];
+}
+
+const SERIES_PAGES = generateSeriesPages();
 
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
