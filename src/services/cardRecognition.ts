@@ -295,16 +295,22 @@ function cleanOcrText(rawText: string): string[] {
 async function recognizeViaApi(imageUri: string): Promise<RecognitionResult> {
   try {
     // Convert image URI to base64
-    const response = await fetch(imageUri);
-    const blob = await response.blob();
+    let base64: string;
 
-    // Convert blob to base64
-    const base64 = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
+    if (imageUri.startsWith('data:')) {
+      // Already a data URI — use directly, no conversion needed
+      base64 = imageUri;
+    } else {
+      // Fetch blob and convert to base64
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+      base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
 
     // Call the API
     const apiResponse = await fetch('/api/recognize-card', {
