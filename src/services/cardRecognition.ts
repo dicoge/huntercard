@@ -289,28 +289,42 @@ function cleanOcrText(rawText: string): string[] {
 }
 
 /**
+ * Resize an image to max dimension, returns data URI.
+ * Works on web via canvas.
+ */
+async function resizeImage(imageUri: string, maxDim: number): Promise<string> {
+  if (typeof document === 'undefined') return imageUri;
+  return new Promise<string>((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width <= maxDim && height <= maxDim) {
+        resolve(imageUri.startsWith('data:') ? imageUri : `data:image/jpeg;base64,${imageUri}`);
+        return;
+      }
+      if (width > height) { height = (height / width) * maxDim; width = maxDim; }
+      else { width = (width / height) * maxDim; height = maxDim; }
+      const c = document.createElement('canvas');
+      c.width = Math.round(width);
+      c.height = Math.round(height);
+      const ctx = c.getContext('2d');
+      if (!ctx) { resolve(imageUri); return; }
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      resolve(c.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => resolve(imageUri);
+    img.src = imageUri;
+  });
+}
+
+/**
  * Try to recognize card via server-side API (Gemini Vision through OpenRouter)
  * Falls back gracefully without throwing
  */
 async function recognizeViaApi(imageUri: string): Promise<RecognitionResult> {
   try {
-    // Convert image URI to base64
-    let base64: string;
-
-    if (imageUri.startsWith('data:')) {
-      // Already a data URI — use directly, no conversion needed
-      base64 = imageUri;
-    } else {
-      // Fetch blob and convert to base64
-      const response = await fetch(imageUri);
-      const blob = await response.blob();
-      base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-    }
+    // Resize image to max 1024px before sending (reduces size + speeds up API)
+    let base64: string = await resizeImage(imageUri, 1024);
 
     // Call the API
     const apiResponse = await fetch('/api/recognize-card', {
