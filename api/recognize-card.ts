@@ -41,8 +41,12 @@ function normalizeCardNumber(raw: string): string | null {
   if (!match) return null;
 
   let result = match[1];
-  // Ensure hyphen
-  result = result.replace(/(\d)(\d{2,3})$/, '$1-$2');
+  // Normalize spaces to hyphens (e.g. "hBP04 005" → "hBP04-005")
+  result = result.replace(/[-\s]/g, '-');
+  // Ensure hyphen — only if not already present
+  if (!result.includes('-')) {
+    result = result.replace(/(\d)(\d{2,3})$/, '$1-$2');
+  }
   // Add 'h' prefix if missing, with alias
   if (!result.startsWith('h')) {
     const prefix = result.substring(0, 2);
