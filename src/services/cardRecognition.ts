@@ -7,6 +7,7 @@
  */
 
 import { recognizeCardNumber } from './webOcr';
+import { preprocessCardImage, initOpenCv } from './imagePreprocessor';
 
 // ── 類型定義 ──
 
@@ -323,14 +324,14 @@ async function resizeImage(imageUri: string, maxDim: number): Promise<string> {
  */
 async function recognizeViaApi(imageUri: string): Promise<RecognitionResult> {
   try {
-    // Resize image to max 1024px before sending (reduces size + speeds up API)
-    let base64: string = await resizeImage(imageUri, 1024);
+    // Preprocess with OpenCV: enhance contrast, sharpen, resize
+    const processedImage = await preprocessCardImage(imageUri);
 
     // Call the API
     const apiResponse = await fetch('/api/recognize-card', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: base64 }),
+      body: JSON.stringify({ image: processedImage }),
     });
 
     if (!apiResponse.ok) {

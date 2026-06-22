@@ -15,6 +15,7 @@
     "@react-navigation/drawer": "^7.9.9",
     "@react-navigation/native": "^7.2.2",
     "@react-navigation/native-stack": "^7.14.11",
+    "@techstark/opencv-js": "^4.12.0-release.1",
     "@vercel/kv": "^3.0.0",
     "axios": "^1.16.1",
     "cheerio": "^1.2.0",
