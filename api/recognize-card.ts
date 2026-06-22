@@ -36,10 +36,11 @@ function normalizeCardNumber(raw: string): string | null {
   };
 
   // Match patterns like hBP04-005, BP04-005, NP04-005
-  const match = cleaned.match(/^h?[a-z]{2,3}\d{0,2}-?\d{1,3}$/);
+  // Also handles trailing rarity text like "hBP01-001 SEC" or "hBP04-005 C"
+  const match = cleaned.match(/(h?[a-z]{2,3}\d{0,2}[-\s]?\d{1,3})/i);
   if (!match) return null;
 
-  let result = match[0];
+  let result = match[1];
   // Ensure hyphen
   result = result.replace(/(\d)(\d{2,3})$/, '$1-$2');
   // Add 'h' prefix if missing, with alias
