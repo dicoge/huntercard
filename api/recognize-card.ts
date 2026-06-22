@@ -1,4 +1,4 @@
-// recognize-card.ts — OpenRouter Gemini Vision API
+// recognize-card.ts — Uses OpenRouter Gemini Vision API to recognize card numbers
 export const config = { runtime: 'edge' };
 
 const MODEL = 'google/gemini-3.1-flash-image';
@@ -29,13 +29,12 @@ export default async function handler(req: Request): Promise<Response> {
       return jsonRes({ success: false, error: 'Invalid image' }, 400);
     }
 
-    // Pass API key as query param to avoid edge runtime header stripping
-    const url = `https://openrouter.ai/api/v1/chat/completions?api_key=${encodeURIComponent(apiKey)}`;
-
-    const orRes = await fetch(url, {
+    // Use Bearer token but construct headers carefully for Edge Runtime
+    const orRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'authorization': `Bearer ${apiKey}`,
         'HTTP-Referer': 'https://huntercard-alpha.vercel.app',
         'X-Title': 'HunterCard',
       },
@@ -53,18 +52,20 @@ export default async function handler(req: Request): Promise<Response> {
       }),
     });
 
+    const status = orRes.status;
+    const body = await orRes.text();
+
     if (!orRes.ok) {
-      const err = await orRes.text();
-      return jsonRes({ success: false, error: `OR ${orRes.status}: ${err.slice(0, 200)}` }, 502);
+      return jsonRes({ success: false, error: `OR ${status}: ${body.slice(0, 300)}` }, 502);
     }
 
-    const data = await orRes.json() as any;
+    const data = JSON.parse(body);
     const rawText = (data?.choices?.[0]?.message?.content || '').trim();
     const cardNumber = validateCardNumber(rawText);
     if (!cardNumber) return jsonRes({ success: false, error: `Parse: "${rawText}"` }, 422);
 
     return jsonRes({ success: true, cardNumber });
   } catch (e: any) {
-    return jsonRes({ success: false, error: `Err: ${e.message}` }, 500);
+    return jsonRes({ success: false, error: `${e.name}: ${e.message}` }, 500);
   }
 }
