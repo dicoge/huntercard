@@ -289,10 +289,90 @@ function cleanOcrText(rawText: string): string[] {
 }
 
 /**
+ * Try to recognize card via server-side API (Gemini Vision through OpenRouter)
+ * Falls back gracefully without throwing
+ */
+async function recognizeViaApi(imageUri: string): Promise<RecognitionResult> {
+  try {
+    // Convert image URI to base64
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+
+    // Convert blob to base64
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
+    // Call the API
+    const apiResponse = await fetch('/api/recognize-card', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: base64 }),
+    });
+
+    if (!apiResponse.ok) {
+      console.warn(`[cardRecognition] API returned ${apiResponse.status}`);
+      return { success: false, error: '' };
+    }
+
+    const data = await apiResponse.json();
+
+    if (!data.success || !data.cardNumber) {
+      return { success: false, error: '' };
+    }
+
+    // Match the recognized card number against the database
+    const allCards = await loadAllCards();
+    const cardNumber = data.cardNumber.toLowerCase().replace(/[^a-z0-9-]/g, '');
+
+    // Try exact match
+    const match = allCards.find(c => c.id.toLowerCase() === cardNumber);
+    if (match) {
+      console.log(`[cardRecognition] API recognized: ${cardNumber} → ${match.name}`);
+      return { success: true, card: match };
+    }
+
+    // Try fuzzy match (strip non-alphanumeric)
+    const fuzzyMatch = allCards.find(c => {
+      const normalizedId = c.id.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const normalizedQuery = cardNumber.replace(/[^a-z0-9]/g, '');
+      return normalizedId === normalizedQuery ||
+             normalizedId.includes(normalizedQuery) ||
+             normalizedQuery.includes(normalizedId);
+    });
+
+    if (fuzzyMatch) {
+      console.log(`[cardRecognition] API fuzzy match: ${cardNumber} → ${fuzzyMatch.name}`);
+      return { success: true, card: fuzzyMatch };
+    }
+
+    console.warn(`[cardRecognition] API found cardNumber ${cardNumber} but no DB match`);
+    return { success: false, error: '' };
+
+  } catch (e) {
+    console.warn('[cardRecognition] API call failed:', e);
+    return { success: false, error: '' };
+  }
+}
+
+/**
  * 用於 OCR 卡牌的智能識別（先裁切找卡號，再比對資料庫）
  * 從圖片直接辨識，優先找卡號（比全圖名稱匹配更可靠）
  */
 export async function recognizeCardFromImage(imageUri: string): Promise<RecognitionResult> {
+  // Step 0: Try server-side Gemini Vision API first
+  try {
+    const apiResult = await recognizeViaApi(imageUri);
+    if (apiResult.success && apiResult.card) {
+      return apiResult;
+    }
+  } catch (e) {
+    console.warn('[cardRecognition] API recognition failed, falling back to local:', e);
+  }
+
   const { cardId, rawText } = await recognizeCardNumber(imageUri);
 
   if (!cardId || cardId.trim().length === 0) {
