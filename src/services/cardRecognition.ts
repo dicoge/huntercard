@@ -320,11 +320,35 @@ async function recognizeViaApi(imageUri: string): Promise<RecognitionResult> {
 
     const data = await apiResponse.json();
 
-    if (!data.success || !data.cardNumber) {
+    if (!data.success) {
+      return { success: false, error: data.error || '' };
+    }
+
+    // API returned full card info — use it directly
+    if (data.card) {
+      const apiCard = data.card;
+      // Map API response to CardInfo format
+      const cardInfo: CardInfo = {
+        id: apiCard.cardNumber,
+        name: apiCard.name || '',
+        cardNumber: apiCard.cardNumber,
+        type: '',
+        rarity: apiCard.rarity || '',
+        series: apiCard.series || '',
+        sellPrice: apiCard.sellPrice != null ? apiCard.sellPrice : null,
+        yuyuName: '',
+        color: '',
+        imageUrl: apiCard.imageUrl || '',
+        prices: apiCard.prices || [],
+      };
+      return { success: true, card: cardInfo };
+    }
+
+    // API only returned cardNumber — look up locally
+    if (!data.cardNumber) {
       return { success: false, error: '' };
     }
 
-    // Match the recognized card number against the database
     const allCards = await loadAllCards();
     const cardNumber = data.cardNumber.toLowerCase().replace(/[^a-z0-9-]/g, '');
 
