@@ -1,54 +1,50 @@
-// recognize-card.ts — Uses OpenRouter Gemini Vision API to recognize card numbers
-// POST /api/recognize-card
-
+// recognize-card.ts — Uses OpenRouter Gemini Vision API
 export const config = { runtime: 'edge' };
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL = 'google/gemini-3.1-flash-image';
-const PROMPT = 'Extract the card number from this hololive TCG card image. Reply with ONLY the card number (e.g. hBP04-001 or BP04-001).';
+const PROMPT = 'Extract the card number from this hololive TCG card. Reply ONLY the card number (e.g. hBP04-001).';
 
 function validateCardNumber(raw: string): string | null {
-  let cleaned = raw.trim().toLowerCase();
-  cleaned = cleaned.replace(/^["'\s]+|["'\s]+$/g, '');
-  if (!/^h?(bp|sd|pr|bd|y)\d{0,2}(-\d{2,3})?$/.test(cleaned)) return null;
-  return cleaned;
+  let c = raw.trim().toLowerCase().replace(/^["'\s]+|["'\s]+$/g, '');
+  return /^h?(bp|sd|pr|bd|y)\d{0,2}(-\d{2,3})?$/.test(c) ? c : null;
 }
 
-function json(data: any, status = 200): Response {
+function jsonRes(data: any, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
       'Content-Type': 'application/json',
     },
   });
 }
 
 export default async function handler(req: Request): Promise<Response> {
-  if (req.method === 'OPTIONS') return new Response(null, { status: 204 });
-  if (req.method !== 'POST') return json({ success: false, error: 'Method not allowed' }, 405);
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*' } });
+  }
+  if (req.method !== 'POST') return jsonRes({ success: false, error: 'Method not allowed' }, 405);
 
   const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) return json({ success: false, error: 'API key not configured' }, 500);
+  if (!apiKey) return jsonRes({ success: false, error: 'API key not configured' }, 500);
 
   try {
-    const body = await req.json();
-    const { image } = body;
-    if (!image || typeof image !== 'string' || !image.startsWith('data:image/')) {
-      return json({ success: false, error: 'Invalid image' }, 400);
+    const { image } = await req.json() as any;
+    if (!image?.startsWith?.('data:image/')) {
+      return jsonRes({ success: false, error: 'Invalid image' }, 400);
     }
 
-    // Call OpenRouter
+    // Use Headers object explicitly for Edge Runtime compatibility
+    const headers = new Headers();
+    headers.set('Content-Type', 'application/json');
+    headers.set('Authorization', `Bearer ${apiKey}`);
+    headers.set('HTTP-Referer', 'https://huntercard-alpha.vercel.app');
+    headers.set('X-Title', 'HunterCard');
+
     const orRes = await fetch(OPENROUTER_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://huntercard-alpha.vercel.app',
-        'X-Title': 'HunterCard',
-      },
+      headers,
       body: JSON.stringify({
         model: MODEL,
         messages: [{
@@ -64,20 +60,17 @@ export default async function handler(req: Request): Promise<Response> {
     });
 
     if (!orRes.ok) {
-      const errText = await orRes.text();
-      return json({ success: false, error: `OpenRouter ${orRes.status}: ${errText.slice(0, 200)}` }, 502);
+      const err = await orRes.text();
+      return jsonRes({ success: false, error: `OR ${orRes.status}: ${err.slice(0, 200)}` }, 502);
     }
 
-    const data = await orRes.json();
-    const rawText = data?.choices?.[0]?.message?.content?.trim() || '';
+    const data = await orRes.json() as any;
+    const rawText = (data?.choices?.[0]?.message?.content || '').trim();
     const cardNumber = validateCardNumber(rawText);
+    if (!cardNumber) return jsonRes({ success: false, error: `Parse fail: "${rawText}"` }, 422);
 
-    if (!cardNumber) {
-      return json({ success: false, error: `Could not parse: "${rawText}"` }, 422);
-    }
-
-    return json({ success: true, cardNumber });
+    return jsonRes({ success: true, cardNumber });
   } catch (e: any) {
-    return json({ success: false, error: `Error: ${e.message}` }, 500);
+    return jsonRes({ success: false, error: `Err: ${e.message}` }, 500);
   }
 }
