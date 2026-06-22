@@ -109,24 +109,22 @@ export default async function handler(req: Request): Promise<Response> {
     if (!image || typeof image !== 'string') return json({ success: false, error: 'Invalid image' }, 400);
     const imageData = image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`;
 
-    // ── Gemini call: extract all card info ──
-    const geminiPrompt = `You are analyzing a Hololive TCG card photo taken from a phone.
-Extract the following information from this card image:
+    // ── Gemini call: extract ALL card info ──
+    const geminiPrompt = `You are analyzing a Hololive TCG card. Extract info from the card itself (ignore phone UI overlay).
 
-1. CARD NUMBER: Look for tiny text like hBP01-001, hSD02-003, hBP04-005 on the card. Check the bottom edges carefully.
+First try to find:
+- CHARACTER NAME (e.g. ときのそら, ラプラス・ダークネス, 紫咲シオン)
+- CARD TITLE / SET NAME (e.g. 総帥のお仕事, 秘密結社holoX)
+- Any other text printed on the card
 
-2. CHARACTER NAME: Who is the character on this card? (e.g. ときのそら, 紫咲シオン, ラプラス・ダークネス)
+Then try to find the CARD NUMBER (tiny text like hBP01-001, hSD02-003 at bottom edge).
+BUT if you are not 100% sure of the card number, say NONE for the number.
+It's better to say NONE than guess the wrong number.
 
-3. CARD NAME / TITLE: What is the name/title of this specific card? (e.g. 総帥のお仕事, 秘密結社holoX)
-
-4. Any other identifying text you see.
-
-IMPORTANT: Ignore any phone UI overlay text (time, app title, buttons). Focus ONLY on text printed on the card itself.
-
-Reply with:
-CARD_NUMBER: [number or NONE]
-CHARACTER: [name or NONE]
-TITLE: [title or NONE]`;
+Reply in this format:
+CHARACTER: [character name from the card, or NONE]
+TITLE: [card title/set name, or NONE]
+CARD_NUMBER: [exact card number if 100% certain, otherwise NONE]`;
 
     const orRes = await fetch(OPENROUTER_URL, {
       method: 'POST',
@@ -170,7 +168,37 @@ TITLE: [title or NONE]`;
 
     const cards = await getDatabase();
 
-    // ── Strat 1: Card number found ──
+    // ── Try name/character match FIRST (more reliable on blurry phone photos) ──
+    if (cards && (characterName || cardTitle)) {
+      const searchText = `${characterName} ${cardTitle}`.toLowerCase();
+      const keywords = searchText
+        .replace(/[（(][^)）]*[)）]/g, '')
+        .split(/[\s,，、・]+/)
+        .filter(k => k.length >= 2 && !/^\d+$/.test(k));
+
+      let bestEntry: any = null;
+      let bestScore = 0;
+      const charLower = characterName.toLowerCase().replace(/[^a-z0-9ぁ-んァ-ヶー一-龠]/g, '');
+
+      for (const entry of Object.values(cards) as any[]) {
+        const name: string = (entry.name || '').toLowerCase();
+        let score = 0;
+        for (const kw of keywords) {
+          if (name.includes(kw)) score += 1;
+        }
+        const nameNorm = name.replace(/[^a-z0-9ぁ-んァ-ヶー一-龠]/g, '');
+        if (charLower && nameNorm.includes(charLower)) score += 3;
+        if (score > bestScore) { bestScore = score; bestEntry = entry; }
+      }
+
+      if (bestEntry && bestScore >= 1) {
+        const allV = Object.values(cards).filter((e: any) => e.cardNumber === bestEntry.cardNumber) as any[];
+        const best = allV.find((e: any) => e.series === 'hPR') || bestEntry;
+        return json({ success: true, card: fmt(best), matchMethod: 'name' });
+      }
+    }
+
+    // ── Try card number match ──
     if (cardNumberRaw !== 'NONE' && cardNumberRaw !== '') {
       const cardNumber = normalizeCardNumber(cardNumberRaw);
       if (cardNumber && cards) {
@@ -181,49 +209,7 @@ TITLE: [title or NONE]`;
       }
     }
 
-    // ── Strat 2: Search by character/title name ──
-    if (cards && (characterName || cardTitle)) {
-      // Build search keywords from character name and card title
-      const searchText = `${characterName} ${cardTitle}`.toLowerCase();
-      // Extract meaningful keywords (ignore common words)
-      const keywords = searchText
-        .replace(/[（(][^)）]*[)）]/g, '')
-        .split(/[\s,，、・]+/)
-        .filter(k => k.length >= 2 && !/^\d+$/.test(k));
-
-      // Find best matching card
-      let bestEntry: any = null;
-      let bestScore = 0;
-
-      for (const entry of Object.values(cards) as any[]) {
-        const name: string = (entry.name || '').toLowerCase();
-        let score = 0;
-        for (const kw of keywords) {
-          if (name.includes(kw)) score += 1;
-        }
-        // Bonus: if character name is a direct substring of the card name
-        const charLower = characterName.toLowerCase().replace(/[^a-z0-9ぁ-んァ-ヶー一-龠]/g, '');
-        const nameNorm = name.replace(/[^a-z0-9ぁ-んァ-ヶー一-龠]/g, '');
-        if (charLower && nameNorm.includes(charLower)) score += 3;
-
-        if (score > bestScore) {
-          bestScore = score;
-          bestEntry = entry;
-        }
-      }
-
-      // Accept match with score >= 1 (at least one keyword matched)
-      if (bestEntry && bestScore >= 1) {
-        // If multiple variants of same cardNumber, prefer hPR series
-        const allVariants = Object.values(cards).filter(
-          (e: any) => e.cardNumber === bestEntry.cardNumber
-        ) as any[];
-        const best = allVariants.find((e: any) => e.series === 'hPR') || bestEntry;
-        return json({ success: true, card: fmt(best), matchMethod: 'name' });
-      }
-    }
-
-    // Both strategies failed
+// Both strategies failed
     return json({ success: false, error: '無法辨識此卡牌', raw: reply }, 404);
   } catch (e: any) {
     return json({ success: false, error: `Error: ${e.message}` }, 500);
