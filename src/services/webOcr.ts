@@ -1,7 +1,13 @@
 /**
  * Web OCR Service
  * 在 web 版使用 Tesseract.js 替代 expo-ocr-kit
+ *
+ * Enhanced with YOLOv8 ONNX inference for smart card number region detection.
+ * Uses YOLO to find the exact card number area before cropping, instead of
+ * the old fixed bottom-20% crop.
  */
+
+import { detectCardNumber, YOLODetection } from './yoloDetect';
 
 let Tesseract: any = null;
 
@@ -65,6 +71,45 @@ async function cropCardNumberArea(imageUri: string): Promise<string> {
 }
 
 /**
+ * 自定義區域裁切：從圖片中裁切指定 bbox 區域，回傳 data URI
+ * @param imageUri - 原圖 URI
+ * @param bbox - 裁切區域 { x, y, width, height } (像素座標)
+ * @returns data URI of the cropped region
+ */
+async function cropRegion(imageUri: string, bbox: { x: number; y: number; width: number; height: number }): Promise<string> {
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('Failed to load image for custom crop'));
+    image.src = imageUri;
+  });
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Failed to get 2D context for custom crop');
+
+  // Clamp bbox to image dimensions
+  const cropX = Math.max(0, Math.round(bbox.x));
+  const cropY = Math.max(0, Math.round(bbox.y));
+  const cropW = Math.min(img.width - cropX, Math.round(bbox.width));
+  const cropH = Math.min(img.height - cropY, Math.round(bbox.height));
+
+  if (cropW <= 0 || cropH <= 0) {
+    throw new Error('Invalid crop region: zero or negative dimensions');
+  }
+
+  canvas.width = cropW;
+  canvas.height = cropH;
+
+  ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+  try {
+    return canvas.toDataURL('image/png');
+  } catch {
+    return imageUri;
+  }
+}
+
+/**
  * 從裁切區 OCR 文字中提取卡號（支援 hBP04-005、BP04-005、NP04-005 等格式）
  */
 function extractCardId(text: string): string | null {
@@ -109,11 +154,39 @@ function extractCardId(text: string): string | null {
 }
 
 /**
- * 卡號優先 OCR：先從裁切區找卡號，找不到才 fallback 到全圖 OCR
+ * 卡號優先 OCR：先從 YOLO 偵測的區域找卡號，再 fallback 到固定裁切，最後全圖 OCR
  * @returns cardId 找到的卡號（如 hBP04-005），或 null；rawText 為 OCR 原始文字
  */
 export async function recognizeCardNumber(imageUri: string): Promise<{ cardId: string | null; rawText: string }> {
   const t = await getTesseract();
+
+  // Step 0: YOLO detection — find the exact card number region
+  try {
+    const yoloResult = await detectCardNumber(imageUri);
+    if (yoloResult && yoloResult.confidence > 0.5) {
+      console.log(`[webOcr] YOLO detected card number region with confidence ${yoloResult.confidence.toFixed(3)}`);
+      const croppedUri = await cropRegion(imageUri, yoloResult.bbox);
+      const yoloResult_ocr = await t.recognize(croppedUri, 'jpn+eng', {
+        logger: (info: any) => {
+          if (info.status === 'recognizing text') {
+            console.log(`[webOcr][yolo-crop] progress: ${Math.round(info.progress * 100)}%`);
+          }
+        },
+      });
+      const cardId = extractCardId(yoloResult_ocr.data.text);
+      if (cardId) {
+        console.log(`[webOcr] YOLO-guided OCR succeeded: ${cardId}`);
+        return { cardId, rawText: yoloResult_ocr.data.text };
+      }
+      console.log('[webOcr] YOLO crop OCR found no card number, falling through');
+    } else if (yoloResult) {
+      console.log(`[webOcr] YOLO confidence ${yoloResult.confidence.toFixed(3)} <= 0.5, falling through`);
+    } else {
+      console.log('[webOcr] YOLO returned no detection, falling through');
+    }
+  } catch (e) {
+    console.warn('[webOcr] YOLO detection failed, falling through:', e);
+  }
 
   // Step 1: 裁切底部區域，對裁切區跑 OCR
   let croppedUri: string;
