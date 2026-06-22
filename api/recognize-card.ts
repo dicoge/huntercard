@@ -1,7 +1,6 @@
-// recognize-card.ts — Uses OpenRouter Gemini Vision API
+// recognize-card.ts — OpenRouter Gemini Vision API
 export const config = { runtime: 'edge' };
 
-const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL = 'google/gemini-3.1-flash-image';
 const PROMPT = 'Extract the card number from this hololive TCG card. Reply ONLY the card number (e.g. hBP04-001).';
 
@@ -13,17 +12,12 @@ function validateCardNumber(raw: string): string | null {
 function jsonRes(data: any, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
   });
 }
 
 export default async function handler(req: Request): Promise<Response> {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*' } });
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*' } });
   if (req.method !== 'POST') return jsonRes({ success: false, error: 'Method not allowed' }, 405);
 
   const apiKey = process.env.OPENROUTER_API_KEY;
@@ -35,16 +29,16 @@ export default async function handler(req: Request): Promise<Response> {
       return jsonRes({ success: false, error: 'Invalid image' }, 400);
     }
 
-    // Use Headers object explicitly for Edge Runtime compatibility
-    const headers = new Headers();
-    headers.set('Content-Type', 'application/json');
-    headers.set('Authorization', `Bearer ${apiKey}`);
-    headers.set('HTTP-Referer', 'https://huntercard-alpha.vercel.app');
-    headers.set('X-Title', 'HunterCard');
+    // Pass API key as query param to avoid edge runtime header stripping
+    const url = `https://openrouter.ai/api/v1/chat/completions?api_key=${encodeURIComponent(apiKey)}`;
 
-    const orRes = await fetch(OPENROUTER_URL, {
+    const orRes = await fetch(url, {
       method: 'POST',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://huntercard-alpha.vercel.app',
+        'X-Title': 'HunterCard',
+      },
       body: JSON.stringify({
         model: MODEL,
         messages: [{
@@ -67,7 +61,7 @@ export default async function handler(req: Request): Promise<Response> {
     const data = await orRes.json() as any;
     const rawText = (data?.choices?.[0]?.message?.content || '').trim();
     const cardNumber = validateCardNumber(rawText);
-    if (!cardNumber) return jsonRes({ success: false, error: `Parse fail: "${rawText}"` }, 422);
+    if (!cardNumber) return jsonRes({ success: false, error: `Parse: "${rawText}"` }, 422);
 
     return jsonRes({ success: true, cardNumber });
   } catch (e: any) {
