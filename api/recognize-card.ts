@@ -1,6 +1,5 @@
 // recognize-card.ts — Uses OpenRouter Gemini Vision API to recognize card numbers
 // POST /api/recognize-card
-// Edge Runtime — same pattern as image.ts
 
 export const config = { runtime: 'edge' };
 
@@ -15,43 +14,33 @@ function validateCardNumber(raw: string): string | null {
   return cleaned;
 }
 
-function corsHeaders() {
-  return {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'application/json',
-  };
+function json(data: any, status = 200): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Content-Type': 'application/json',
+    },
+  });
 }
 
 export default async function handler(req: Request): Promise<Response> {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders() });
-  }
-
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ success: false, error: 'Method not allowed' }), {
-      status: 405, headers: corsHeaders(),
-    });
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204 });
+  if (req.method !== 'POST') return json({ success: false, error: 'Method not allowed' }, 405);
 
   const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    return new Response(JSON.stringify({ success: false, error: 'API key not configured' }), {
-      status: 500, headers: corsHeaders(),
-    });
-  }
+  if (!apiKey) return json({ success: false, error: 'API key not configured' }, 500);
 
   try {
     const body = await req.json();
     const { image } = body;
-
     if (!image || typeof image !== 'string' || !image.startsWith('data:image/')) {
-      return new Response(JSON.stringify({ success: false, error: 'Invalid or missing image' }), {
-        status: 400, headers: corsHeaders(),
-      });
+      return json({ success: false, error: 'Invalid image' }, 400);
     }
 
+    // Call OpenRouter
     const orRes = await fetch(OPENROUTER_URL, {
       method: 'POST',
       headers: {
@@ -75,10 +64,8 @@ export default async function handler(req: Request): Promise<Response> {
     });
 
     if (!orRes.ok) {
-      const err = await orRes.text();
-      return new Response(JSON.stringify({ success: false, error: 'Recognition unavailable' }), {
-        status: 502, headers: corsHeaders(),
-      });
+      const errText = await orRes.text();
+      return json({ success: false, error: `OpenRouter ${orRes.status}: ${errText.slice(0, 200)}` }, 502);
     }
 
     const data = await orRes.json();
@@ -86,17 +73,11 @@ export default async function handler(req: Request): Promise<Response> {
     const cardNumber = validateCardNumber(rawText);
 
     if (!cardNumber) {
-      return new Response(JSON.stringify({ success: false, error: 'Format error' }), {
-        status: 422, headers: corsHeaders(),
-      });
+      return json({ success: false, error: `Could not parse: "${rawText}"` }, 422);
     }
 
-    return new Response(JSON.stringify({ success: true, cardNumber }), {
-      status: 200, headers: corsHeaders(),
-    });
+    return json({ success: true, cardNumber });
   } catch (e: any) {
-    return new Response(JSON.stringify({ success: false, error: e.message }), {
-      status: 500, headers: corsHeaders(),
-    });
+    return json({ success: false, error: `Error: ${e.message}` }, 500);
   }
 }
