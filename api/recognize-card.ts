@@ -1,16 +1,44 @@
 /**
  * recognize-card.ts — Uses OpenRouter Gemini Vision API to extract card numbers
- * from Hololive TCG card images.
+ * from Hololive TCG card images, then looks up full card data in the database.
  *
  * POST /api/recognize-card
  * Body: { image: "data:image/jpeg;base64,..." }
- * Returns: { success: true, cardNumber: "hbp04-005" } | { success: false, error: "..." }
+ * Returns: { success: true, card: { cardNumber, name, sellPrice, series, rarity, imageUrl, prices } }
+ *          { success: true, cardNumber, notFound: true, error: "..." }  // card not in DB
+ *          { success: false, error: "..." }
  */
 
 export const config = { runtime: 'edge' };
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL = 'google/gemini-3.1-flash-image';
+const DATABASE_URL = 'https://huntercard-alpha.vercel.app/data/database.json';
+
+// Module-level cache for database fetch — avoids redundant fetches
+let dbFetchPromise: Promise<Record<string, any> | null> | null = null;
+
+/**
+ * Fetch and cache the card database JSON.
+ * Returns the cards map (keyed by composite ID like "hBP04-005_hBP04").
+ */
+async function getDatabase(): Promise<Record<string, any> | null> {
+  if (dbFetchPromise) return dbFetchPromise;
+
+  dbFetchPromise = (async () => {
+    try {
+      const res = await fetch(DATABASE_URL);
+      if (!res.ok) { dbFetchPromise = null; return null; }
+      const data = await res.json();
+      return data?.cards || null;
+    } catch {
+      dbFetchPromise = null; // reset so next call retries
+      return null;
+    }
+  })();
+
+  return dbFetchPromise;
+}
 
 const SYSTEM_PROMPT = `You are a card number extractor for Hololive Trading Card Game (Hololive TCG).
 Look at the card image and extract ONLY the card number printed on it.
@@ -163,8 +191,41 @@ export default async function handler(req: Request): Promise<Response> {
       }, 422);
     }
 
-    // Success!
-    return jsonResponse({ success: true, cardNumber });
+    // Look up card in database
+    const cards = await getDatabase();
+    if (!cards) {
+      // Database unavailable — still return cardNumber so frontend can proceed with partial data
+      return jsonResponse({ success: true, cardNumber, dbUnavailable: true });
+    }
+
+    // Find the card by matching cardNumber case-insensitively
+    const cardKey = Object.keys(cards).find(
+      (k) => cards[k].cardNumber?.toLowerCase() === cardNumber,
+    );
+    const match = cardKey ? cards[cardKey] : null;
+
+    if (!match) {
+      return jsonResponse({
+        success: true,
+        cardNumber,
+        notFound: true,
+        error: `卡號 ${cardNumber} 未在資料庫中`,
+      });
+    }
+
+    // Success with full card data
+    return jsonResponse({
+      success: true,
+      card: {
+        cardNumber: match.cardNumber,
+        name: match.name,
+        sellPrice: match.sellPrice,
+        series: match.series,
+        rarity: match.rarity,
+        imageUrl: match.officialImage || '',
+        prices: match.prices,
+      },
+    });
   } catch (e: any) {
     return jsonResponse({ success: false, error: `Internal error: ${e.message}` }, 500);
   }
