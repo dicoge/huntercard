@@ -7,7 +7,7 @@
  */
 
 import { recognizeCardNumber } from './webOcr';
-import { preprocessCardImage, initOpenCv } from './imagePreprocessor';
+import { preprocessCardImage } from './imagePreprocessor';
 
 // ── 類型定義 ──
 
