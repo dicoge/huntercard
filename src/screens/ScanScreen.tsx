@@ -273,8 +273,54 @@ export default function ScanScreen() {
       setCapturedPhotoUri(photo.uri);
 
       if (isWeb) {
-        // Web: 使用卡號優先的圖片裁切 + OCR（比全圖 OCR 更準確）
-        const result = await recognizeCardFromImage(photo.uri);
+        // Web: 先試 API 辨識（Gemini Vision）
+        let apiResult = null;
+        try {
+          // Resize the image before sending
+          let imgData = photo.uri;
+          const img = new Image();
+          await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = photo.uri; });
+          let w = img.naturalWidth, h = img.naturalHeight;
+          if (w > 1024 || h > 1024) {
+            if (w > h) { h = (h / w) * 1024; w = 1024; }
+            else { w = (w / h) * 1024; h = 1024; }
+            const c = document.createElement('canvas');
+            c.width = Math.round(w); c.height = Math.round(h);
+            c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+            imgData = c.toDataURL('image/jpeg', 0.85);
+          }
+          const apiUrl = window.location.origin + '/api/recognize-card';
+          const resp = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: imgData }),
+          });
+          apiResult = await resp.json();
+          console.log('[ScanScreen] API response:', JSON.stringify(apiResult).slice(0, 500));
+        } catch (e: any) {
+          console.warn('[ScanScreen] API call failed:', e.message);
+        }
+
+        // If API succeeded, use it
+        if (apiResult?.success && apiResult?.card) {
+          const card = apiResult.card;
+          // Map to CardInfo
+          const cardInfo: CardInfo = {
+            id: card.cardNumber, name: card.name || '', cardNumber: card.cardNumber,
+            type: '', rarity: card.rarity || '', series: card.series || '',
+            sellPrice: card.sellPrice != null ? card.sellPrice : null,
+            yuyuName: '', color: '', imageUrl: card.imageUrl || '', prices: card.prices || [],
+          };
+          addCard(cardInfo);
+          setLastScannedCard(cardInfo);
+          setResultCard({ visible: true, card: cardInfo, confidence: 0.9 });
+          setSearchResults([]); setSearchError(null); setSuggestions([]);
+          setCapturedPhotoUri(null); resetAutoScan();
+          setIsProcessingOCR(false); setIsScanning(false);
+          return;
+        }
+
+        // Fallback — existing OCR flow
 
         setIsProcessingOCR(false);
         setIsScanning(false);
