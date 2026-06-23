@@ -189,11 +189,26 @@ CARD_NUMBER: [exact card number if 100% certain, otherwise NONE]`;
         const nameNorm = name.replace(/[^a-z0-9ぁ-んァ-ヶー一-龠]/g, '');
         if (charLower && nameNorm.includes(charLower)) score += 3;
         if (score > bestScore) { bestScore = score; bestEntry = entry; }
+        else if (score === bestScore && bestEntry) {
+          // Tiebreaker: prefer entry where series matches cardNumber prefix (original printing)
+          const prefix = (entry.cardNumber || '').split('-')[0].toLowerCase();
+          const bestPrefix = (bestEntry.cardNumber || '').split('-')[0].toLowerCase();
+          const entryIsOriginal = entry.series?.toLowerCase() === prefix;
+          const bestIsOriginal = bestEntry.series?.toLowerCase() === bestPrefix;
+          if (entryIsOriginal && !bestIsOriginal) { bestEntry = entry; }
+          else if (!entryIsOriginal && !bestIsOriginal && entry.series !== 'hpr' && bestEntry.series === 'hpr') {
+            bestEntry = entry;
+          }
+        }
       }
 
       if (bestEntry && bestScore >= 1) {
+        // Find all entries with this card number, prefer the one where series matches cardNumber prefix
         const allV = Object.values(cards).filter((e: any) => e.cardNumber === bestEntry.cardNumber) as any[];
-        const best = allV.find((e: any) => e.series === 'hPR') || bestEntry;
+        const best = allV.find((e: any) => {
+          const prefix = (e.cardNumber || '').split('-')[0].toLowerCase();
+          return e.series?.toLowerCase() === prefix;
+        }) || allV.find((e: any) => e.series?.toLowerCase() !== 'hpr') || bestEntry;
         return json({ success: true, card: fmt(best), matchMethod: 'name' });
       }
     }
