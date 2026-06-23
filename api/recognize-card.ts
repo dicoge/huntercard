@@ -2,6 +2,7 @@
  * @version 5
  * recognize-card.ts — Uses OpenRouter Gemini Vision API to identify Hololive TCG cards.
  * @cache-buster 20260623-v1
+ * @deploy HoloCard-Hunter
  *
  * Two strategies:
  *   Strat 1: Read the tiny card number (e.g. hBP01-001)
