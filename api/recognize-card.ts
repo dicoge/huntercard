@@ -1,6 +1,14 @@
 /**
- * @version 6
- * identify-card.ts — Uses OpenRouter Gemini Vision API to identify Hololive TCG cards.
+ * @version 5
+ * recognize-card.ts — Uses OpenRouter Gemini Vision API to identify Hololive TCG cards.
+ * @cache-buster 20260623-v1
+ *
+ * Two strategies:
+ *   Strat 1: Read the tiny card number (e.g. hBP01-001)
+ *   Strat 2: If no card number, identify by card text/character name
+ *
+ * POST /api/recognize-card
+ * Body: { image: "data:image/jpeg;base64,..." }
  */
 
 export const config = { runtime: 'edge' };
@@ -35,9 +43,9 @@ const prefixMap: Record<string, string> = {
 
 function normalizeCardNumber(raw: string): string | null {
   let cleaned = raw.trim().replace(/^['"`\s]+|['"`\s]+$/g, '').replace(/\.$/, '').toLowerCase();
-  const m = cleaned.match(/(h?[a-z]{2,3}\d{0,2}[\-\s]?\d{1,3})/i);
+  const m = cleaned.match(/(h?[a-z]{2,3}\d{0,2}[-\s]?\d{1,3})/i);
   if (!m) return null;
-  let r = m[1].replace(/[\-\s]/g, '-');
+  let r = m[1].replace(/[-\s]/g, '-');
   if (!r.includes('-')) r = r.replace(/(\d)(\d{2,3})$/, '$1-$2');
   if (!r.startsWith('h')) {
     const p = r.slice(0, 2), rest = r.slice(2);
@@ -46,9 +54,11 @@ function normalizeCardNumber(raw: string): string | null {
   return r;
 }
 
+// ── Name-based search ──
 function searchByName(cards: Record<string, any>, keywords: string[]): any {
   let best: any = null;
   let bestScore = 0;
+
   for (const entry of Object.values(cards) as any[]) {
     const name: string = (entry.name || '').toLowerCase();
     let score = 0;
@@ -76,6 +86,7 @@ function json(d: any, status = 200): Response {
 }
 
 function fmt(entry: any) {
+  // For SEC/highest-rarity cards, use the top price from prices array
   let price = entry.sellPrice;
   if (entry.rarity === 'SEC' && entry.prices?.length > 0) {
     price = Math.max(...entry.prices.map((p: any) => p.sellPrice || 0));
@@ -105,20 +116,22 @@ export default async function handler(req: Request): Promise<Response> {
     if (!image || typeof image !== 'string') return json({ success: false, error: 'Invalid image' }, 400);
     const imageData = image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`;
 
-    // ── Gemini call ──
+    // ── Gemini call: extract ALL card info ──
     const geminiPrompt = `You are analyzing a Hololive TCG card. Extract info from the card itself (ignore phone UI overlay).
 
 First try to find:
 - CHARACTER NAME (e.g. ときのそら, ラプラス・ダークネス, 紫咲シオン)
 - CARD TITLE / SET NAME (e.g. 総帥のお仕事, 秘密結社holoX)
+- Any other text printed on the card
 
 Then try to find the CARD NUMBER (tiny text like hBP01-001, hSD02-003 at bottom edge).
 BUT if you are not 100% sure of the card number, say NONE for the number.
+It's better to say NONE than guess the wrong number.
 
 Reply in this format:
-CHARACTER: [name or NONE]
-TITLE: [title or NONE]
-CARD_NUMBER: [exact number if 100% certain, otherwise NONE]`;
+CHARACTER: [character name from the card, or NONE]
+TITLE: [card title/set name, or NONE]
+CARD_NUMBER: [exact card number if 100% certain, otherwise NONE]`;
 
     const orRes = await fetch(OPENROUTER_URL, {
       method: 'POST',
@@ -150,6 +163,7 @@ CARD_NUMBER: [exact number if 100% certain, otherwise NONE]`;
     const orData = await orRes.json();
     const reply = (orData?.choices?.[0]?.message?.content || '').trim();
     if (!reply) {
+      // Debug: include partial response even when empty
       return json({ success: false, error: 'Gemini returned empty response', debug: { status: orRes.status, model: MODEL } }, 502);
     }
 
@@ -164,7 +178,7 @@ CARD_NUMBER: [exact number if 100% certain, otherwise NONE]`;
 
     const cards = await getDatabase();
 
-    // ── Try name/character match FIRST ──
+    // ── Try name/character match FIRST (more reliable on blurry phone photos) ──
     if (cards && (characterName || cardTitle)) {
       const searchText = `${characterName} ${cardTitle}`.toLowerCase();
       const keywords = searchText
@@ -186,6 +200,7 @@ CARD_NUMBER: [exact number if 100% certain, otherwise NONE]`;
         if (charLower && nameNorm.includes(charLower)) score += 3;
         if (score > bestScore) { bestScore = score; bestEntry = entry; }
         else if (score === bestScore && bestEntry) {
+          // Tiebreaker: prefer entry where series matches cardNumber prefix (original printing)
           const prefix = (entry.cardNumber || '').split('-')[0].toLowerCase();
           const bestPrefix = (bestEntry.cardNumber || '').split('-')[0].toLowerCase();
           const entryIsOriginal = entry.series?.toLowerCase() === prefix;
@@ -198,7 +213,7 @@ CARD_NUMBER: [exact number if 100% certain, otherwise NONE]`;
       }
 
       if (bestEntry && bestScore >= 1) {
-        // If Gemini also returned a card number, prefer exact match
+        // If Gemini also returned a card number, see if there's a card matching BOTH name and number
         if (cardNumberRaw !== 'NONE' && cardNumberRaw !== '') {
           const exactNum = normalizeCardNumber(cardNumberRaw);
           if (exactNum) {
@@ -206,6 +221,7 @@ CARD_NUMBER: [exact number if 100% certain, otherwise NONE]`;
               (e: any) => e.cardNumber?.toLowerCase() === exactNum
             );
             if (exactMatch) {
+              // Verify: the exact match should also match the name (same character)
               const exactName = (exactMatch.name || '').toLowerCase();
               const exactNameNorm = exactName.replace(/[^a-z0-9ぁ-んァ-ヶー一-龠]/g, '');
               if (charLower && exactNameNorm.includes(charLower)) {
@@ -215,6 +231,7 @@ CARD_NUMBER: [exact number if 100% certain, otherwise NONE]`;
           }
         }
 
+        // Find all entries with this card number, prefer the one where series matches cardNumber prefix
         const allV = Object.values(cards).filter((e: any) => e.cardNumber === bestEntry.cardNumber) as any[];
         const best = allV.find((e: any) => {
           const prefix = (e.cardNumber || '').split('-')[0].toLowerCase();
@@ -231,10 +248,11 @@ CARD_NUMBER: [exact number if 100% certain, otherwise NONE]`;
         const key = Object.keys(cards).find(
           k => (cards[k] as any).cardNumber?.toLowerCase() === cardNumber
         );
-        if (key) return json({ success: true, card: fmt(cards[key]), matchMethod: 'number' });
+        if (key) return json({ success: true, card: fmt(cards[key]) });
       }
     }
 
+// Both strategies failed
     return json({ success: false, error: '無法辨識此卡牌', raw: reply }, 404);
   } catch (e: any) {
     return json({ success: false, error: `Error: ${e.message}` }, 500);
