@@ -1,6 +1,11 @@
 {
   "buildCommand": "expo export --platform web && node scripts/fix-html.js && node scripts/copy-assets.js",
   "outputDirectory": "dist",
+  "functions": {
+    "api/recognize-card.ts": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
