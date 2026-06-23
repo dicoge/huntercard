@@ -273,22 +273,29 @@ export default function ScanScreen() {
       setCapturedPhotoUri(photo.uri);
 
       if (isWeb) {
-        // Web: 先試 API 辨識（Gemini Vision）
-        let apiResult = null;
-        try {
-          // Resize the image before sending
-          let imgData = photo.uri;
-          const img = new Image();
-          await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = photo.uri; });
-          let w = img.naturalWidth, h = img.naturalHeight;
-          if (w > 1024 || h > 1024) {
-            if (w > h) { h = (h / w) * 1024; w = 1024; }
-            else { w = (w / h) * 1024; h = 1024; }
-            const c = document.createElement('canvas');
-            c.width = Math.round(w); c.height = Math.round(h);
-            c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
-            imgData = c.toDataURL('image/jpeg', 0.85);
+        // ── Step 1: 從 video 直接 resize 到 1024px（跳過雙層 canvas）──
+        let imgData: string;
+        const video = document.querySelector('video');
+        if (video && video.videoWidth > 0) {
+          let w = video.videoWidth, h = video.videoHeight;
+          const MAX = 1024;
+          if (w > MAX || h > MAX) {
+            if (w > h) { h = Math.round((h / w) * MAX); w = MAX; }
+            else { w = Math.round((w / h) * MAX); h = MAX; }
           }
+          const c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          c.getContext('2d')!.drawImage(video, 0, 0, w, h);
+          imgData = c.toDataURL('image/jpeg', 0.85);
+        } else {
+          // 保險：直接用 WebCamera 拍的照片（已是 data: URI）
+          imgData = photo.uri;
+        }
+
+        // ── Step 2: 叫 API 辨識 ──
+        let apiResult: any = null;
+        let apiNetworkError = false;
+        try {
           const apiUrl = window.location.origin + '/api/recognize-card';
           const resp = await fetch(apiUrl, {
             method: 'POST',
@@ -296,15 +303,15 @@ export default function ScanScreen() {
             body: JSON.stringify({ image: imgData }),
           });
           apiResult = await resp.json();
-          console.log('[ScanScreen] API response:', JSON.stringify(apiResult).slice(0, 500));
+          console.log('[ScanScreen] API:', JSON.stringify(apiResult).slice(0, 600));
         } catch (e: any) {
-          console.warn('[ScanScreen] API call failed:', e.message);
+          apiNetworkError = true;
+          console.warn('[ScanScreen] API network error:', e.message);
         }
 
-        // If API succeeded, use it
+        // ── Step 3: API 成功 → 顯示結果 ──
         if (apiResult?.success && apiResult?.card) {
           const card = apiResult.card;
-          // Map to CardInfo
           const cardInfo: CardInfo = {
             id: card.cardNumber, name: card.name || '', cardNumber: card.cardNumber,
             type: '', rarity: card.rarity || '', series: card.series || '',
@@ -320,57 +327,56 @@ export default function ScanScreen() {
           return;
         }
 
-        const result = await recognizeCardFromImage(photo.uri);
+        // ── Step 4: API 有回錯誤 → 顯示給使用者 ──
+        if (apiResult && !apiResult.success) {
+          const errMsg = apiResult.error || '無法辨識';
+          setScanError(`⚠️ Gemini: ${errMsg}`);
+          if (apiResult.raw) setRecognizedText(apiResult.raw);
+          // 留著 photo 讓使用者可以手動搜尋
+          setIsProcessingOCR(false);
+          setIsScanning(false);
+          return;
+        }
 
-        // Fallback — existing OCR flow
+        // ── Step 5: 網路錯誤 → 降級到本地 Tesseract ──
+        if (apiNetworkError) {
+          console.warn('[ScanScreen] API unreachable, falling back to Tesseract');
+          const result = await recognizeCardFromImage(photo.uri);
+          setIsProcessingOCR(false);
+          setIsScanning(false);
 
-        setIsProcessingOCR(false);
-        setIsScanning(false);
-
-        if (result.success && result.card) {
-          addCard(result.card);
-          setLastScannedCard(result.card);
-          // Show floating result card
-          setResultCard({
-            visible: true,
-            card: result.card,
-            confidence: 0.85,
-          });
-          setSearchResults([]);
-          setSearchError(null);
-          setSuggestions([]);
-          setCapturedPhotoUri(null);
-          // Reset auto-scan stability buffer after successful scan
-          resetAutoScan();
-        } else {
-          // 找不到卡號 — 用全圖 OCR 兜底做名稱匹配
-          const recognizedText = await recognizeTextWeb(photo.uri);
-          const trimmedText = recognizedText.text.trim();
-          setRecognizedText(trimmedText);
-
-          if (trimmedText.length > 0) {
-            const fallbackResult = await recognizeCardFromOcr(trimmedText);
-            if (fallbackResult.success && fallbackResult.card) {
-              addCard(fallbackResult.card);
-              setLastScannedCard(fallbackResult.card);
-              setResultCard({
-                visible: true,
-                card: fallbackResult.card,
-                confidence: 0.85,
-              });
-              setSearchResults([]);
-              setSearchError(null);
-              setSuggestions([]);
-              setCapturedPhotoUri(null);
-              resetAutoScan();
-              return;
-            }
-            setSearchError(fallbackResult.error || '找不到匹配的卡牌');
-            const searchResult = await searchCards(trimmedText, 10);
-            setSearchResults(searchResult);
+          if (result.success && result.card) {
+            addCard(result.card);
+            setLastScannedCard(result.card);
+            setResultCard({ visible: true, card: result.card, confidence: 0.85 });
+            setSearchResults([]); setSearchError(null); setSuggestions([]);
+            setCapturedPhotoUri(null); resetAutoScan();
           } else {
-            setScanError('無法自動辨識卡牌文字。請使用手動搜尋或從下方搜尋結果中選擇。');
+            const recognizedText = await recognizeTextWeb(photo.uri);
+            const trimmedText = recognizedText.text.trim();
+            setRecognizedText(trimmedText);
+            if (trimmedText.length > 0) {
+              const fallbackResult = await recognizeCardFromOcr(trimmedText);
+              if (fallbackResult.success && fallbackResult.card) {
+                addCard(fallbackResult.card);
+                setLastScannedCard(fallbackResult.card);
+                setResultCard({ visible: true, card: fallbackResult.card, confidence: 0.85 });
+                setSearchResults([]); setSearchError(null); setSuggestions([]);
+                setCapturedPhotoUri(null); resetAutoScan();
+                return;
+              }
+              setSearchError(fallbackResult.error || '找不到匹配的卡牌');
+              const searchResult = await searchCards(trimmedText, 10);
+              setSearchResults(searchResult);
+            } else {
+              setScanError('無法自動辨識卡牌文字。請使用手動搜尋或從下方搜尋結果中選擇。');
+            }
           }
+        } else {
+          // 沒網路錯誤也沒 API 結果（不該發生，但兜底）
+          setScanError('無法完成掃描，請重試或使用手動搜尋');
+          setIsProcessingOCR(false);
+          setIsScanning(false);
         }
       } else {
         // Native: 用 expo-ocr-kit 做全圖 OCR
