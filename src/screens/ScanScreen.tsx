@@ -320,6 +320,8 @@ export default function ScanScreen() {
           return;
         }
 
+        const result = await recognizeCardFromImage(photo.uri);
+
         // Fallback — existing OCR flow
 
         setIsProcessingOCR(false);
