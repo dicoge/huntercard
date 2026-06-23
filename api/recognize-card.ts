@@ -1,4 +1,5 @@
 /**
+ * @version 5
  * recognize-card.ts — Uses OpenRouter Gemini Vision API to identify Hololive TCG cards.
  * @cache-buster 20260623-v1
  *
