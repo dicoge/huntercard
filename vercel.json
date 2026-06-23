@@ -1,4 +1,7 @@
 {
+  "functions": {
+    "api/**/*.ts": { "runtime": "@vercel/node@2" }
+  },
   "buildCommand": "expo export --platform web && node scripts/fix-html.js && node scripts/copy-assets.js",
   "outputDirectory": "dist",
   "rewrites": [
