@@ -327,8 +327,9 @@ async function recognizeViaApi(imageUri: string): Promise<RecognitionResult> {
     // Preprocess with OpenCV: enhance contrast, sharpen, resize
     const processedImage = await preprocessCardImage(imageUri);
 
-    // Call the API
-    const apiResponse = await fetch('/api/recognize-card', {
+    // Call the API — use absolute URL to avoid SPA routing issues
+    const apiUrl = window.location.origin + '/api/recognize-card';
+    const apiResponse = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ image: processedImage }),
