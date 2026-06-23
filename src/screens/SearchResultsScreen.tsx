@@ -156,17 +156,24 @@ function searchCards(database: DatabaseSchema, query: string, nameMap: Record<st
   }
   const deduped = Array.from(dedupMap.values());
 
-  // Sort by series first, then by card number using numeric comparison of the trailing digits
+  // Sort: cards whose cardNumber starts with the search query first (in numeric order),
+  // then other cards (reprints/cross-series) sorted by cardNumber.
+  const searchPrefix = searchQ.replace(/[^a-z0-9]/g, '');
   deduped.sort((a, b) => {
-    const aSeries = (a.series || '').toLowerCase();
-    const bSeries = (b.series || '').toLowerCase();
-    if (aSeries !== bSeries) return aSeries.localeCompare(bSeries);
-    const aNum = ((a as any).cardNumber || a.id || '').toLowerCase();
-    const bNum = ((b as any).cardNumber || b.id || '').toLowerCase();
-    const aParts = aNum.split('-');
-    const bParts = bNum.split('-');
-    if (aParts[0] !== bParts[0]) return aParts[0].localeCompare(bParts[0]);
-    return (parseInt(aParts[1], 10) || 0) - (parseInt(bParts[1], 10) || 0);
+    const aRaw = ((a as any).cardNumber || a.id || '').toLowerCase();
+    const bRaw = ((b as any).cardNumber || b.id || '').toLowerCase();
+    const aPrefix = aRaw.split('-')[0];
+    const bPrefix = bRaw.split('-')[0];
+    // Cards matching the series prefix come first
+    const aMatchSeries = aRaw.startsWith(searchPrefix) ? 0 : 1;
+    const bMatchSeries = bRaw.startsWith(searchPrefix) ? 0 : 1;
+    if (aMatchSeries !== bMatchSeries) return aMatchSeries - bMatchSeries;
+    // Group by prefix (hBP08 / hBP01 / hSD11 / etc.)
+    if (aPrefix !== bPrefix) return aPrefix.localeCompare(bPrefix);
+    // Finally sort by numeric suffix
+    const aSuffix = parseInt(aRaw.split('-')[1], 10) || 0;
+    const bSuffix = parseInt(bRaw.split('-')[1], 10) || 0;
+    return aSuffix - bSuffix;
   });
 
   return deduped.map((c: CardRecord) => {
