@@ -12,7 +12,7 @@
 export const config = { runtime: 'edge' };
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL = 'google/gemini-3-pro-image';
+const MODEL = 'google/gemini-3.1-flash-image';
 const DATABASE_URL = 'https://huntercard-alpha.vercel.app/data/database.json';
 
 let dbFetchPromise: Promise<Record<string, any> | null> | null = null;
