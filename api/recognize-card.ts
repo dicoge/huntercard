@@ -158,14 +158,14 @@ CARD_NUMBER: [exact card number if 100% certain, otherwise NONE]`;
 
     if (!orRes.ok) {
       const err = await orRes.text();
-      return json({ success: false, error: `Gemini error (${orRes.status})` }, 502);
+      return json({ success: false, error: `API error (${orRes.status})` }, 502);
     }
 
     const orData = await orRes.json();
     const reply = (orData?.choices?.[0]?.message?.content || '').trim();
     if (!reply) {
       // Debug: include partial response even when empty
-      return json({ success: false, error: 'Gemini returned empty response', debug: { status: orRes.status, model: MODEL } }, 502);
+      return json({ success: false, error: '服務回傳空回應', debug: { status: orRes.status, model: MODEL } }, 502);
     }
 
     // Parse Gemini's response

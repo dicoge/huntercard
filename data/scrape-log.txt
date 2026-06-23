@@ -1,24 +1,26 @@
-=== Scrape Log 2026-06-18T12:05:27.430Z ===
+=== Scrape Log 2026-06-23T12:01:43.559Z ===
 ═══════════════════════════════════════
   hunterCard Database Builder
 ═══════════════════════════════════════
 
 ── Step 1: Scrape yuyu-tei ──
 [database] Starting yuyu-tei scrape (Puppeteer)...
-[database] Scraping hBP04: /sell/hocg/s/hbp04
-  → Found 108 cards with prices
 [database] Scraping hBP01: /sell/hocg/s/search?search_word=&vers[]=hbp01
   → Found 126 cards with prices
 [database] Scraping hBP02: /sell/hocg/s/search?search_word=&vers[]=hbp02
   → Found 105 cards with prices
 [database] Scraping hBP03: /sell/hocg/s/search?search_word=&vers[]=hbp03
   → Found 116 cards with prices
+[database] Scraping hBP04: /sell/hocg/s/hbp04
+  → Found 108 cards with prices
 [database] Scraping hBP05: /sell/hocg/s/search?search_word=&vers[]=hbp05
   → Found 99 cards with prices
 [database] Scraping hBP06: /sell/hocg/s/search?search_word=&vers[]=hbp06
   → Found 120 cards with prices
 [database] Scraping hBP07: /sell/hocg/s/search?search_word=&vers[]=hbp07
   → Found 122 cards with prices
+[database] Scraping hBP08: /sell/hocg/s/search?search_word=&vers[]=hbp08
+  → Found 121 cards with prices
 [database] Scraping hSD01: /sell/hocg/s/search?search_word=&vers[]=hsd01
   → Found 21 cards with prices
 [database] Scraping hSD02: /sell/hocg/s/search?search_word=&vers[]=hsd02
@@ -57,25 +59,25 @@
   → Found 10 cards with prices
 [database] Scraping hSD19: /sell/hocg/s/search?search_word=&vers[]=hsd19
   → Found 11 cards with prices
-[database] Scraping hPR: /sell/hocg/s/special/1
-  → Found 89 cards with prices
-[database] Scraping hY: /sell/hocg/s/special/2
-  → Found 90 cards with prices
+[database] Scraping hYS01: /sell/hocg/s/hys01
+  → Found 4 cards with prices
 [database] Scraping ent07: /sell/hocg/s/special/4
   → Found 159 cards with prices
 [database] Scraping hCS01: /sell/hocg/s/special/5
-  → Found 113 cards with prices
+  → Found 114 cards with prices
 [database] Scraping hPC01: /sell/hocg/s/special/7
   → Found 126 cards with prices
+[database] Scraping hPR: /sell/hocg/s/special/1
+  → Found 88 cards with prices
 [database] Scraping hSD2025summer: /sell/hocg/s/special/8
   → Found 128 cards with prices
 
-  Total cards from yuyu-tei: 1748
+  Total cards from yuyu-tei: 1783
 
 ── Step 2: Download images ──
 
 [database] Downloading images...
-  [images] Downloaded: 0, Skipped: 1056, Errors: 0
+  [images] Downloaded: 0, Skipped: 1170, Errors: 0
 
 ── Step 3: Merge official data ──
 
@@ -87,16 +89,16 @@
 ═══════════════════════════════════════
   ✅ Build complete!
   Total cards: 2105
-  Cards with prices: 1056
+  Cards with prices: 1170
   Images downloaded: 0
-  Duration: 303.3s
+  Duration: 322.0s
   Output: /Users/dicoge/hunterCard/data/database.json
 ═══════════════════════════════════════
 
 Build result: {
   "totalCards": 2105,
-  "yuyuCount": 1056,
+  "yuyuCount": 1170,
   "officialCount": 2105,
   "imagesDownloaded": 0,
-  "duration": 303.3
+  "duration": 322
 }

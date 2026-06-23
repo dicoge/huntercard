@@ -330,7 +330,7 @@ export default function ScanScreen() {
         // ── Step 4: API 有回錯誤 → 顯示給使用者 ──
         if (apiResult && !apiResult.success) {
           const errMsg = apiResult.error || '無法辨識';
-          setScanError(`⚠️ Gemini: ${errMsg}`);
+          setScanError(`⚠️ 辨識失敗: ${errMsg}`);
           if (apiResult.raw) setRecognizedText(apiResult.raw);
           // 留著 photo 讓使用者可以手動搜尋
           setIsProcessingOCR(false);

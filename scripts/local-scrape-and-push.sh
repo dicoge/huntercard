@@ -43,7 +43,7 @@ if git diff --stat -- 'data/database.json' 'data/images/' 'data/official/' 'data
   git add data/database.json data/images/ data/official/cardList_*.json data/series-names.json
   git -c user.name="hunterCard Scraper" -c user.email="bot@huntercard.app" \
     commit -m "chore: update database $(date +%Y-%m-%d)" >> "$LOG_FILE" 2>&1
-  git -c credential.helper="" push origin main >> "$LOG_FILE" 2>&1
+  git push origin main >> "$LOG_FILE" 2>&1
   echo "[$(date)] ✅ Pushed to GitHub" >> "$LOG_FILE"
 
   # 4. Trigger Vercel deploy hook
