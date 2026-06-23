@@ -12,6 +12,5 @@
       "path": "/api/cron/update-db",
       "schedule": "0 2 * * *"
     }
-  ],
-  "_force": "-1114683638120905599"
+  ]
 }
