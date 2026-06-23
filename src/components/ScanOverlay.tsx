@@ -128,7 +128,11 @@ export default function ScanOverlay({
             <View style={[styles.corner, styles.bottomRight]} />
             {isScanning && (
               <View style={styles.scanningIndicator}>
-                <Text style={styles.scanningText}>識別中...</Text>
+                <Animated.Text
+                  style={[styles.scanningText, { transform: [{ scale: pulseAnim }] }]}
+                >
+                  識別中⋯
+                </Animated.Text>
               </View>
             )}
           </Animated.View>
