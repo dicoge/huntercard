@@ -12,8 +12,6 @@
  * Body: { image: "data:image/jpeg;base64,..." }
  */
 
-export const config = { runtime: 'nodejs' };
-
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL = 'google/gemini-3.1-flash-image';
 const DATABASE_URL = 'https://holocard-hunter.vercel.app/data/database.json';
@@ -129,7 +127,7 @@ Also find these features printed on the card:
 - BLOOM LEVEL (also called 階級) — text like Spot, Debut, Center, Collaboration — near card type
 - CARD TITLE (e.g. 総帥のお仕事, 風の赴くままに) — flavor text on card
 
-IMPORTANT: If you are NOT 100% sure of the card number, say NONE. But DO try your best.
+IMPORTANT: If you are NOT 100% sure of a field, write NONE for that field.
 
 Reply in this EXACT format (one per line):
 CHARACTER: [name or NONE]
@@ -169,7 +167,6 @@ TITLE: [title or NONE]`;
     const orData = await orRes.json();
     const reply = (orData?.choices?.[0]?.message?.content || '').trim();
     if (!reply) {
-      // Debug: include partial response even when empty
       return json({ success: false, error: '服務回傳空回應', debug: { status: orRes.status, model: MODEL } }, 502);
     }
 
@@ -228,11 +225,9 @@ TITLE: [title or NONE]`;
         }
         const nameNorm = name.replace(/[^a-z0-9ぁ-んァ-ヶー一-龠]/g, '');
         if (charLower && nameNorm.includes(charLower)) score += 3;
-        // Add feature-based bonus
         score += featureBonus(entry);
         if (score > bestScore) { bestScore = score; bestEntry = entry; }
         else if (score === bestScore && bestEntry) {
-          // Tiebreaker: prefer entry where series matches cardNumber prefix (original printing)
           const prefix = (entry.cardNumber || '').split('-')[0].toLowerCase();
           const bestPrefix = (bestEntry.cardNumber || '').split('-')[0].toLowerCase();
           const entryIsOriginal = entry.series?.toLowerCase() === prefix;
@@ -245,7 +240,6 @@ TITLE: [title or NONE]`;
       }
 
       if (bestEntry && bestScore >= 1) {
-        // If Gemini also returned a card number, see if there's a card matching BOTH name and number
         if (cardNumberRaw !== 'NONE' && cardNumberRaw !== '') {
           const exactNum = normalizeCardNumber(cardNumberRaw);
           if (exactNum) {
@@ -253,7 +247,6 @@ TITLE: [title or NONE]`;
               (e: any) => e.cardNumber?.toLowerCase() === exactNum
             );
             if (exactMatch) {
-              // Verify: the exact match should also match the name (same character)
               const exactName = (exactMatch.name || '').toLowerCase();
               const exactNameNorm = exactName.replace(/[^a-z0-9ぁ-んァ-ヶー一-龠]/g, '');
               if (charLower && exactNameNorm.includes(charLower)) {
@@ -263,7 +256,6 @@ TITLE: [title or NONE]`;
           }
         }
 
-        // Find all entries with this card number, prefer the one where series matches cardNumber prefix
         const allV = Object.values(cards).filter((e: any) => e.cardNumber === bestEntry.cardNumber) as any[];
         const best = allV.find((e: any) => {
           const prefix = (e.cardNumber || '').split('-')[0].toLowerCase();
@@ -284,7 +276,6 @@ TITLE: [title or NONE]`;
       }
     }
 
-// Both strategies failed
     return json({ success: false, error: '無法辨識此卡牌', raw: reply }, 404);
   } catch (e: any) {
     return json({ success: false, error: `Error: ${e.message}` }, 500);
