@@ -161,7 +161,10 @@ CARD_NUMBER: [exact card number if 100% certain, otherwise NONE]`;
 
     const orData = await orRes.json();
     const reply = (orData?.choices?.[0]?.message?.content || '').trim();
-    if (!reply) return json({ success: false, error: 'Gemini returned empty response' }, 502);
+    if (!reply) {
+      // Debug: include partial response even when empty
+      return json({ success: false, error: 'Gemini returned empty response', debug: { status: orRes.status, model: MODEL } }, 502);
+    }
 
     // Parse Gemini's response
     const cnMatch = reply.match(/CARD_NUMBER:\s*(.+)/i);
