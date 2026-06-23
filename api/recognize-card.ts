@@ -203,6 +203,24 @@ CARD_NUMBER: [exact card number if 100% certain, otherwise NONE]`;
       }
 
       if (bestEntry && bestScore >= 1) {
+        // If Gemini also returned a card number, see if there's a card matching BOTH name and number
+        if (cardNumberRaw !== 'NONE' && cardNumberRaw !== '') {
+          const exactNum = normalizeCardNumber(cardNumberRaw);
+          if (exactNum) {
+            const exactMatch = Object.values(cards).find(
+              (e: any) => e.cardNumber?.toLowerCase() === exactNum
+            );
+            if (exactMatch) {
+              // Verify: the exact match should also match the name (same character)
+              const exactName = (exactMatch.name || '').toLowerCase();
+              const exactNameNorm = exactName.replace(/[^a-z0-9ぁ-んァ-ヶー一-龠]/g, '');
+              if (charLower && exactNameNorm.includes(charLower)) {
+                return json({ success: true, card: fmt(exactMatch), matchMethod: 'name+number' });
+              }
+            }
+          }
+        }
+
         // Find all entries with this card number, prefer the one where series matches cardNumber prefix
         const allV = Object.values(cards).filter((e: any) => e.cardNumber === bestEntry.cardNumber) as any[];
         const best = allV.find((e: any) => {
