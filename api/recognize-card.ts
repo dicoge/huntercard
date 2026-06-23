@@ -12,7 +12,10 @@
  * Body: { image: "data:image/jpeg;base64,..." }
  */
 
-export const config = { runtime: 'nodejs' };
+export const config = { 
+  runtime: 'nodejs',
+  maxDuration: 60,
+};
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL = 'google/gemini-3.1-flash-image';
