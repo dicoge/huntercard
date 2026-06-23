@@ -16,7 +16,7 @@ export const config = { runtime: 'nodejs' };
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL = 'google/gemini-3.1-flash-image';
-const DATABASE_URL = 'https://huntercard-alpha.vercel.app/data/database.json';
+const DATABASE_URL = 'https://holocard-hunter.vercel.app/data/database.json';
 
 let dbFetchPromise: Promise<Record<string, any> | null> | null = null;
 
@@ -226,7 +226,7 @@ CARD_NUMBER: [exact card number if 100% certain, otherwise NONE]`;
               const exactName = (exactMatch.name || '').toLowerCase();
               const exactNameNorm = exactName.replace(/[^a-z0-9ぁ-んァ-ヶー一-龠]/g, '');
               if (charLower && exactNameNorm.includes(charLower)) {
-                return json({ success: true, card: fmt(exactMatch), matchMethod: 'name+number' });
+                return json({ success: true, card: fmt(exactMatch), matchMethod: 'name+number', raw: reply });
               }
             }
           }
@@ -238,7 +238,7 @@ CARD_NUMBER: [exact card number if 100% certain, otherwise NONE]`;
           const prefix = (e.cardNumber || '').split('-')[0].toLowerCase();
           return e.series?.toLowerCase() === prefix;
         }) || allV.find((e: any) => e.series?.toLowerCase() !== 'hpr') || bestEntry;
-        return json({ success: true, card: fmt(best), matchMethod: 'name' });
+        return json({ success: true, card: fmt(best), matchMethod: 'name', raw: reply });
       }
     }
 
@@ -249,7 +249,7 @@ CARD_NUMBER: [exact card number if 100% certain, otherwise NONE]`;
         const key = Object.keys(cards).find(
           k => (cards[k] as any).cardNumber?.toLowerCase() === cardNumber
         );
-        if (key) return json({ success: true, card: fmt(cards[key]) });
+        if (key) return json({ success: true, card: fmt(cards[key]), matchMethod: 'number', raw: reply });
       }
     }
 
