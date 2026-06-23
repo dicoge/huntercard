@@ -84,10 +84,15 @@ function json(d: any, status = 200): Response {
 }
 
 function fmt(entry: any) {
+  // For SEC/highest-rarity cards, use the top price from prices array
+  let price = entry.sellPrice;
+  if (entry.rarity === 'SEC' && entry.prices?.length > 0) {
+    price = Math.max(...entry.prices.map((p: any) => p.sellPrice || 0));
+  }
   return {
     cardNumber: entry.cardNumber,
     name: entry.name,
-    sellPrice: entry.sellPrice,
+    sellPrice: price,
     series: entry.series,
     rarity: entry.rarity,
     imageUrl: entry.officialImage || '',
