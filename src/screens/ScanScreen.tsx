@@ -19,7 +19,7 @@ import WebCamera, { WebCameraHandle } from '../components/WebCamera';
 import ScanSessionPanel from '../components/ScanSessionPanel';
 import { useScanSessionStore } from '../stores/scanSessionStore';
 import * as ImagePicker from 'expo-image-picker';
-import { COLORS } from '../constants';
+import { COLORS, convertPrice } from '../constants';
 import { recognizeCard, recognizeCardFromOcr, recognizeCardFromImage, searchCards, CardInfo } from '../services/cardRecognition';
 import { recognizeTextWeb } from '../services/webOcr';
 import ScanOverlay from '../components/ScanOverlay';
@@ -79,10 +79,13 @@ export default function ScanScreen() {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const borderAnim = useRef(new Animated.Value(0)).current;
 
-  // Auto-scan state & refs
+	// Auto-scan state & refs
   const [autoScanEnabled, setAutoScanEnabled] = useState<boolean>(true);
   const autoScanRef = useRef<number | null>(null);
   const lastScanTimeRef = useRef<number>(0);
+
+  // Currency preference
+  const [preferredCurrency, setPreferredCurrency] = useState<string>('TWD');
 
   // Scan result card (floating overlay)
   const [resultCard, setResultCard] = useState<{
@@ -818,6 +821,7 @@ export default function ScanScreen() {
         card={resultCard.card!}
         visible={resultCard.visible}
         confidence={resultCard.confidence}
+        preferredCurrency={preferredCurrency}
         onDismiss={() => { setResultCard({ visible: false, card: null, confidence: 0 }); }}
       />
       
@@ -832,7 +836,12 @@ export default function ScanScreen() {
                   {lastScannedCard.name}
                 </Text>
                 <Text style={resultStyles.toastPrice}>
-                  ¥{lastScannedCard.sellPrice?.toLocaleString() || '—'}
+                  {(() => {
+                    if (lastScannedCard.sellPrice == null) return '—';
+                    if (preferredCurrency === 'JPY') return `¥${lastScannedCard.sellPrice.toLocaleString()}`;
+                    const { value, symbol } = convertPrice(lastScannedCard.sellPrice, preferredCurrency);
+                    return `${symbol}${value?.toLocaleString() || '—'}`;
+                  })()}
                 </Text>
               </View>
             </View>
@@ -958,10 +967,14 @@ export default function ScanScreen() {
       </Modal>
       
       {/* 掃描估值面板 */}
-      <ScanSessionPanel onContinueScanning={() => {
-        setLastScannedCard(null);
-        setScanComplete(false);
-      }} />
+      <ScanSessionPanel
+        preferredCurrency={preferredCurrency}
+        onCurrencyChange={setPreferredCurrency}
+        onContinueScanning={() => {
+          setLastScannedCard(null);
+          setScanComplete(false);
+        }}
+      />
     </View>
   );
 }

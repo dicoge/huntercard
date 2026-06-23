@@ -26,6 +26,33 @@ export const CURRENCIES = [
   { code: 'USD', symbol: '$', name: '美元' },
 ];
 
+// Exchange rates (from JPY to target currency)
+// 1 JPY = 0.22 TWD, 1 JPY = 0.0067 USD
+export const EXCHANGE_RATES: Record<string, number> = {
+  TWD: 0.22,
+  USD: 0.0067,
+  JPY: 1,
+};
+
+/**
+ * Convert a JPY price to the target currency.
+ * Returns the converted value and currency symbol.
+ */
+export function convertPrice(
+  jpyPrice: number | null,
+  targetCurrency: string,
+  rates: Record<string, number> = EXCHANGE_RATES,
+): { value: number | null; symbol: string } {
+  if (jpyPrice == null) {
+    const found = CURRENCIES.find(c => c.code === targetCurrency);
+    return { value: null, symbol: found?.symbol || '¥' };
+  }
+  const rate = rates[targetCurrency] ?? 1;
+  const converted = Math.round(jpyPrice * rate);
+  const symbol = CURRENCIES.find(c => c.code === targetCurrency)?.symbol || '¥';
+  return { value: converted, symbol };
+}
+
 // 價格來源
 export const PRICE_SOURCES = [
   {

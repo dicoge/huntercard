@@ -28,6 +28,7 @@ export interface CardVariant {
 export interface CardInfo {
   id: string;
   name: string;
+  nameZh?: string;       // Chinese name (if available)
   cardNumber: string;
   type: string;
   rarity: string;
@@ -110,6 +111,7 @@ export async function loadAllCards(): Promise<CardInfo[]> {
       const result: CardInfo[] = Object.values(cards).map(entry => ({
         id: (entry as any).cardNumber || entry.id || '',
         name: entry.name || '',
+        nameZh: (entry as any).nameZh || '',
         cardNumber: (entry as any).cardNumber || entry.id || '',
         type: entry.type || '',
         rarity: entry.rarity || '',

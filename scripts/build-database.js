@@ -15,6 +15,7 @@ import fs from 'fs';
 import path from 'path';
 import https from 'https';
 import { fileURLToPath } from 'url';
+import { addZhNames } from './add-zh-names.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -859,6 +860,9 @@ async function buildDatabase() {
 
   // Write database.json
   fs.writeFileSync(OUTPUT_PATH, JSON.stringify(database, null, 2, 'utf-8'));
+
+  // Add Chinese names to cards
+  addZhNames(OUTPUT_PATH);
 
   const duration = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(`\n═══════════════════════════════════════`);

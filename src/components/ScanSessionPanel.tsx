@@ -12,22 +12,32 @@ import {
   Platform,
 } from 'react-native';
 import { useScanSessionStore, SessionCard } from '../stores/scanSessionStore';
-import { COLORS } from '../constants';
+import { COLORS, convertPrice, CURRENCIES } from '../constants';
 
 interface ScanSessionPanelProps {
   onContinueScanning?: () => void;
   onViewCard?: (card: SessionCard) => void;
+  preferredCurrency?: string;
+  onCurrencyChange?: (currency: string) => void;
 }
 
-export default function ScanSessionPanel({ onContinueScanning, onViewCard }: ScanSessionPanelProps) {
+export default function ScanSessionPanel({
+  onContinueScanning,
+  onViewCard,
+  preferredCurrency = 'TWD',
+  onCurrencyChange,
+}: ScanSessionPanelProps) {
   const [expanded, setExpanded] = useState(false);
   const { cards, totalValue, cardCount, removeCard, clearSession } = useScanSessionStore();
 
   if (cardCount === 0 && !expanded) return null;
 
   const formatPrice = (price: number | null) => {
-    if (!price || price === 0) return '—';
-    return `¥${price.toLocaleString()}`;
+    if (price == null || price === 0) return '—';
+    if (preferredCurrency === 'JPY') return `¥${price.toLocaleString()}`;
+    const { value, symbol } = convertPrice(price, preferredCurrency);
+    if (value == null) return '—';
+    return `${symbol}${value.toLocaleString()}`;
   };
 
   return (
@@ -50,7 +60,7 @@ export default function ScanSessionPanel({ onContinueScanning, onViewCard }: Sca
           {cardCount > 0 && (
             <>
               <Text style={styles.totalPrice}>
-                {totalValue > 0 ? `¥${totalValue.toLocaleString()}` : '——'}
+                {totalValue > 0 ? formatPrice(totalValue) : '——'}
               </Text>
               <Text style={styles.expandArrow}>{expanded ? '▼' : '▲'}</Text>
             </>
@@ -61,6 +71,28 @@ export default function ScanSessionPanel({ onContinueScanning, onViewCard }: Sca
       {/* Expanded List */}
       {expanded && (
         <View style={styles.expandedBody}>
+          {/* Currency selector row */}
+          <View style={styles.currencyRow}>
+            {CURRENCIES.map((c) => (
+              <TouchableOpacity
+                key={c.code}
+                style={[
+                  styles.currencyBtn,
+                  preferredCurrency === c.code && styles.currencyBtnActive,
+                ]}
+                onPress={() => onCurrencyChange?.(c.code)}
+              >
+                <Text
+                  style={[
+                    styles.currencyBtnText,
+                    preferredCurrency === c.code && styles.currencyBtnTextActive,
+                  ]}
+                >
+                  {c.symbol} {c.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
           {cardCount === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyText}>尚未掃描任何卡牌</Text>
@@ -314,5 +346,31 @@ const styles = StyleSheet.create({
     color: '#FF5252',
     fontSize: 13,
     fontWeight: '600',
+  },
+  currencyRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+  },
+  currencyBtn: {
+    flex: 1,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+  },
+  currencyBtnActive: {
+    backgroundColor: COLORS.primary,
+  },
+  currencyBtnText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  currencyBtnTextActive: {
+    color: '#fff',
   },
 });

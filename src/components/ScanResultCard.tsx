@@ -17,7 +17,7 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
-import { COLORS } from '../constants';
+import { COLORS, convertPrice, CURRENCIES } from '../constants';
 import { CardInfo } from '../services/cardRecognition';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -33,6 +33,8 @@ export interface ScanResultCardProps {
   onDismiss: () => void;
   /** Auto-dismiss duration in ms (default: 5000) */
   autoDismissMs?: number;
+  /** Preferred currency for price display (default: 'TWD') */
+  preferredCurrency?: string;
 }
 
 export default function ScanResultCard({
@@ -41,6 +43,7 @@ export default function ScanResultCard({
   confidence = 1,
   onDismiss,
   autoDismissMs = 5000,
+  preferredCurrency = 'TWD',
 }: ScanResultCardProps) {
   const slideAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -122,8 +125,13 @@ export default function ScanResultCard({
     return colors[rarity] || COLORS.textSecondary;
   };
 
-  const formatPrice = (price: number | null): string =>
-    price != null ? `¥${price.toLocaleString()}` : '暫無交易';
+  const formatPrice = (price: number | null): string => {
+    if (price == null) return '暫無交易';
+    if (preferredCurrency === 'JPY') return `¥${price.toLocaleString()}`;
+    const { value, symbol } = convertPrice(price, preferredCurrency);
+    if (value == null) return '暫無交易';
+    return `${symbol}${value.toLocaleString()} (¥${price.toLocaleString()})`;
+  };
 
   const confidencePercent = Math.round(confidence * 100);
   const confidenceColor = confidencePercent >= 80
@@ -175,6 +183,9 @@ export default function ScanResultCard({
           <Text style={styles.cardName} numberOfLines={2}>
             {card.name}
           </Text>
+          {card.nameZh ? (
+            <Text style={styles.cardNameZh}>{card.nameZh}</Text>
+          ) : null}
           <Text style={styles.cardId}>
             #{card.cardNumber || card.id}
           </Text>
@@ -321,6 +332,11 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 12,
     marginTop: 2,
+  },
+  cardNameZh: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 13,
+    marginTop: 1,
   },
   pricesSection: {
     marginBottom: 4,
