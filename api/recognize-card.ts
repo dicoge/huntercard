@@ -117,22 +117,27 @@ export default async function handler(req: Request): Promise<Response> {
     if (!image || typeof image !== 'string') return json({ success: false, error: 'Invalid image' }, 400);
     const imageData = image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`;
 
-    // ── Gemini call: extract ALL card info ──
+    // ── Gemini call: extract ALL card features ──
     const geminiPrompt = `You are analyzing a Hololive TCG card. Extract info from the card itself (ignore phone UI overlay).
 
-First try to find:
-- CHARACTER NAME (e.g. ときのそら, ラプラス・ダークネス, 紫咲シオン)
-- CARD TITLE / SET NAME (e.g. 総帥のお仕事, 秘密結社holoX)
-- Any other text printed on the card
+Look CAREFULLY for the CARD NUMBER — printed in VERY SMALL text at the BOTTOM EDGE or BOTTOM RIGHT corner. Format is like hBP01-001, hSD13-014, hBP08-024. This is the most important field.
 
-Then try to find the CARD NUMBER (tiny text like hBP01-001, hSD02-003 at bottom edge).
-BUT if you are not 100% sure of the card number, say NONE for the number.
-It's better to say NONE than guess the wrong number.
+Also find these features printed on the card:
+- CHARACTER NAME (e.g. ときのそら, セシリア・イマーグリーン) — usually at top
+- HP value (e.g. 160, 170) — in top right corner
+- RARITY — letter like C, U, R, S, SR, SEC, OUR, P — often near card number
+- BLOOM LEVEL (also called 階級) — text like Spot, Debut, Center, Collaboration — near card type
+- CARD TITLE (e.g. 総帥のお仕事, 風の赴くままに) — flavor text on card
 
-Reply in this format:
-CHARACTER: [character name from the card, or NONE]
-TITLE: [card title/set name, or NONE]
-CARD_NUMBER: [exact card number if 100% certain, otherwise NONE]`;
+IMPORTANT: If you are NOT 100% sure of the card number, say NONE. But DO try your best.
+
+Reply in this EXACT format (one per line):
+CHARACTER: [name or NONE]
+HP: [number only or NONE]
+RARITY: [rarity letter or NONE]
+BLOOM_LEVEL: [level text or NONE]
+CARD_NUMBER: [exact card number or NONE]
+TITLE: [title or NONE]`;
 
     const orRes = await fetch(OPENROUTER_URL, {
       method: 'POST',
@@ -168,14 +173,20 @@ CARD_NUMBER: [exact card number if 100% certain, otherwise NONE]`;
       return json({ success: false, error: '服務回傳空回應', debug: { status: orRes.status, model: MODEL } }, 502);
     }
 
-    // Parse Gemini's response
+    // Parse Gemini's response — extract ALL fields
     const cnMatch = reply.match(/CARD_NUMBER:\s*(.+)/i);
     const charMatch = reply.match(/CHARACTER:\s*(.+)/i);
     const titleMatch = reply.match(/TITLE:\s*(.+)/i);
+    const hpMatch = reply.match(/HP:\s*(\d+)/i);
+    const rarityMatch = reply.match(/RARITY:\s*(\S+)/i);
+    const bloomMatch = reply.match(/BLOOM_LEVEL:\s*(.+)/i);
 
     const cardNumberRaw = cnMatch ? cnMatch[1].trim() : 'NONE';
     const characterName = charMatch ? charMatch[1].trim() : '';
     const cardTitle = titleMatch ? titleMatch[1].trim() : '';
+    const geminiHp = hpMatch ? hpMatch[1].trim() : null;
+    const geminiRarity = rarityMatch ? rarityMatch[1].trim().toUpperCase() : null;
+    const geminiBloom = bloomMatch ? bloomMatch[1].trim().toLowerCase() : null;
 
     const cards = await getDatabase();
 
@@ -191,6 +202,24 @@ CARD_NUMBER: [exact card number if 100% certain, otherwise NONE]`;
       let bestScore = 0;
       const charLower = characterName.toLowerCase().replace(/[^a-z0-9ぁ-んァ-ヶー一-龠]/g, '');
 
+      // Helper: tiebreaker bonus using Gemini-extracted features
+      const featureBonus = (entry: any): number => {
+        let bonus = 0;
+        if (geminiHp) {
+          const entryHp = (entry.hp || '').toString();
+          if (entryHp === geminiHp) bonus += 5;
+        }
+        if (geminiRarity) {
+          const entryRarity = (entry.rarity || '').toUpperCase();
+          if (entryRarity === geminiRarity) bonus += 3;
+        }
+        if (geminiBloom) {
+          const entryBloom = (entry.bloomLevel || entry.type || '').toLowerCase();
+          if (entryBloom.includes(geminiBloom) || geminiBloom.includes(entryBloom)) bonus += 2;
+        }
+        return bonus;
+      };
+
       for (const entry of Object.values(cards) as any[]) {
         const name: string = (entry.name || '').toLowerCase();
         let score = 0;
@@ -199,6 +228,8 @@ CARD_NUMBER: [exact card number if 100% certain, otherwise NONE]`;
         }
         const nameNorm = name.replace(/[^a-z0-9ぁ-んァ-ヶー一-龠]/g, '');
         if (charLower && nameNorm.includes(charLower)) score += 3;
+        // Add feature-based bonus
+        score += featureBonus(entry);
         if (score > bestScore) { bestScore = score; bestEntry = entry; }
         else if (score === bestScore && bestEntry) {
           // Tiebreaker: prefer entry where series matches cardNumber prefix (original printing)
