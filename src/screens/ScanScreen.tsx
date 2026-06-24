@@ -57,6 +57,8 @@ export default function ScanScreen() {
   const [isProcessingOCR, setIsProcessingOCR] = useState<boolean>(false);
   const [flash, setFlash] = useState<boolean>(false);
   const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [scanningStatus, setScanningStatus] = useState<string>('');
+  const [scanProgress, setScanProgress] = useState<number>(0); // 0=none, 1=capturing, 2=processing, 3=ai, 4=done
   const [scanComplete, setScanComplete] = useState<boolean>(false);
   
   // 辨識結果狀態
@@ -254,6 +256,8 @@ export default function ScanScreen() {
     try {
       setIsProcessingOCR(true);
       setIsScanning(true);
+      setScanningStatus('📷 拍攝中…');
+      setScanProgress(1);
       setScanError(null);
       setCapturedPhotoUri(null);
 
@@ -278,6 +282,8 @@ export default function ScanScreen() {
 
       if (isWeb) {
         // ── Step 1: 從 video 直接 resize 到 1024px（跳過雙層 canvas）──
+        setScanningStatus('📤 處理影像中…');
+        setScanProgress(2);
         let imgData: string;
         const video = document.querySelector('video');
         if (video && video.videoWidth > 0) {
@@ -297,6 +303,8 @@ export default function ScanScreen() {
         }
 
         // ── Step 2: 叫 API 辨識（15 秒 timeout）──
+        setScanningStatus('🤖 AI 辨識中…');
+        setScanProgress(3);
         let apiResult: any = null;
         let apiNetworkError = false;
         try {
@@ -319,6 +327,8 @@ export default function ScanScreen() {
 
         // ── Step 3: API 成功 → 顯示結果 ──
         if (apiResult?.success && apiResult?.card) {
+          setScanningStatus('✅ 辨識完成');
+          setScanProgress(4);
           const card = apiResult.card;
           const cardInfo: CardInfo = {
             id: card.cardNumber, name: card.name || '', cardNumber: card.cardNumber,
@@ -338,6 +348,8 @@ export default function ScanScreen() {
         // ── Step 4: API 有回錯誤 → 顯示給使用者 ──
         if (apiResult && !apiResult.success) {
           const errMsg = apiResult.error || '無法辨識';
+          setScanningStatus('');
+          setScanProgress(0);
           setScanError(`⚠️ 辨識失敗: ${errMsg}`);
           if (apiResult.raw) setRecognizedText(apiResult.raw);
           // 留著 photo 讓使用者可以手動搜尋
@@ -388,6 +400,8 @@ export default function ScanScreen() {
         }
       } else {
         // Native: 用 expo-ocr-kit 做全圖 OCR
+        setScanningStatus('🔍 OCR 辨識中…');
+        setScanProgress(3);
         const recognizedText = await performOcr(photo.uri);
         const trimmedText = recognizedText.trim();
         setRecognizedText(trimmedText);
@@ -400,6 +414,8 @@ export default function ScanScreen() {
           const result = await recognizeCardFromOcr(trimmedText);
 
           if (result.success && result.card) {
+            setScanningStatus('✅ 辨識完成');
+            setScanProgress(4);
             addCard(result.card);
             setLastScannedCard(result.card);
             // Show floating result card
@@ -432,6 +448,8 @@ export default function ScanScreen() {
       console.error('OCR Error:', error);
       setIsProcessingOCR(false);
       setIsScanning(false);
+      setScanningStatus('');
+      setScanProgress(0);
 
       setScanError('無法完成掃描，請重試或使用手動輸入');
     }
@@ -887,6 +905,40 @@ export default function ScanScreen() {
           </View>
         </View>
       )}
+
+      {/* 掃描進度面板 */}
+      {isScanning && scanningStatus ? (
+        <View style={progressStyles.container}>
+          {/* 進度條 */}
+          <View style={progressStyles.barTrack}>
+            <View style={[progressStyles.barFill, { width: `${(scanProgress / 4) * 100}%` }]} />
+          </View>
+          {/* 步驟清單 */}
+          <View style={progressStyles.stepsRow}>
+            {['📷 拍攝', '📤 處理', '🤖 辨識', '✅ 完成'].map((label, i) => {
+              const step = i + 1;
+              const isActive = scanProgress === step;
+              const isDone = scanProgress > step;
+              return (
+                <View key={i} style={progressStyles.stepItem}>
+                  <View style={[
+                    progressStyles.stepDot,
+                    isActive && progressStyles.stepDotActive,
+                    isDone && progressStyles.stepDotDone,
+                  ]}>
+                    {isDone ? <Text style={progressStyles.stepCheck}>✓</Text> : null}
+                  </View>
+                  <Text style={[
+                    progressStyles.stepLabel,
+                    (isActive || isDone) && progressStyles.stepLabelActive,
+                  ]} numberOfLines={1}>{label}</Text>
+                </View>
+              );
+            })}
+          </View>
+          <Text style={progressStyles.statusText}>{scanningStatus}</Text>
+        </View>
+      ) : null}
 
       {/* 掃描失敗提示（OCR 回傳空） */}
       {scanError && (
@@ -1483,5 +1535,79 @@ const modalStyles = StyleSheet.create({
   cancelText: {
     color: COLORS.textSecondary,
     fontSize: 16,
+  },
+});
+
+// 掃描進度條樣式
+const progressStyles = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    bottom: 110,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    borderRadius: 16,
+    padding: 16,
+    paddingBottom: 12,
+    alignItems: 'center',
+    zIndex: 20,
+  },
+  barTrack: {
+    width: '100%',
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 2,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  barFill: {
+    height: '100%',
+    backgroundColor: '#007AFF',
+    borderRadius: 2,
+  },
+  stepsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 8,
+  },
+  stepItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  stepDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  stepDotActive: {
+    backgroundColor: '#007AFF',
+    transform: [{ scale: 1.15 }],
+  },
+  stepDotDone: {
+    backgroundColor: '#34C759',
+  },
+  stepCheck: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  stepLabel: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 11,
+    textAlign: 'center',
+  },
+  stepLabelActive: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  statusText: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 12,
+    marginTop: 4,
   },
 });
