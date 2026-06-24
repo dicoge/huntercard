@@ -25,6 +25,7 @@ import { recognizeTextWeb } from '../services/webOcr';
 import ScanOverlay from '../components/ScanOverlay';
 import ScanResultCard from '../components/ScanResultCard';
 import { analyzeFrameWithStability, resetAutoScan } from '../services/autoScanService';
+import { useSettingsStore } from '../store/settingsStore';
 
 // iOS Safari: getUserMedia 需直接從使用者手勢觸發
 // 所以 web 版跳過 expo-camera 的 useCameraPermissions，改用 WebCamera 直接管
@@ -84,8 +85,8 @@ export default function ScanScreen() {
   const autoScanRef = useRef<number | null>(null);
   const lastScanTimeRef = useRef<number>(0);
 
-  // Currency preference
-  const [preferredCurrency, setPreferredCurrency] = useState<string>('TWD');
+  // Currency preference (from global settings)
+  const { preferredCurrency, preferredLanguage } = useSettingsStore();
 
   // Scan result card (floating overlay)
   const [resultCard, setResultCard] = useState<{
@@ -822,6 +823,7 @@ export default function ScanScreen() {
         visible={resultCard.visible}
         confidence={resultCard.confidence}
         preferredCurrency={preferredCurrency}
+        preferredLanguage={preferredLanguage}
         onDismiss={() => { setResultCard({ visible: false, card: null, confidence: 0 }); }}
       />
       
@@ -969,7 +971,6 @@ export default function ScanScreen() {
       {/* 掃描估值面板 */}
       <ScanSessionPanel
         preferredCurrency={preferredCurrency}
-        onCurrencyChange={setPreferredCurrency}
         onContinueScanning={() => {
           setLastScannedCard(null);
           setScanComplete(false);

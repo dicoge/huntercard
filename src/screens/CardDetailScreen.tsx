@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS } from '../constants';
+import { COLORS, convertPrice } from '../constants';
 import { openUrl } from '../utils/openUrl';
+import { useSettingsStore } from '../store/settingsStore';
 
 const { width } = Dimensions.get('window');
 
@@ -53,6 +54,7 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const { card } = route.params || {};
   const [imageError, setImageError] = useState(false);
   const insets = useSafeAreaInsets();
+  const { preferredCurrency, preferredLanguage } = useSettingsStore();
 
   if (!card) {
     return (
@@ -65,8 +67,10 @@ export default function CardDetailScreen({ route, navigation }: any) {
   const id = card.cardNumber || card.id || '';
   const allKW = card.searchKeywords || [];
   const nameJP = allKW[0] || card.name || '';
-  const nameTW = allKW[1] || '';
+  const nameZH = card.nameZh || allKW[1] || '';
   const nameEN = allKW[2] || '';
+  const displayName = preferredLanguage === 'zh' && nameZH ? nameZH : nameJP;
+  const displayNameSub = preferredLanguage === 'zh' && nameZH ? nameJP : (preferredLanguage === 'zh' ? '' : nameZH);
   const rarityKey = card.rarity || (card.grade === 'buzz' ? 'SR' : card.grade === 'debut' ? 'C' : card.grade === '1st' ? 'U' : 'R');
   const typeLabel = typeLabels[card.type] || card.type || '-';
 
@@ -117,8 +121,8 @@ export default function CardDetailScreen({ route, navigation }: any) {
           /* Fallback when image fails */
           <TouchableOpacity style={styles.fallbackArea} activeOpacity={0.8} onPress={() => openUrl(officialUrl)}>
             <Text style={styles.fallbackId}>{id}</Text>
-            <Text style={styles.fallbackName}>{nameJP}</Text>
-            {nameTW && <Text style={styles.fallbackTw}>{nameTW}</Text>}
+            <Text style={styles.fallbackName}>{displayName}</Text>
+            {displayNameSub && <Text style={styles.fallbackTw}>{displayNameSub}</Text>}
             <Text style={styles.fallbackHint}>點擊查看官方卡面 →</Text>
           </TouchableOpacity>
         )}
@@ -134,19 +138,28 @@ export default function CardDetailScreen({ route, navigation }: any) {
         </View>
         {hasActualPrice && hasMultipleVariants ? (
           <View style={styles.variantList}>
-            {[...priceVariants].sort((a, b) => (a.sellPrice || 0) - (b.sellPrice || 0)).filter((p: any) => p.sellPrice != null && p.sellPrice > 0).map((v: any, i: number) => (
+            {[...priceVariants].sort((a, b) => (a.sellPrice || 0) - (b.sellPrice || 0)).filter((p: any) => p.sellPrice != null && p.sellPrice > 0).map((v: any, i: number) => {
+              const converted = convertPrice(v.sellPrice, preferredCurrency);
+              return (
               <View key={i} style={styles.variantRow}>
                 <Text style={styles.variantName} numberOfLines={1}>{v.rarity ? `[${v.rarity}] ` : ''}{v.name}</Text>
-                <Text style={styles.variantPrice}>¥{v.sellPrice.toLocaleString()}</Text>
+                <Text style={styles.variantPrice}>{converted.symbol}{converted.value?.toLocaleString()}</Text>
               </View>
-            ))}
+              );
+            })}
           </View>
         ) : hasActualPrice ? (
           <><View style={styles.priceRow}>
           <Text style={styles.priceValue}>¥{actualPrice.toLocaleString()}</Text>
         </View>
+        {(() => {
+          const converted = convertPrice(actualPrice, preferredCurrency);
+          return (
+            <Text style={styles.priceNote}>💰 約 {converted.symbol}{converted.value?.toLocaleString()}（{preferredCurrency}）</Text>
+          );
+        })()}
         {priceName ? (
-          <Text style={styles.priceNote}>💰 {priceName}</Text>
+          <Text style={styles.priceNote}>📋 {priceName}</Text>
         ) : null}</>
         ) : (
           <Text style={styles.noPriceText}>暫無資料</Text>
@@ -165,9 +178,9 @@ export default function CardDetailScreen({ route, navigation }: any) {
           </View>
         </View>
 
-        <Text style={styles.nameJP}>{nameJP}</Text>
-        {nameTW && <Text style={styles.nameTW}>{nameTW}</Text>}
-        {nameEN && nameEN !== nameJP && nameEN !== nameTW && <Text style={styles.nameEN}>{nameEN}</Text>}
+        <Text style={styles.nameJP}>{displayName}</Text>
+        {displayNameSub ? <Text style={styles.nameTW}>{displayNameSub}</Text> : null}
+        {nameEN && nameEN !== nameJP && nameEN !== nameZH && <Text style={styles.nameEN}>{nameEN}</Text>}
 
         {typeLabel && (
           <InfoRow label="類型" value={typeLabel} />
@@ -207,7 +220,7 @@ export default function CardDetailScreen({ route, navigation }: any) {
         <Text style={styles.sectionTitle}>搜尋關鍵字</Text>
         <View style={styles.tagWrap}>
           {nameJP && <Tag text={nameJP} />}
-          {nameTW && <Tag text={nameTW} />}
+          {nameZH && <Tag text={nameZH} />}
           {tags.map((t: string, i: number) => <Tag key={`t${i}`} text={t} />)}
         </View>
       </View>

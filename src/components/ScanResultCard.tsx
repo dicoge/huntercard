@@ -35,6 +35,8 @@ export interface ScanResultCardProps {
   autoDismissMs?: number;
   /** Preferred currency for price display (default: 'TWD') */
   preferredCurrency?: string;
+  /** Preferred language (default: 'zh') */
+  preferredLanguage?: string;
 }
 
 export default function ScanResultCard({
@@ -44,6 +46,7 @@ export default function ScanResultCard({
   onDismiss,
   autoDismissMs = 5000,
   preferredCurrency = 'TWD',
+  preferredLanguage = 'zh',
 }: ScanResultCardProps) {
   const slideAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -180,12 +183,19 @@ export default function ScanResultCard({
 
         {/* Card name + number */}
         <View style={styles.infoContainer}>
-          <Text style={styles.cardName} numberOfLines={2}>
-            {card.name}
-          </Text>
-          {card.nameZh ? (
-            <Text style={styles.cardNameZh}>{card.nameZh}</Text>
-          ) : null}
+          {preferredLanguage === 'zh' && card.nameZh ? (
+            <>
+              <Text style={styles.cardName} numberOfLines={2}>{card.nameZh}</Text>
+              <Text style={styles.cardNameZh}>{card.name}</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.cardName} numberOfLines={2}>{card.name}</Text>
+              {card.nameZh && preferredLanguage !== 'ja' ? (
+                <Text style={styles.cardNameZh}>{card.nameZh}</Text>
+              ) : null}
+            </>
+          )}
           <Text style={styles.cardId}>
             #{card.cardNumber || card.id}
           </Text>

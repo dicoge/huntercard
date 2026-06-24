@@ -13,22 +13,22 @@ import {
 } from 'react-native';
 import { useScanSessionStore, SessionCard } from '../stores/scanSessionStore';
 import { COLORS, convertPrice, CURRENCIES } from '../constants';
+import { useSettingsStore } from '../store/settingsStore';
 
 interface ScanSessionPanelProps {
   onContinueScanning?: () => void;
   onViewCard?: (card: SessionCard) => void;
   preferredCurrency?: string;
-  onCurrencyChange?: (currency: string) => void;
 }
 
 export default function ScanSessionPanel({
   onContinueScanning,
   onViewCard,
   preferredCurrency = 'TWD',
-  onCurrencyChange,
 }: ScanSessionPanelProps) {
   const [expanded, setExpanded] = useState(false);
   const { cards, totalValue, cardCount, removeCard, clearSession } = useScanSessionStore();
+  const { setCurrency } = useSettingsStore();
 
   if (cardCount === 0 && !expanded) return null;
 
@@ -80,7 +80,7 @@ export default function ScanSessionPanel({
                   styles.currencyBtn,
                   preferredCurrency === c.code && styles.currencyBtnActive,
                 ]}
-                onPress={() => onCurrencyChange?.(c.code)}
+                onPress={() => { setCurrency(c.code as 'TWD' | 'JPY' | 'USD'); }}
               >
                 <Text
                   style={[

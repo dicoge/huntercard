@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Linking, ActivityIndicator, Image } from 'react-native';
-import { COLORS } from '../constants';
+import { COLORS, convertPrice } from '../constants';
+import { useSettingsStore } from '../store/settingsStore';
 
 // ── Server-side search constants ──
 
@@ -60,6 +61,7 @@ interface CardRecord {
   sellPrice?: number | null; yuyuName?: string; yuyuImage?: string;
   prices?: { name: string; sellPrice: number | null; rarity: string }[];
   effects?: string[]; hp?: string; life?: string; arts?: string;
+  nameZh?: string;
 }
 
 interface CardResult {
@@ -70,6 +72,7 @@ interface CardResult {
   yuyuPrice?: number | null;
   prices?: { name: string; sellPrice: number | null; rarity: string }[];
   searchKeywords?: string[];
+  nameZh?: string;
 }
 
 interface DatabaseSchema {
@@ -226,6 +229,7 @@ function searchCards(database: DatabaseSchema, query: string, nameMap: Record<st
       arts: c.arts || '',
       searchKeywords: [c.name || '', '', ''],
       tags: [],
+      nameZh: c.nameZh || '',
       yuyuUrl: `https://yuyu-tei.jp/sell/hocg/s/search?search_word=${encodeURIComponent(cardNumber)}`,
       carousellUrl: '',
       officialUrl: `https://hololive-official-cardgame.com/cardlist/?keyword=${encodeURIComponent(cardNumber)}&view=image`,
@@ -321,6 +325,14 @@ function CardListItem({ card, onPress }: { card: CardResult; onPress: () => void
   const [imgErr, setImgErr] = React.useState(false);
   const id = card.cardNumber || card.id;
   const effects = getEffectPreview(card.searchKeywords);
+  const { preferredCurrency, preferredLanguage } = useSettingsStore();
+
+  const formatPrice = (price: number | null): string => {
+    if (price == null) return '—';
+    if (preferredCurrency === 'JPY') return `¥${price.toLocaleString()}`;
+    const { value, symbol } = convertPrice(price, preferredCurrency);
+    return `${symbol}${value?.toLocaleString() || '—'}`;
+  };
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
@@ -344,7 +356,12 @@ function CardListItem({ card, onPress }: { card: CardResult; onPress: () => void
           </View>
         </View>
 
-        <Text style={styles.cardName} numberOfLines={1}>{card.name}</Text>
+        <Text style={styles.cardName} numberOfLines={1}>
+          {preferredLanguage === 'zh' && card.nameZh ? card.nameZh : card.name}
+        </Text>
+        {preferredLanguage === 'zh' && card.nameZh ? (
+          <Text style={styles.cardNameZh} numberOfLines={1}>{card.name}</Text>
+        ) : null}
 
         {effects && <Text style={styles.cardEffect} numberOfLines={2}>{effects}</Text>}
 
@@ -355,7 +372,7 @@ function CardListItem({ card, onPress }: { card: CardResult; onPress: () => void
 
         {card.yuyuPrice != null && card.yuyuPrice > 0 ? (
           <View style={styles.priceRowList}>
-            <Text style={styles.priceBadgeList}>¥{card.yuyuPrice.toLocaleString()}</Text>
+            <Text style={styles.priceBadgeList}>{formatPrice(card.yuyuPrice)}</Text>
             {card.prices && card.prices.length > 1 && (
               <Text style={styles.variantBadge}>+{card.prices.length - 1}</Text>
             )}
@@ -393,6 +410,7 @@ const styles = StyleSheet.create({
   rarityBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, minWidth: 45, alignItems: 'center' },
   rarityText: { color: COLORS.text, fontSize: 11, fontWeight: '800' },
   cardName: { color: COLORS.text, fontSize: 17, fontWeight: '700', marginBottom: 3 },
+  cardNameZh: { color: COLORS.primary, fontSize: 13, marginBottom: 3 },
   cardEffect: { color: COLORS.textSecondary, fontSize: 12, lineHeight: 18, marginBottom: 4 },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8, alignItems: 'center' },
   seriesTag: { color: COLORS.textSecondary, fontSize: 11, backgroundColor: COLORS.surfaceLight, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },

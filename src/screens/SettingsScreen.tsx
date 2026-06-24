@@ -1,28 +1,79 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, APP_NAME, APP_VERSION } from '../constants';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { COLORS, APP_NAME, APP_VERSION, CURRENCIES } from '../constants';
+import { useSettingsStore, CurrencyCode, LanguageCode } from '../store/settingsStore';
 
 export default function SettingsScreen() {
+  const { preferredCurrency, preferredLanguage, setCurrency, setLanguage } = useSettingsStore();
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{APP_NAME}</Text>
-      <Text style={styles.version}>版本 {APP_VERSION}</Text>
-      
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>設定</Text>
-        <Text style={styles.item}>🌸 主題：深藍 + 粉紅（hololive 風格）</Text>
-        <Text style={styles.item}>💰 幣別：新台幣 (TWD)</Text>
-        <Text style={styles.item}>🔍 預設分類：hololive</Text>
-      </View>
-      
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>價格來源</Text>
-        <Text style={styles.item}>🏪 遊々亭（日本二手卡牌）</Text>
-        <Text style={styles.item}>🔄 Carousell（旋轉拍賣）</Text>
-      </View>
-      
-      <Text style={styles.footer}>專為 hololive PCG 玩家打造</Text>
-    </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+      <ScrollView style={styles.container}>
+        <Text style={styles.title}>{APP_NAME}</Text>
+        <Text style={styles.version}>版本 {APP_VERSION}</Text>
+
+        {/* ── 語言設定 ── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>🌐 顯示語言</Text>
+          <View style={styles.optionRow}>
+            <TouchableOpacity
+              style={[styles.optionBtn, preferredLanguage === 'zh' && styles.optionBtnActive]}
+              onPress={() => setLanguage('zh')}
+            >
+              <Text style={[styles.optionText, preferredLanguage === 'zh' && styles.optionTextActive]}>
+                中文
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.optionBtn, preferredLanguage === 'ja' && styles.optionBtnActive]}
+              onPress={() => setLanguage('ja')}
+            >
+              <Text style={[styles.optionText, preferredLanguage === 'ja' && styles.optionTextActive]}>
+                日本語
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.hint}>
+            {preferredLanguage === 'zh'
+              ? '卡牌名稱將顯示中文翻譯（如：セシリア → 塞西莉亞·伊瑪格林）'
+              : 'カード名は日本語で表示されます'}
+          </Text>
+        </View>
+
+        {/* ── 幣別設定 ── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>💰 顯示幣別</Text>
+          <View style={styles.optionRow}>
+            {CURRENCIES.map((cur) => (
+              <TouchableOpacity
+                key={cur.code}
+                style={[styles.optionBtn, preferredCurrency === cur.code && styles.optionBtnActive]}
+                onPress={() => setCurrency(cur.code as CurrencyCode)}
+              >
+                <Text style={[styles.optionText, preferredCurrency === cur.code && styles.optionTextActive]}>
+                  {cur.symbol} {cur.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Text style={styles.hint}>
+            {preferredCurrency === 'TWD' && '價格以新台幣顯示（¥100 ≈ NT$22）'}
+            {preferredCurrency === 'JPY' && '價格以日圓原價顯示'}
+            {preferredCurrency === 'USD' && '價格以美元顯示（¥100 ≈ $0.67）'}
+          </Text>
+        </View>
+
+        {/* ── 價格來源資訊 ── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📊 價格來源</Text>
+          <Text style={styles.item}>🏪 遊々亭（日本二手卡牌市場）</Text>
+          <Text style={styles.item}>🔄 Carousell（旋轉拍賣）</Text>
+          <Text style={styles.item}>📈 匯率：JP¥1 = NT$0.22 = $0.0067</Text>
+        </View>
+
+        <Text style={styles.footer}>專為 hololive PCG 玩家打造</Text>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -45,7 +96,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 28,
   },
   sectionTitle: {
     color: COLORS.text,
@@ -55,6 +106,39 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 8,
+  },
+  optionBtn: {
+    flex: 1,
+    backgroundColor: COLORS.surfaceLight,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  optionBtnActive: {
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.primary + '18',
+  },
+  optionText: {
+    color: COLORS.textSecondary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  optionTextActive: {
+    color: COLORS.primary,
+  },
+  hint: {
+    color: COLORS.textSecondary + 'cc',
+    fontSize: 12,
+    paddingLeft: 4,
+    marginTop: 4,
   },
   item: {
     color: COLORS.textSecondary,
@@ -66,7 +150,7 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 12,
     textAlign: 'center',
-    marginTop: 'auto',
+    marginTop: 20,
     marginBottom: 20,
   },
 });
