@@ -296,16 +296,20 @@ export default function ScanScreen() {
           imgData = photo.uri;
         }
 
-        // ── Step 2: 叫 API 辨識 ──
+        // ── Step 2: 叫 API 辨識（15 秒 timeout）──
         let apiResult: any = null;
         let apiNetworkError = false;
         try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 15000);
           const apiUrl = window.location.origin + '/api/recognize-card';
           const resp = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ image: imgData }),
+            signal: controller.signal,
           });
+          clearTimeout(timeoutId);
           apiResult = await resp.json();
           console.log('[ScanScreen] API:', JSON.stringify(apiResult).slice(0, 600));
         } catch (e: any) {

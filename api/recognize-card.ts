@@ -160,6 +160,7 @@ TITLE: [title or NONE]`;
         max_tokens: 150,
         temperature: 0.0,
       }),
+      signal: AbortSignal.timeout(12000), // 12s timeout
     });
 
     if (!orRes.ok) {
