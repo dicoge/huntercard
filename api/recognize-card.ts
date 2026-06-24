@@ -260,10 +260,18 @@ TITLE: [title or NONE]`;
         }
 
         const allV = Object.values(cards).filter((e: any) => e.cardNumber === bestEntry.cardNumber) as any[];
-        const best = allV.find((e: any) => {
-          const prefix = (e.cardNumber || '').split('-')[0].toLowerCase();
-          return e.series?.toLowerCase() === prefix;
-        }) || allV.find((e: any) => e.series?.toLowerCase() !== 'hpr') || bestEntry;
+        // Prefer entry matching Gemini-detected rarity
+        let best = bestEntry;
+        if (geminiRarity) {
+          const rarityMatch = allV.find((e: any) => (e.rarity || '').toUpperCase() === geminiRarity);
+          if (rarityMatch) best = rarityMatch;
+        }
+        if (best === bestEntry) {
+          best = allV.find((e: any) => {
+            const prefix = (e.cardNumber || '').split('-')[0].toLowerCase();
+            return e.series?.toLowerCase() === prefix;
+          }) || allV.find((e: any) => e.series?.toLowerCase() !== 'hpr') || bestEntry;
+        }
         return json({ success: true, card: fmt(best), matchMethod: 'name', raw: reply });
       }
     }
