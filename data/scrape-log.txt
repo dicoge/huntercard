@@ -1,4 +1,4 @@
-=== Scrape Log 2026-06-23T12:01:43.559Z ===
+=== Scrape Log 2026-06-26T12:01:52.729Z ===
 ═══════════════════════════════════════
   hunterCard Database Builder
 ═══════════════════════════════════════
@@ -56,28 +56,28 @@
 [database] Scraping hSD17: /sell/hocg/s/search?search_word=&vers[]=hsd17
   → Found 11 cards with prices
 [database] Scraping hSD18: /sell/hocg/s/search?search_word=&vers[]=hsd18
-  → Found 10 cards with prices
+[ERROR]   → Error: Protocol error: Connection closed. Most likely the page has been closed.
 [database] Scraping hSD19: /sell/hocg/s/search?search_word=&vers[]=hsd19
-  → Found 11 cards with prices
+[ERROR]   → Error: Protocol error: Connection closed.
 [database] Scraping hYS01: /sell/hocg/s/hys01
-  → Found 4 cards with prices
+[ERROR]   → Error: Protocol error: Connection closed.
 [database] Scraping ent07: /sell/hocg/s/special/4
-  → Found 159 cards with prices
+[ERROR]   → Error: Protocol error: Connection closed.
 [database] Scraping hCS01: /sell/hocg/s/special/5
-  → Found 114 cards with prices
+[ERROR]   → Error: Protocol error: Connection closed.
 [database] Scraping hPC01: /sell/hocg/s/special/7
-  → Found 126 cards with prices
+[ERROR]   → Error: Protocol error: Connection closed.
 [database] Scraping hPR: /sell/hocg/s/special/1
-  → Found 88 cards with prices
+[ERROR]   → Error: Protocol error: Connection closed.
 [database] Scraping hSD2025summer: /sell/hocg/s/special/8
-  → Found 128 cards with prices
+[ERROR]   → Error: Protocol error: Connection closed.
 
-  Total cards from yuyu-tei: 1783
+  Total cards from yuyu-tei: 1143
 
 ── Step 2: Download images ──
 
 [database] Downloading images...
-  [images] Downloaded: 0, Skipped: 1170, Errors: 0
+  [images] Downloaded: 0, Skipped: 1072, Errors: 0
 
 ── Step 3: Merge official data ──
 
@@ -85,20 +85,28 @@
   [official] Loaded 2105 cards from 43 files
 
 ── Step 4: Build unified database ──
+[add-zh-names] 開始為卡片添加中文名稱...
+[add-zh-names] ⚠️ 過濾了 2 個損壞的翻譯條目 (含 U+FFFD)
+[add-zh-names] ✅ 載入 339 筆翻譯對照
+[add-zh-names] 📝 處理 2105 張卡片...
+[add-zh-names] ✅ 完成！
+[add-zh-names]   匹配: 2103 張卡片
+[add-zh-names]   未匹配: 2 張卡片
+[add-zh-names]   輸出: /Users/dicoge/hunterCard/data/database.json
 
 ═══════════════════════════════════════
   ✅ Build complete!
   Total cards: 2105
-  Cards with prices: 1170
+  Cards with prices: 1072
   Images downloaded: 0
-  Duration: 322.0s
+  Duration: 269.5s
   Output: /Users/dicoge/hunterCard/data/database.json
 ═══════════════════════════════════════
 
 Build result: {
   "totalCards": 2105,
-  "yuyuCount": 1170,
+  "yuyuCount": 1072,
   "officialCount": 2105,
   "imagesDownloaded": 0,
-  "duration": 322
+  "duration": 269.5
 }
