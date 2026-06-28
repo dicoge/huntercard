@@ -46,11 +46,7 @@ if git diff --stat -- 'data/database.json' 'data/images/' 'data/official/' 'data
   git push origin main >> "$LOG_FILE" 2>&1
   echo "[$(date)] ✅ Pushed to GitHub" >> "$LOG_FILE"
 
-  # 4. Trigger Vercel deploy hook
-  echo "[$(date)] Triggering Vercel deploy hook..." >> "$LOG_FILE"
-  DEPLOY_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
-    "https://api.vercel.com/v1/integrations/deploy/prj_Ki8VkQfL0eA3MAXBTGmq3GGDZ0zX/nKb6TOGH7C")
-  echo "[$(date)] Vercel deploy hook responded: $DEPLOY_RESPONSE" >> "$LOG_FILE"
+  # 4. Auto-deploy via GitHub push (holocard-hunter linked to main branch)
 else
   echo "[$(date)] No data changes, skipping push" >> "$LOG_FILE"
 fi
