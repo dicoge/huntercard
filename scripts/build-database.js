@@ -862,7 +862,7 @@ async function buildDatabase() {
   fs.writeFileSync(OUTPUT_PATH, JSON.stringify(database, null, 2, 'utf-8'));
 
   // Add Chinese names to cards
-  addZhNames(OUTPUT_PATH);
+  await addZhNames(OUTPUT_PATH);
 
   const duration = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(`\n═══════════════════════════════════════`);
